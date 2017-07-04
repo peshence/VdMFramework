@@ -7,12 +7,13 @@ class SG_Fit(FitManager.FitProvider):
 
     fitDescription = """ Single Gaussian with const background.
     ff = r.TF1("ff","[3] + [2]*exp(-(x-[1])**2/(2*[0]**2))")
-    ff.SetParNames("#Sigma","Mean","Amp","Const") """
+    ff.SetParNames("#Sigma","Mean","peak","Const") """
 
-    table = []
+    def __init__(self):
+        self.table = []
 
-    table.append(["Scan", "Type", "BCID", "sigma","sigmaErr","Amp","AmpErr", \
-                      "Mean","MeanErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
+        self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", \
+                      "Mean","MeanErr", "CapSigma", "CapSigmaErr","peak","peakErr",  \
                       "area", "areaErr","fitStatus", "chi2", "ndof"])
 
 
@@ -33,7 +34,7 @@ class SG_Fit(FitManager.FitProvider):
         ff = r.TF1("ff","[2]*exp(-(x-[1])**2/(2*[0]**2))")                                      
         ff.SetParameters(StartSigma,0.,StartPeak)
 
-        ff.SetParNames("#Sigma","Mean","Amp")
+        ff.SetParNames("#Sigma","Mean","peak")
 
 # if one does not want to set limits, set lower bound larger than upper bound in config file
         if LimitSigma_upper > LimitSigma_lower:
@@ -62,15 +63,15 @@ class SG_Fit(FitManager.FitProvider):
         fitStatus = -999
         fitStatus = fit.Status()
 
-        sigma = ff.GetParameter("#Sigma")
-        m = ff.GetParNumber("Sigma")
-        sigmaErr = ff.GetParError(m)
+        CapSigma = ff.GetParameter("#Sigma")
+        m = ff.GetParNumber("#Sigma")
+        CapSigmaErr = ff.GetParError(m)
         mean = ff.GetParameter("Mean")
         m = ff.GetParNumber("Mean")
         meanErr = ff.GetParError(m)
-        amp = ff.GetParameter("Amp")
-        m = ff.GetParNumber("Amp")
-        ampErr = ff.GetParError(m)
+        peak = ff.GetParameter("peak")
+        m = ff.GetParNumber("peak")
+        peakErr = ff.GetParError(m)
 
 
         title = graph.GetTitle()
@@ -85,15 +86,13 @@ class SG_Fit(FitManager.FitProvider):
 
         import math
         sqrttwopi = math.sqrt(2*math.pi)
-        CapSigma = sigma
-        CapSigmaErr = sigmaErr
-        peak = amp
-        peakErr = ampErr
+        sigma = CapSigma/math.sqrt(2)
+        sigmaErr = CapSigmaErr/math.sqrt(2)
         area  = sqrttwopi*peak*CapSigma
         areaErr = (sqrttwopi*CapSigma*peakErr)*(sqrttwopi*CapSigma*peakErr) + (sqrttwopi*peak*CapSigmaErr)*(sqrttwopi*peak*CapSigmaErr)
         areaErr = math.sqrt(areaErr)
 
-        self.table.append([scan, type, bcid, sigma, sigmaErr, amp, ampErr, mean, meanErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof])
+        self.table.append([scan, type, bcid, sigma, sigmaErr, mean, meanErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof])
 
         functions = [ff]
 

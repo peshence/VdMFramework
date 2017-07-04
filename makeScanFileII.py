@@ -27,6 +27,7 @@ def doMakeScanFile(ConfigInfo):
     print "Making scan file for scan during fill ", Fill
     print "Scans fell into time periods: "
     for entry in ScanTimeWindows:
+        print entry[0],entry[1]
         print "From ", pd.to_datetime(entry[0], unit = 's'), " to ",   pd.to_datetime(entry[1], unit = 's')  
     print ""
     
@@ -113,11 +114,11 @@ def doMakeScanFile(ConfigInfo):
                 sys.exit(1)
 
         nomSep = []
-        dfSP = pd.DataFrame()
-        if ("X" in scanName):
-            dfSP = dfPreSelect[SeparationPlane == "CROSSING"]           
-        if ("Y" in scanName):
-            dfSP = dfPreSelect[SeparationPlane == "SEPARATION"]
+        dfSP = dfPreSelect
+        # if ("X" in scanName):
+        #     dfSP = dfPreSelect[SeparationPlane == "CROSSING"]           
+        # if ("Y" in scanName):
+        #     dfSP = dfPreSelect[SeparationPlane == "SEPARATION"]
 
 # cut off zero separation points at very beginning and very end of scan            
         

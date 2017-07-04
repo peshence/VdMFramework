@@ -15,9 +15,10 @@ class DGConst_Fit(FitManager.FitProvider):
     [0] -> [0]*[1]/([3]*[1]+1-[3])
     [1] -> [0]/([3]*[1]+1-[3])"""
 
-    table = []
+    def __init__(self):
+        self.table = []
 
-    table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err","Amp","AmpErr", \
+        self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err","Amp","AmpErr", \
                       "Frac","FracErr","Mean","MeanErr", "Const", "ConstErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
                       "area", "areaErr", "fitStatus", "chi2", "ndof"])
 

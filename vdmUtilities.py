@@ -197,6 +197,7 @@ def doPlot1D(graph,fList, fill, tempPath):
     p2.SetLogy()
     p2.Draw()
     p1.Draw()
+    c.Update()
 
     
 # Convention: first entry in list is full fit function, second to len-1 is the various signal components, last entry is background function    
@@ -205,8 +206,8 @@ def doPlot1D(graph,fList, fill, tempPath):
     for i in range(0,len(new_flist)):
         fittedFunctions[i] = new_flist[i]
 
-# Convention: Amplitude is called "Amp" in full fit function
-    peak = new_flist[0].GetParameter("Amp")
+# Convention: Amplitude is called "peak" in full fit function
+    peak = new_flist[0].GetParameter("peak")
 
 # Convention: CapSigma, if it can be defined, is called "#Sigma"; if it is not defined for the fit function, root returns 1e-300 as value
     sigma = new_flist[0].GetParameter("#Sigma")
@@ -223,8 +224,6 @@ def doPlot1D(graph,fList, fill, tempPath):
 
 # determine minimum rate in graph to set range of y axis for display 
 
-    p2.cd()
-
     n = new_graph.GetN()
     y = array.array('d',[])
     y = new_graph.GetY()
@@ -232,7 +231,7 @@ def doPlot1D(graph,fList, fill, tempPath):
     minval = y[locmin]
     yval = []
 
-    if minval<0.:
+    if minval<0:
         print "Attention: Graph has negative rates for ", title 
         for i in range(n):
             yval.append(y[i])
@@ -251,8 +250,10 @@ def doPlot1D(graph,fList, fill, tempPath):
     new_graph.GetYaxis().SetTitleSize(18)
     new_graph.GetYaxis().SetTitleOffset(1.5)
     new_graph.GetXaxis().SetNdivisions(0)
-    new_graph.Draw('AP')
 
+    p2.cd()
+    new_graph.Draw('AP')
+    p2.Update()
 
 #    print "STATS", graph.GetListOfFunctions().FindObject("stats")
 #    print "STATS", graph.GetListOfFunctions().Print()
@@ -314,7 +315,6 @@ def doPlot1D(graph,fList, fill, tempPath):
     res.GetXaxis().SetTitle("#Delta [mm]")
     res.GetYaxis().SetTitle("Residuals [#sigma]")
     res.Draw("AP")
-
     try:
         c.SaveAs(tempPath[0]+new_graph.GetName()+".ps")
     except ValueError:

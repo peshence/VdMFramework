@@ -30,7 +30,6 @@ class fitResultReader:
 
         from collections import defaultdict
         fitParam = defaultdict(dict)
-
         for row in self.fitResultTable[1:]:
             scanNumber = row[0]
             scanName  = "Scan_"+str(scanNumber)

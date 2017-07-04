@@ -7,7 +7,7 @@ class DGConst_Fit(FitManager.FitProvider):
 
     fitDescription = """ Double Gaussian with const background.
     ff = r.TF1("ff","[5] + [2]*([3]*exp(-(x-[4])**2/(2*([0]*[1]/([3]*[1]+1-[3]))**2)) + (1-[3])*exp(-(x-[4])**2/(2*([0]/([3]*[1]+1-[3]))**2)) )")
-    ff.SetParNames("#Sigma","#sigma_{1}/#sigma_{2}","Amp","Frac","Mean","Const")
+    ff.SetParNames("#Sigma","#sigma_{1}/#sigma_{2}","peak","Frac","Mean","Const")
 
     Double gaussian formula with substition to effective width and widths ratio
     CapSigma = h*sigma1 + (1-h)*sigma2
@@ -15,9 +15,10 @@ class DGConst_Fit(FitManager.FitProvider):
     [0] -> [0]*[1]/([3]*[1]+1-[3])
     [1] -> [0]/([3]*[1]+1-[3])"""
 
-    table = []
+    def __init__(self):
+       self.table = []
 
-    table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err","Amp","AmpErr", \
+       self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err", \
                       "Frac","FracErr","Mean","MeanErr", "Const", "ConstErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
                       "area", "areaErr", "fitStatus", "chi2", "ndof"])
 
@@ -49,7 +50,7 @@ class DGConst_Fit(FitManager.FitProvider):
 
 
 	ff = r.TF1("ff","[5] + [2]*([3]*exp(-(x-[4])**2/(2*([0]*[1]/([3]*[1]+1-[3]))**2)) + (1-[3])*exp(-(x-[4])**2/(2*([0]/([3]*[1]+1-[3]))**2)) )")
-	ff.SetParNames("#Sigma","#sigma_{1}/#sigma_{2}","Amp","Frac","Mean","Const")
+	ff.SetParNames("#Sigma","#sigma_{1}/#sigma_{2}","peak","Frac","Mean","Const")
 
         ff.SetParameters(StartSigma,1.,StartPeak,StartFrac,0.,StartConst)
 
@@ -86,9 +87,9 @@ class DGConst_Fit(FitManager.FitProvider):
         sigRatio = ff.GetParameter("#sigma_{1}/#sigma_{2}")
         m = ff.GetParNumber("#sigma_{1}/#sigma_{2}")
         sigRatioErr = ff.GetParError(m)
-        amp = ff.GetParameter("Amp")
-        m = ff.GetParNumber("Amp")
-        ampErr = ff.GetParError(m)
+        peak = ff.GetParameter("peak")
+        m = ff.GetParNumber("peak")
+        peakErr = ff.GetParError(m)
         frac = ff.GetParameter("Frac")
         m = ff.GetParNumber("Frac")
         fracErr = ff.GetParError(m)
@@ -125,31 +126,30 @@ class DGConst_Fit(FitManager.FitProvider):
 
         CapSigma = sigma
         CapSigmaErr = sigmaErr
-        peak = amp
-        peakErr = ampErr
-
+        sigma = CapSigma / math.sqrt(2)
+        sigmaErr = CapSigmaErr / math.sqrt(2)
 # ----
         area  = sqrttwopi*peak*CapSigma
         areaErr = (sqrttwopi*CapSigma*peakErr)*(sqrttwopi*CapSigma*peakErr) + (sqrttwopi*peak*CapSigmaErr)*(sqrttwopi*peak*CapSigmaErr)
         areaErr = math.sqrt(areaErr)
 
-        self.table.append([scan, type, bcid, sigma, sigmaErr, sigRatio, sigRatioErr, amp, ampErr, frac, fracErr, mean, meanErr, const, constErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof])
+        self.table.append([scan, type, bcid, sigma, sigmaErr, sigRatio, sigRatioErr, frac, fracErr, mean, meanErr, const, constErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof])
 
 
 # Define signal and background pieces of full function separately, for plotting
 
         h = frac
         s2 = CapSigma/(h*sigRatio+1-h)
-        a1 = amp*h
-        a2 = amp*(1-h)
+        a1 = peak*h
+        a2 = peak*(1-h)
         s1 = CapSigma*sigRatio/(h*sigRatio+1-h)
 
         fSignal1 = r.TF1("fSignal1","[2]*exp(-(x-[1])**2/(2*[0]**2))")
-        fSignal1.SetParNames("#Sigma","Mean","Amp")
+        fSignal1.SetParNames("#Sigma","Mean","peak")
         fSignal1.SetParameters(s1, mean, a1)
 
         fSignal2 = r.TF1("fSignal2","[2]*exp(-(x-[1])**2/(2*[0]**2))")
-        fSignal2.SetParNames("#Sigma","Mean","Amp")
+        fSignal2.SetParNames("#Sigma","Mean","peak")
         fSignal2.SetParameters(s2, mean, a2)
 
         fBckgrd =r.TF1("fBckgrd","[0]")

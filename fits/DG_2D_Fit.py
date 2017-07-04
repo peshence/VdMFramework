@@ -10,9 +10,10 @@ class DG_2D_Fit(FitManager.FitProvider):
     f2D.SetParNames("#Sigma_{x}","S_{x}", "#Sigma_{y}","S_{y}","Mean_{x1}","Mean_{x2}","Mean_{y1}","Mean_{y2}","Fraction", "Amp")
     """
 
-    table = []
+    def __init__(self):
+        self.table = []
 
-    table.append(["Scan", "Type", "BCID", "sigma_x","sigma_x_Err", "S_x", "S_x_Err", "sigma_y","sigma_y_Err", "S_y", "S_y_Err", 
+        self.table.append(["Scan", "Type", "BCID", "sigma_x","sigma_x_Err", "S_x", "S_x_Err", "sigma_y","sigma_y_Err", "S_y", "S_y_Err", 
                       "Mean_x1", "Mean_x1_Err", "Mean_x2", "Mean_x2_err", "Mean_y1", "Mean_y1_Err", "Mean_y2", "Mean_y2_Err",  
                       "Amp","AmpErr", "Frac","FracErr", "peak", "peakErr", 
                       "integral", "integralErr", "fitStatus", "chi2", "ndof"])

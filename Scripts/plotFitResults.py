@@ -5,7 +5,7 @@ from vdmUtilities import makeCorrString
 
 r.gROOT.SetBatch(r.kTRUE)
 
-def addXsecPlots(description, paramName, param, paramErr, ouFileName):
+def addXsecPlots(description, paramName, param, paramErr, outFileName):
 
 
     noScanPairs = len(param)
@@ -87,7 +87,7 @@ def addXsecPlots(description, paramName, param, paramErr, ouFileName):
 
 
 
-def addPlots(description, paramName, param, paramErr, ouFileName):
+def addPlots(description, paramName, param, paramErr, outFileName):
 
     noScans = len(param)
 
@@ -103,7 +103,7 @@ def addPlots(description, paramName, param, paramErr, ouFileName):
     plot.GetXaxis().SetTitle('Scan number')
     plot.GetYaxis().SetTitle(paramName)
 
-#        XorY = scan[scan.keys()[0]]
+    #XorY = scan[scan.keys()[0]]
 
     i = 0
     for scan in param:
@@ -159,12 +159,8 @@ def addPlots(description, paramName, param, paramErr, ouFileName):
     plot_byBX[0].SetTitle(description + " " + paramName)
     canvas.SaveAs(outFileName +'(')
 
-
-
-if __name__ == '__main__':
-
-    configFile = sys.argv[1]
-
+def PlotFit(configFile):
+    
     config=open(configFile)
     ConfigInfo = json.load(config)
     config.close()
@@ -188,7 +184,7 @@ if __name__ == '__main__':
 
     description = Fill + " " + Luminometer + " " + FitName
 
-# special treatment for xsec plot where the result is per scan _pair_
+    # special treatment for xsec plot where the result is per scan _pair_
 
     paramName = "xsec"
     paramErrName = "xsecErr"
@@ -196,10 +192,10 @@ if __name__ == '__main__':
     paramErr = xsecResult.getFitParam(paramErrName)
     addXsecPlots(description, paramName, param, paramErr, outFileName)
 
-# Fit function parameters come in pairs of: value, valueErr
-# Hand over value, valuerErr dictionaries to plotAll
-# For other parameters, e.g. fit status, chi2, ndf, put them in separate list, for which pseudo error dictionary is provided where all errrors are set to 0.0
-# First find out where block of fit function parameters with their errors is
+    # Fit function parameters come in pairs of: value, valueErr
+    # Hand over value, valuerErr dictionaries to plotAll
+    # For other parameters, e.g. fit status, chi2, ndf, put them in separate list, for which pseudo error dictionary is provided where all errrors are set to 0.0
+    # First find out where block of fit function parameters with their errors is
     paramlist = fitResult.fitParamNames[3:]
     lasterridx = 0
     for idx, entry in enumerate(paramlist):
@@ -208,7 +204,7 @@ if __name__ == '__main__':
     fitlist = paramlist[:(lasterridx+1)]
     otherlist = paramlist[(lasterridx+1):]
 
-# pair fit function parameters with their errors
+    # pair fit function parameters with their errors
     fiterrpairs = zip(fitlist[0::2], fitlist[1::2])
 
     for entry in fiterrpairs:
@@ -231,7 +227,7 @@ if __name__ == '__main__':
         addPlots(description, paramName, param, paramErr, outFileName)
 
 
-# chi/ndof plot
+    # chi/ndof plot
 
     paramName = "chi2/ndof"
     param = fitResult.getFitParam("chi2")
@@ -255,3 +251,9 @@ if __name__ == '__main__':
 
     canvas = r.TCanvas()
     canvas.SaveAs(outFileName +']')
+
+
+if __name__ == '__main__':
+
+    configFile = sys.argv[1]
+    PlotFit(configFile)

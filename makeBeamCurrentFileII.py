@@ -7,7 +7,6 @@ import pandas as pd
 import json
 import os
 
-
 def sumCurrents(curr, bcidList):
 
     sumCurr = 0.0
@@ -77,10 +76,7 @@ def checkFBCTcalib(table, CalibrateFBCTtoDCCT):
 
     return [h_ratioB1, h_ratioB2, table]
 
-def getCurrents(datapath, scanpt, fill):
-
-#    print "beginning of getCurrents", scanpt
-    filelist = os.listdir(datapath)
+def getCurrents(datapath, scanpt, fill, filename = ''):
 
     beamts = []
     bx1data = []
@@ -103,36 +99,48 @@ def getCurrents(datapath, scanpt, fill):
     filledBunches2 = []
     collBunches=[]
 
-# omit very first nibble because it may not be fully contained in VdM scan
+    # omit very first nibble because it may not be fully contained in VdM scan
     tw = '(timestampsec >' + str(scanpt[0]) + ') & (timestampsec <=' +  str(scanpt[1]) + ')'
     print "tw", tw
 
-    for file in filelist:
-        h5file = tables.open_file(datapath + "/" + file, 'r')
-        beamtable = h5file.root.beam
-        bunchlist1 = [r['bxconfig1'] for r in beamtable.where(tw)] 
-        bunchlist2 = [r['bxconfig2'] for r in beamtable.where(tw)]        
-        beamtslist = [r['timestampsec'] for r in beamtable.where(tw)]
-        beamts = beamts + beamtslist
+    def readh5(filename, collBunches, filledBunches1, filledBunches2, beam1data, beam2data, bx1data, bx2data, beamts):
+        with tables.open_file(filename, 'r') as h5file:
+            # if not file or len(file) < 25 or h5file.root.beam[-1]['timestampsec'] < scanpt[0] or h5file.root.beam[0]['timestampsec'] > scanpt[1]:
+            #     h5file.close()
+            #     continue
+            beamtable = [(r['bxintensity1'], r['bxintensity2'], r['timestampsec'], r['intensity1'], r['intensity2']) for r in h5file.root.beam.where(tw)]
+            
+            removestrays = lambda a: np.array([0 if i < 6e9 else 1 for i in a])
+            bunchlist1 = [removestrays(r[0]) for r in beamtable] 
+            bunchlist2 = [removestrays(r[1]) for r in beamtable]        
+            beamtslist = [r[2] for r in beamtable]
+            beamts = beamts + beamtslist
 
-        if bunchlist1 and bunchlist2:
-            collBunches  = np.nonzero(bunchlist1[0]*bunchlist2[0])[0].tolist()
-            filledBunches1 = np.nonzero(bunchlist1[0])[0].tolist()
-            filledBunches2 = np.nonzero(bunchlist2[0])[0].tolist()
+            if bunchlist1 and bunchlist2:
+                collBunches  = np.nonzero(bunchlist1[0]*bunchlist2[0])[0].tolist()
+                filledBunches1 = np.nonzero(bunchlist1[0])[0].tolist()
+                filledBunches2 = np.nonzero(bunchlist2[0])[0].tolist()
 
-# dcct, i.e. current per beam
-            beam1list = [r['intensity1'] for r in beamtable.where(tw)]
-            beam2list = [r['intensity2'] for r in beamtable.where(tw)]
-            beam1data = beam1data + beam1list
-            beam2data = beam2data + beam2list
-# fbct, ie. current per bx 
-            bx1list = [r['bxintensity1'] for r in beamtable.where(tw)]
-            bx2list = [r['bxintensity2'] for r in beamtable.where(tw)]
-# only consider nominally filled bunches
-            bx1data = bx1data + (bx1list* bunchlist1[0]).tolist()
-            bx2data = bx2data + (bx2list* bunchlist2[0]).tolist()
-
-        h5file.close()
+                # dcct, i.e. current per beam
+                beam1list = [r[3] for r in beamtable]
+                beam2list = [r[4] for r in beamtable]
+                beam1data = beam1data + beam1list
+                beam2data = beam2data + beam2list
+                # fbct, ie. current per bx 
+                bx1list = [r[0] for r in beamtable]
+                bx2list = [r[1] for r in beamtable]
+                # only consider nominally filled bunches
+                bx1data = bx1data + (bx1list* bunchlist1[0]).tolist()
+                bx2data = bx2data + (bx2list* bunchlist2[0]).tolist()
+        return collBunches, filledBunches1, filledBunches2, beam1data, beam2data, bx1data, bx2data,beamts
+    
+    if datapath[-4:] == '.hd5':
+        collBunches, filledBunches1, filledBunches2, beam1data, beam2data, bx1data, bx2data,beamts = readh5(datapath, collBunches, filledBunches1, filledBunches2, beam1data, beam2data, bx1data, bx2data,beamts)
+    else:        
+        filelist = os.listdir(datapath)
+        for file in filelist:
+            if file[0] != 'b' and int(file[:4]) == int(fill):
+                collBunches, filledBunches1, filledBunches2, beam1data, beam2data, bx1data, bx2data,beamts = readh5(datapath + '/' + file, collBunches, filledBunches1, filledBunches2, beam1data, beam2data, bx1data, bx2data,beamts)        
 
     beam1df = pd.DataFrame(beam1data)
     beam2df = pd.DataFrame(beam2data)
@@ -146,7 +154,7 @@ def getCurrents(datapath, scanpt, fill):
         dcct1 = float(beam1df.mean())
         dcct2 = float(beam2df.mean())
 
-# attention: LHC bcid's start at 1, not at 0
+    # attention: LHC bcid's start at 1, not at 0
 
         ## In 4266 BCID 2674 is 3% too low in FBCT
         if fill == 4266:
@@ -195,97 +203,7 @@ def getCurrents(datapath, scanpt, fill):
             old=collBunches[idx]
             collBunches[idx]=old+1
 
-
     return dcct1, dcct2, fbct1, fbct2, filledBunches1, filledBunches2, collBunches
-
-
-def getCurrentsFromTimber( scanpt, fill, db, pytimber):
-
-
-#    print "beginning of getCurrents", scanpt
-
-    bx1data = []
-    bx2data = []
-
-    beam1data = []
-    beam2data = [] 
-
-# omit very first nibble because it may not be fully contained in VdM scan
-    tw = '(timestampsec >' + str(scanpt[0]) + ') & (timestampsec <=' +  str(scanpt[1]) + ')'
-    print "tw", tw
-
-    import time
-    import os,sys
-    import subprocess
-    import datetime
-    import pytz
-
-    utc_dt0 = datetime.datetime.utcfromtimestamp(scanpt[0])
-    aware_utc_dt0 = utc_dt0.replace(tzinfo=pytz.utc)
-    tz = pytz.timezone('Europe/Brussels')
-    dt0 = aware_utc_dt0.astimezone(tz)
-    dt0 = datetime.datetime.fromtimestamp(scanpt[0], tz)
-    
-    utc_dt1 = datetime.datetime.utcfromtimestamp(scanpt[1])
-    aware_utc_dt1 = utc_dt1.replace(tzinfo=pytz.utc)
-    dt1 = aware_utc_dt1.astimezone(tz)
-    dt1 = datetime.datetime.fromtimestamp(scanpt[1], tz)
-
-    t0=pytimber.parsedate(str(dt0).split('+')[0])
-    t1=pytimber.parsedate(str(dt1).split('+')[0])
-    
-    
-# dcct, i.e. current per beam
-    if fill>=4725: # first fill in 2016
-        ib1="LHC.BCTDC.A6R4.B1:BEAM_INTENSITY_ADC24BIT"
-        ib2="LHC.BCTDC.A6R4.B2:BEAM_INTENSITY_ADC24BIT"
-    else:
-        ib1="LHC.BCTDC.A6R4.B1:BEAM_INTENSITY"
-        ib2="LHC.BCTDC.A6R4.B2:BEAM_INTENSITY"
-
-    data=db.get([ib1,ib2],t0,t1)
-    timestamps,beam1data=data[ib1]
-    timestamps,beam2data=data[ib2]
-        
-    dcct1=beam1data.mean()
-    dcct2=beam2data.mean()
-
-# fbct, ie. current per bx (on timber by default only nominally filled bunches)
-
-    ib1="LHC.BCTFR.A6R4.B1:BUNCH_INTENSITY"
-    ib2="LHC.BCTFR.A6R4.B2:BUNCH_INTENSITY"
-
-    data1=db.get([ib1,ib2],t0,t0+62)
-
-    timestamps,bx1data=data1[ib1]
-    timestamps,bx2data=data1[ib2]
-    fbct1=bx1data.mean(axis=0)
-    fbct2=bx2data.mean(axis=0)
-
-
-
-# attention: LHC bcid's start at 1, not at 0
-    ## In 4266 BCID 2674 is 3% too low in FBCT
-    if fill == 4266:
-        #numpy magic ;D
-        #x[:,1::2] #all even
-        #x[:,::2] #all odd
-        #x[:,[0,2]] # first and third column
-        #x[:,[0]] # first column
-        fbct1[[2673]]=1.03*fbct1[[2673]]
-        fbct2[[2673]]=1.03*fbct1[[2673]]
-
-    ## In 4634 even BCIDs are 4% too high in FBCT
-    elif fill == 4634:
-        fbct1[1::2]=1.04*fbct1[1::2]
-
-    fbct1_dict = dict(enumerate(fbct1.flatten(), 1))
-    fbct2_dict = dict(enumerate(fbct2.flatten(), 1))
-    fbct1_dict  = {str(k):float(v) for k,v in fbct1_dict.items()}
-    fbct2_dict  = {str(k):float(v) for k,v in fbct2_dict.items()}
-
-    return dcct1, dcct2, fbct1_dict, fbct2_dict
-
 
 ############################
 def doMakeBeamCurrentFile(ConfigInfo):
@@ -299,28 +217,14 @@ def doMakeBeamCurrentFile(ConfigInfo):
 
     outpath = './' + AnalysisDir + '/' + OutputSubDir 
 
-    ReadFromTimber = False
-    try:
-        if 'ReadFromTimber' in ConfigInfo:
-            ReadFromTimber = ConfigInfo['ReadFromTimber']
-            import pytimber as pytimber                                                                                                                                                                 
-            db = pytimber.LoggingDB()
-    except:
-        print "makeBeamCurrentFileII: add ReadFromTimber argument in makeBeamCurrentFileConfig"
-
     CalibrateFBCTtoDCCT = False
     CalibrateFBCTtoDCCT = ConfigInfo['CalibrateFBCTtoDCCT']
 
-    
     with open(InputScanFile, 'rb') as f:
         scanInfo = pickle.load(f)
 
     Fill = scanInfo["Fill"]     
     ScanNames = scanInfo["ScanNames"]     
-    
-    CollidingBunches = scanInfo["CollidingBunches"]
-    FilledBunchesB1 = scanInfo["FilledBunchesB1"]
-    FilledBunchesB2 = scanInfo["FilledBunchesB2"]
 
     table = {}
     csvtable = []
@@ -332,11 +236,7 @@ def doMakeBeamCurrentFile(ConfigInfo):
         scanpoints = scanInfo[key]
         table["Scan_" + str(i+1)]=[]
         for j, sp in enumerate(scanpoints):
-            if (ReadFromTimber):
-                avrgdcct1, avrgdcct2, avrgfbct1, avrgfbct2 = getCurrentsFromTimber( sp[3:], int(Fill), db, pytimber)
-            else:
-                avrgdcct1, avrgdcct2, avrgfbct1, avrgfbct2, FilledBunchesB1, FilledBunchesB2, CollidingBunches = getCurrents(InputCentralPath, sp[3:], int(Fill))
-
+            avrgdcct1, avrgdcct2, avrgfbct1, avrgfbct2, FilledBunchesB1, FilledBunchesB2, CollidingBunches = getCurrents(InputCentralPath, sp[3:], int(Fill))
 
 #Sums over all filled bunches
             sumavrgfbct1 = sumCurrents(avrgfbct1, FilledBunchesB1) 

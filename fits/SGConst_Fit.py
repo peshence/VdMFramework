@@ -7,12 +7,14 @@ class SGConst_Fit(FitManager.FitProvider):
 
     fitDescription = """ Single Gaussian with const background.
     ff = r.TF1("ff","[3] + [2]*exp(-(x-[1])**2/(2*[0]**2))")
-    ff.SetParNames("#Sigma","Mean","Amp","Const") """
+    ff.SetParNames("#Sigma","Mean","peak","Const") """
 
-    table = []
+    def __init__(self):
+
+        self.table = []
 
 
-    table.append(["Scan", "Type", "BCID", "sigma","sigmaErr","Amp","AmpErr", \
+        self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", \
                       "Mean","MeanErr", "Const", "ConstErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
                       "area", "areaErr","fitStatus", "chi2", "ndof"])
 
@@ -37,7 +39,7 @@ class SGConst_Fit(FitManager.FitProvider):
 
 
         ff = r.TF1("ff","[3] + [2]*exp(-(x-[1])**2/(2*[0]**2))")
-        ff.SetParNames("#Sigma","Mean","Amp","Const")
+        ff.SetParNames("#Sigma","Mean","peak","Const")
 
         ff.SetParameters(StartSigma,0.,StartPeak, StartConst)
 
@@ -64,15 +66,15 @@ class SGConst_Fit(FitManager.FitProvider):
         fitStatus = -999
         fitStatus = fit.Status()
 
-        sigma = ff.GetParameter("#Sigma")
-        m = ff.GetParNumber("Sigma")
-        sigmaErr = ff.GetParError(m)
+        CapSigma = ff.GetParameter("#Sigma")
+        m = ff.GetParNumber("#Sigma")
+        CapSigmaErr = ff.GetParError(m)
         mean = ff.GetParameter("Mean")
         m = ff.GetParNumber("Mean")
         meanErr = ff.GetParError(m)
-        amp = ff.GetParameter("Amp")
-        m = ff.GetParNumber("Amp")
-        ampErr = ff.GetParError(m)
+        peak = ff.GetParameter("peak")
+        m = ff.GetParNumber("peak")
+        peakErr = ff.GetParError(m)
         const = ff.GetParameter("Const")
         m = ff.GetParNumber("Const")
         constErr = ff.GetParError(m)
@@ -102,10 +104,8 @@ class SGConst_Fit(FitManager.FitProvider):
 #        peak = const + amp
 #        peakErr = math.sqrt(constErr*constErr+ampErr*ampErr)
 
-        CapSigma = sigma
-        CapSigmaErr = sigmaErr
-        peak = amp
-        peakErr = ampErr
+        sigma = CapSigma/math.sqrt(2)
+        sigmaErr = CapSigmaErr/math.sqrt(2)
 
 # --
 
@@ -117,17 +117,17 @@ class SGConst_Fit(FitManager.FitProvider):
 
 
 
-        self.table.append([scan, type, bcid, sigma, sigmaErr, amp, ampErr, mean, meanErr, const, constErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof])
+        self.table.append([scan, type, bcid, sigma, sigmaErr, mean, meanErr, const, constErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof])
 
 
 # Define signal and background pieces of full function separately, for plotting
 
         fSignal = r.TF1("fSignal","[2]*exp(-(x-[1])**2/(2*[0]**2))")
         fSignal.SetParNames("#Sigma","Mean","Amp")
-        fSignal.SetParameters(sigma, mean, amp)
+        fSignal.SetParameters(CapSigma, mean, peak)
 
         import array
-        errors = array.array('d',[sigmaErr, meanErr, ampErr])
+        errors = array.array('d',[CapSigmaErr, meanErr, peakErr])
         fSignal.SetParErrors(errors)
 
         fBckgrd =r.TF1("fBckgrd","[0]")

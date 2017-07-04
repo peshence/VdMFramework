@@ -10,6 +10,7 @@ import math
 
 from inputDataReaderII import * 
 from vdmUtilities import showAvailableCorrs
+import fitResultReader
 
 ###################
 #check for missed data
@@ -45,25 +46,25 @@ def doMakeGraphsFile(ConfigInfo):
     inputLuminometerData = str(ConfigInfo['InputLuminometerData'])
     corrName = ConfigInfo['Corr']
 
-# For scan 1, which is always there as long as there are any scans at all:
+    # For scan 1, which is always there as long as there are any scans at all:
 
     inData1 = vdmInputData(1)
 
     inData1.GetScanInfo(AnalysisDir + '/'+ inputScanFile)
-#inData1.PrintScanInfo()
+    #inData1.PrintScanInfo()
 
     inData1.GetBeamCurrentsInfo(AnalysisDir + '/' + inputBeamCurrentFile)
-#    inData1.PrintBeamCurrentsInfo()
+    #inData1.PrintBeamCurrentsInfo()
 
     inData1.GetLuminometerData(AnalysisDir + '/' + inputLuminometerData)
-#    inData1.PrintLuminometerData()
+    #inData1.PrintLuminometerData()
 
     Fill = inData1.fill
     
     inData = []
     inData.append(inData1)
 
-# For the remaining scans:
+    # For the remaining scans:
 
     for i in range(1,len(inData1.scanNamesAll)):
         inDataNext = vdmInputData(i+1)
@@ -72,7 +73,7 @@ def doMakeGraphsFile(ConfigInfo):
         inDataNext.GetLuminometerData(AnalysisDir + '/' + inputLuminometerData)
         inData.append(inDataNext)
 
-#Check for missing data
+    #Check for missing data
     missedDataInfo="Information on missed data\n"
     if "BeamBeam" in corrName:
         missedDataInfo=missedDataInfo+"BeamBeam has been applied: Only BCIDs with complete scanpoint lists are considered\n See BeamBeam_.log for the list of excluded BCID\n"
@@ -90,8 +91,8 @@ def doMakeGraphsFile(ConfigInfo):
         missedSPList=checkScanpointList(entry)
         missedDataInfo=missedDataInfo+missedSPList+"\n"
 
-# Apply corrections
-# Note that calibrating SumFBCT to DCCT is done in makeBeamCurrentFile.py if calibration flag in config file is set to true
+    # Apply corrections
+    # Note that calibrating SumFBCT to DCCT is done in makeBeamCurrentFile.py if calibration flag in config file is set to true
 
     showAvailableCorrs()
 
@@ -107,7 +108,7 @@ def doMakeGraphsFile(ConfigInfo):
 
         print "Now applying correction: ", entry
 
-# Check whether correction requested in config json actually exists
+    # Check whether correction requested in config json actually exists
 
         key = entry+'_Corr'
         if key in availableCorr:
@@ -117,34 +118,35 @@ def doMakeGraphsFile(ConfigInfo):
                 print "Correction " + entry + " requested via json file does not exist, ignore."
             continue
 
-# Read Corr config in here
+    # Read Corr config in here
 
         corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + Fill +'.pkl' 
         if entry == "BeamBeam":
-            corrValueFile = AnalysisDir + '/corr/'+ entry + '_' +Luminometer + '_' + Fill +'.pkl' 
+            corrValueFile = AnalysisDir + '/corr/'+ entry + '_' +Luminometer + '_' + Fill +'.pkl'
+        if 'inputlumi' in ConfigInfo:
+            corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + ConfigInfo['inputlumi'] + '_' + Fill +'.pkl'
             
         corrector.doCorr(inData, corrValueFile)
 
         corrFull = corrFull + '_' + entry 
 
-# check if any corrections are to be applied at all, if yes, define corr description string accordingly
-# if no use "noCorr"
+    # check if any corrections are to be applied at all, if yes, define corr description string accordingly
+    # if no use "noCorr"
 
     import os
 
-# empty strings are false, so if no corrections are to be applied, use noCorr as corr descriptor
+    # empty strings are false, so if no corrections are to be applied, use noCorr as corr descriptor
     if  not corrFull:
         corrFull = "_noCorr"
 
 
-# Now fill graphs for all scans
-# Counting of scans starts with 1
+    # Now fill graphs for all scans
+    # Counting of scans starts with 1
     graphsListAll = {'Scan_'+ str(n+1):{} for n in range(len(inData))} 
 
     missedDataInfo=missedDataInfo+"Excluded BCIDs with too short scanpoint list:\n"
 
     for entry in inData:
-    
         scanNumber = entry.scanNumber
         print "Now at Scan number ", scanNumber
         nBX = len(entry.usedCollidingBunches)
@@ -155,14 +157,14 @@ def doMakeGraphsFile(ConfigInfo):
             prefix = str(scanNumber)+'_Y_'
 
         omittedBXList=[]
-    # convert for TGraph
+        # convert for TGraph
         from array import array
 
         graphsList = {}
 
         for i, bx in enumerate(entry.usedCollidingBunches):
-# BCIDs written at small number of SP are omitted (the list of short omitted bunches is added to log)            
-# to avoid problems in vdmFitter: the number of SP should exceed the minimal number of freedom degrees for fitting
+            # BCIDs written at small number of SP are omitted (the list of short omitted bunches is added to log)            
+            # to avoid problems in vdmFitter: the number of SP should exceed the minimal number of freedom degrees for fitting
 
              if len(entry.spPerBX[bx])>5:
                 coord=entry.spPerBX[bx]
@@ -171,11 +173,9 @@ def doMakeGraphsFile(ConfigInfo):
                 coorde = array("d", coorde)
                 currProduct = [ a*b/1e22 for a,b in zip(entry.avrgFbctB1PerBX[bx],entry.avrgFbctB2PerBX[bx])]
                 if len(entry.spPerBX[bx])!=len(entry.splumiPerBX[bx]):
-                    print "Attention: bx=", bx, ", number of scanpoints for lumi and currents do not match, normalization is not correct"         
-                lumi = [a/b for a,b in zip(entry.lumiPerBX[bx],currProduct)]
-                lumie = [a/b for a,b in zip(entry.lumiErrPerBX[bx],currProduct)]
-                #lumi = [a/b for a,b in zip(entry.lumi[i],currProduct)]
-                #lumie = [a/b for a,b in zip(entry.lumiErr[i],currProduct)]
+                    print "Attention: bx=", bx, ", number of scanpoints for lumi and currents do not match, normalization is not correct"
+                lumi = [a/b for a,b in zip(entry.lumi[i],currProduct)]
+                lumie = [a/b for a,b in zip(entry.lumiErr[i],currProduct)]
 
                 lumie = array("d",lumie)
                 lumi = array("d",lumi)
@@ -183,11 +183,11 @@ def doMakeGraphsFile(ConfigInfo):
                 graph = r.TGraphErrors(len(coord),coord,lumi,coorde,lumie)
                 graph.SetName(name)
                 graph.SetTitle(name)
-                graph.SetMinimum(0.000001)
+                #graph.SetMinimum(0.000001)
                 graphsList[int(bx)] = graph
              else:
                 omittedBXList.append(bx)
-# same for the sum, as double check, where sumLumi comes from avgraw
+        # same for the sum, as double check, where sumLumi comes from avgraw
         try:
             coord = entry.displacement
             coorde = [0.0 for a in coord] 
@@ -233,7 +233,7 @@ if __name__ == '__main__':
     outputDir = AnalysisDir +'/' + Luminometer + '/' + OutputSubDir + '/'
     outFileName = 'graphs_' + str(Fill) + corrFull
 
-# save TGraphs in a ROOT file
+    # save TGraphs in a ROOT file
     rfile = r.TFile(outputDir + outFileName + '.root',"recreate")
 
     for key in sorted(graphsListAll.iterkeys()):

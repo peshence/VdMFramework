@@ -30,15 +30,15 @@ class SimCapSigma_PCCAndVtx_Fit(FitManager.FitProvider):
     [0] -> [0]*[1]/([3]*[1]+1-[3])
     [1] -> [0]/([3]*[1]+1-[3])
     '''
+    def __init__(self):
+       self.table_Luminometer1 = []
+       self.table_Luminometer2 = []
 
-    table_Luminometer1 = []
-    table_Luminometer2 = []
-
-    table_Luminometer1.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err","Amp","AmpErr", \
+       self.table_Luminometer1.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err","Amp","AmpErr", \
                                    "Frac","FracErr","Mean","MeanErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
                                    "area", "areaErr","fitStatus", "chi2", "ndof"])
     
-    table_Luminometer2.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err","Amp","AmpErr", \
+       self.table_Luminometer2.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err","Amp","AmpErr", \
                                    "Frac","FracErr","Mean","MeanErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
                                    "area", "areaErr","fitStatus", "chi2", "ndof"])
 

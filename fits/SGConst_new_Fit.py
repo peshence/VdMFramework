@@ -8,11 +8,11 @@ class SGConst_Fit(FitManager.FitProvider):
     fitDescription = """ Single Gaussian with const background.
     ff = r.TF1("ff","[3] + [2]*exp(-(x-[1])**2/(2*[0]**2))")
     ff.SetParNames("#Sigma","Mean","Amp","Const") """
+    def __init__(self):
+        self.table = []
 
-    table = []
 
-
-    table.append(["Scan", "Type", "BCID", "sigma","sigmaErr","Amp","AmpErr", \
+        self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr","Amp","AmpErr", \
                       "Mean","MeanErr", "Const", "ConstErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
                       "area", "areaErr","fitStatus", "chi2", "ndof"])
 

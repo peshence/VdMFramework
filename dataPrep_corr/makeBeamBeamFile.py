@@ -203,7 +203,6 @@ def doMakeBeamBeamFile(ConfigInfo):
             row = [scany, "Y"+str(scany), i+1, orbitCorrY_xcoord[i], orbitCorrY_ycoord[i]]
             table[keyy].append(row)
             csvtable.append(row)
-
     return table, csvtable
 
 ########################################
