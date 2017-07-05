@@ -1,0 +1,9 @@
+{{
+"Fill" : "{fill}",
+"AnalysisDir" : "{analysisdir}",
+"Luminometer": "{luminometer}",
+"Corr" : {corrs},
+"Comment": "Input fit results file in <AnalysisDir>/<Luminometer>/results/<Corr>", 
+"InputFitResultsFile" : "{fit}_FitResults.pkl",
+"FitName": "{fit}"
+}}

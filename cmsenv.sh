@@ -1,0 +1,12 @@
+export ROOTSYS=/nfshome0/lumipro/brilconda/root
+export PATH=$ROOTSYS/bin:$PATH
+export LD_LIBRARY_PATH=$ROOTSYS/lib:/nfshome0/lumipro/brilconda/lib
+export PYTHONPATH=/nfshome0/lumipro/brilconda/lib
+export PYTHONPATH=$ROOTSYS/lib:$PYTHONPATH
+export PYTHONPATH=${PWD}:$PYTHONPATH
+export PYTHONPATH=${PWD}/fits:$PYTHONPATH
+export PYTHONPATH=${PWD}/corrections:$PYTHONPATH
+export PYTHONPATH=${PWD}/Automation:$PYTHONPATH
+export VDMPATH=$PWD
+export PATH=/nfshome0/lumipro/brilconda/bin:$PATH
+unset ROOTSYS

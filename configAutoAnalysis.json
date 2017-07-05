@@ -1,0 +1,8 @@
+{
+    "Comment": "Folder path has to be relative",
+    "automation_folder": "Automation/",
+    "luminometers": ["PLT", "HFET", "BCM1F", "HFOC"],
+    "fits": ["SG", "SGConst","SGConst","SGConst"],
+    "dfits": ["DG","DGConst","DGConst","DGConst"],
+    "ratetables": ["pltlumizero", "hfetlumi", "bcm1flumi", "hfoclumi"]
+}
