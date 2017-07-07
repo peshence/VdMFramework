@@ -34,6 +34,7 @@ def GetOutput(fitresults, calibration, timestamp, fill, run, detector, crossing_
         fitresults is the fit results table that comes out of vdmFitterII.py and vdmDriverII.py
         calibration is the table that comes out of calculateCalibrationConstant.py
     '''
+    print type(crossing_angle)
     output = {'timestamp':timestamp, 'fill':fill, 'run':run, 'detector':detector, 'crossing_angle':crossing_angle}
     
     output.update(GetVariable(fitresults, 'CapSigma', 'X'))

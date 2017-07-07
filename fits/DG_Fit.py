@@ -64,14 +64,14 @@ class DG_Fit(FitManager.FitProvider):
 # see http://root.cern.ch/phpBB3/viewtopic.php?f=14&t=14473, http://root.cern.ch/phpBB3/viewtopic.php?f=13&t=16844, https://agenda.infn.it/getFile.py/access?resId=1&materialId=slides&confId=4933 slide 23
 
 #        r.gROOT.ProcessLine("gSystem->RedirectOutput(\".\/minuitlogtmp\/Minuit.log\", \"a\");")
-        r.gROOT.ProcessLine("gSystem->RedirectOutput(\"./minuitlogtmp/Minuit.log\", \"a\");")
-        r.gROOT.ProcessLine("gSystem->Info(0,\"Next BCID\");")
+        # r.gROOT.ProcessLine("gSystem->RedirectOutput(\"./minuitlogtmp/Minuit.log\", \"a\");")
+        # r.gROOT.ProcessLine("gSystem->Info(0,\"Next BCID\");")
 
         for j in range(5):
-            fit = graph.Fit("ff","S")
+            fit = graph.Fit("ff","SQ")
             if fit.CovMatrixStatus()==3 and fit.Chi2()/fit.Ndf() < 2: break
 
-        r.gROOT.ProcessLine("gSystem->RedirectOutput(0);")
+        # r.gROOT.ProcessLine("gSystem->RedirectOutput(0);")
 
         fitStatus = -999
         fitStatus = fit.Status()

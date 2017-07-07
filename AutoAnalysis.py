@@ -5,6 +5,8 @@ import time
 import traceback
 import requests
 import argparse
+import subprocess
+import re
 
 import numpy as np
 import pandas as pd
@@ -56,7 +58,7 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
         data = Configurator.RemapVdMDIPData(
             pd.DataFrame.from_records(h5.root.vdmscan[:]))
 
-        # ratetables = [i.name for i in h5.root if 'lumi' in i.name]
+        ratetables = [i.name for i in h5.root if 'lumi' in i.name]
         
         fill = int(data.loc[0,'fill'])
         run = int(data.loc[0,'run'])
@@ -69,22 +71,21 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
                 pd.DataFrame.from_records(h5.root.vdmscan[:]))
             filename = os.path.dirname(filename)
         data = data.append(data2, ignore_index = True)
+    luminometers = []
+    fits = []
+    for r in ratetables:
+        l = re.match('([a-z1]*)lumi(.*)', r).group(1)#('PLT' if 'plt' == r[:3] else (r[:4] if r[:5] != 'bcm1f' else 'bcm1f'))
+        l = l if r != 'hflumi' else 'hfoc'
+        if filename2:
+            f = ('DG' if 'plt' == r[:3] else 'DGConst')
+        else:
+            f = ('SG' if 'plt' == r[:3] else 'SGConst')
+        if str.isdigit(r[-1]):
+            l = l + r[-2:]
+        luminometers.append(l.upper())
+        fits.append(f)
 
-    # luminometers = []
-    # fits = []
-    # for r in ratetables:
-    #     l = re.match('([a-z1]*)lumi(.*)', r).group(1)#('PLT' if 'plt' == r[:3] else (r[:4] if r[:5] != 'bcm1f' else 'bcm1f'))
-    #     l = l if r != 'hflumi' else 'hfoc'
-    #     if filename2:
-    #         f = ('DG' if 'plt' == r[:3] else 'DGConst')
-    #     else:
-    #         f = ('SG' if 'plt' == r[:3] else 'SGConst')
-    #     if str.isdigit(r[-1]):
-    #         l = l + r[-2:]
-    #     luminometers.append(l.upper())
-    #     fits.append(f)
-
-
+        
     timestamp = lambda i: dt.datetime.fromtimestamp(
         data.iloc[i]['sec']).strftime('%d%b%y_%H%M%S')
     name = str(fill) + '_' + timestamp(0) + \
@@ -98,6 +99,7 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
                             + '\n' + message)
         return
 
+    procs = []
     for i, [luminometer, fit, ratetable] in enumerate(zip(luminometers, fits, ratetables)):
         if ratetable == 'hfoclumi' and fill < 5737:
             ratetable = 'hflumi'
@@ -107,12 +109,27 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
             Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = int(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
         else:
             Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, automation_folder=automation_folder)
-        fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
-        
-        if post:
+        # fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
+        if i == 0:
+            fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
+        else:
+            # this is done like this because ROOT is being a bitch and I'm in a hurry, it should be doable with the threading module 
+            proc = subprocess.Popen(['python', 'runAnalysis.py','-n', name,'-l',luminometer,'-f',fit,'-c',corr,'-a',automation_folder])
+            procs.append(proc)
+        # if post:
+        #     PostOutput(fitresults, calibration, times, fill, run, True if test else False, name, luminometer, fit, angle, corr, automation_folder=folder)
+    print len(procs)
+    for j,p in enumerate(procs):
+        print j
+        p.wait()
+    if post:
+        for i, [luminometer, fit, ratetable] in enumerate(zip(luminometers, fits, ratetables)):
+            fitresults = pickle.load(open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/' + fit + '_FitResults.pkl'))
+            calibration = pickle.load(open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl'))
+            fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
+            calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
             PostOutput(fitresults, calibration, times, fill, run, True if test else False, name, luminometer, fit, angle, corr, automation_folder=folder)
-        
-    print 'chmod -R 777 ' + automation_folder + 'Analysed_Data/' + name
+    
     os.system('chmod -R 777 ' + os.getcwd() + '/' + automation_folder + 'Analysed_Data/' + name)
 
 def RunWatcher(corr, test, central = central_default):
@@ -129,7 +146,7 @@ def RunWatcher(corr, test, central = central_default):
     while True:
         try:
             after = os.listdir(central)
-            print after
+            print after[-10:]
             added = [f for f in after if not f in before]
 
             for a in added:
@@ -168,22 +185,22 @@ def RunWatcher(corr, test, central = central_default):
             logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
                             + '\n' + message)
                     
-        print 'step'
-        time.sleep(10)
+        print 'step' + dt.datetime.now()
+        time.sleep(20)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument( '-f', '--filename', help='When you need to analyse a single file outside of loop')
     parser.add_argument( '-c', '--central', help='Folder to watch, default is ' + central_default)
     parser.add_argument( '-b', '--beambeam', help='If you want beam beam correction', action='store_true')
-    parser.add_argument( '-t', '--test', help='only for testing purposes, see code before using!', action='store_true')
+    parser.add_argument( '-t', '--test', help='Post to test instead of normal service', action='store_true')
     parser.add_argument( '-p', '--post', help='if you want your one time analysis posted (watcher automatically posts)', action='store_true')
     parser.add_argument( '-f2', '--filename2', help='Second scan of your scan pair')
     parser.add_argument( '-d', '--double', help='Use double gaussians instead of single', action='store_true')
+    parser.add_argument( '-r', '--rerun', help='Runs all hd5 file analysis with single gaussians', action='store_true')
     args = parser.parse_args()
-
     corr = 'noCorr'
-    print os.umask(int('000',base=8))
+    
     config = json.load(open('configAutoAnalysis.json'))
     global luminometers,fits,ratetables
     luminometers = config['luminometers']
@@ -201,5 +218,17 @@ if __name__ == '__main__':
         Analyse(args.filename, corr, args.test, post = args.post, automation_folder = folder)
     elif (args.central):
         RunWatcher(corr, args.test, args.central)
+    elif (args.rerun):
+        for i in os.listdir(central_default):
+            if i[-4:]=='.hd5':# and int(i[:4]) > 5746:
+                try:
+                    Analyse(central_default+i,corr,args.test, post = args.post, automation_folder = folder)
+                except (KeyboardInterrupt, SystemExit):
+                    raise 
+                except:
+                    message = 'Error on ' + i + '\n' + traceback.format_exc()
+                    print message
+                    logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
+                                + '\n' + message)
     else:
         RunWatcher(corr, args.test)

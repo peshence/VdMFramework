@@ -7,7 +7,7 @@ import datetime as dt
 
 
 #lumis = ['PLT', 'HFLumi', 'BCM1F', 'HFLumiET']
-lumis = ['PLT', 'HFOC', 'BCM1F', 'HFET']
+lumis = ['PLT', 'HFOC', 'BCM1F', 'HFET', 'HFLumi', 'HFLumiET']
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file')
 args = parser.parse_args()
@@ -27,9 +27,9 @@ def repost(folder):
             if lumi in j and not (lumi == 'HFLumi' and 'HFLumiET' in j):
                 jd = json.load(open(folder + j))                
                 jd['detector'] = 'HFOC' if jd['detector']=='HFLumi' else ('HFET' if jd['detector']=='HFLumiET' else jd['detector'])
-                #jd.update({'fit': re.match(fitr, j).group(1)})
+                jd.update({'fit': re.match(fitr, j).group(1)})
                 requests.post(
-                    'http://srv-s2d16-22-01.cms:11001/vdm', json.dumps(jd))
+                    'http://srv-s2d16-22-01.cms:11001/vdmtest', json.dumps(jd))
 
 
 if args.file:
