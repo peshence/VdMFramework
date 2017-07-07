@@ -6,7 +6,7 @@ import requests
 endpoint = 'http://srv-s2d16-22-01.cms:11001/vdm'
 testendpoint = 'http://srv-s2d16-22-01.cms:11001/vdmtest'
 
-def PostOutput(fitresults, calibration, times, fill, test, name, luminometer, fit, corr = 'noCorr', automation_folder = 'Automation/'):
+def PostOutput(fitresults, calibration, times, fill, run, test, name, luminometer, fit, crossing_angle, corr = 'noCorr', automation_folder = 'Automation/'):
     ''' Posts data to listener service for online monitoring
         fitresults is the fit results table that comes out of vdmFitterII.py and vdmDriverII.py
         calibration is the table that comes out of calculateCalibrationConstant.py
@@ -18,7 +18,7 @@ def PostOutput(fitresults, calibration, times, fill, test, name, luminometer, fi
     for j in range(len(gb))[::2]:
         output = GetOutput(gb[str(j+1)].append(gb[str(j+2)]),
                     calibration.loc[calibration.XscanNumber_YscanNumber == str(j+1) + '_' + str(j+2)],
-                    int(times[j][0][0]), fill, 0, luminometer)
+                    int(times[j][0][0]), fill, run, luminometer, crossing_angle)
 
         json.dump(output, open(automation_folder + 'Analysed_Data/' + name + '/' + 'output' + str(fill) + luminometer + fit + '.json', 'w'))
         if test:
@@ -28,16 +28,19 @@ def PostOutput(fitresults, calibration, times, fill, test, name, luminometer, fi
         else:
             requests.post(endpoint, json.dumps(output))
 
-def GetOutput(fitresults, calibration, timestamp, fill, run, detector):
+def GetOutput(fitresults, calibration, timestamp, fill, run, detector, crossing_angle):
     '''Gets a json string with xsec, CapSigma, peak, chi2/ndof and SBIL
     
         fitresults is the fit results table that comes out of vdmFitterII.py and vdmDriverII.py
         calibration is the table that comes out of calculateCalibrationConstant.py
     '''
-    output = {'timestamp':timestamp, 'fill':fill, 'run':run, 'detector':detector}
+    output = {'timestamp':timestamp, 'fill':fill, 'run':run, 'detector':detector, 'crossing_angle':crossing_angle}
     
     output.update(GetVariable(fitresults, 'CapSigma', 'X'))
     output.update(GetVariable(fitresults, 'CapSigma', 'Y'))
+    
+    output.update(GetVariable(fitresults, 'Mean', 'X'))
+    output.update(GetVariable(fitresults, 'Mean', 'Y'))
 
     output.update(GetVariable(fitresults, 'peak', 'X'))
     output.update(GetVariable(fitresults, 'peak', 'Y'))

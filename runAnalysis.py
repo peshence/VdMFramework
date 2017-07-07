@@ -1,18 +1,19 @@
 import argparse
 import datetime as dt
+import json
 import logging
 import os
 import sys
 import traceback
-import pandas as pd
+
 import numpy as np
-import json
+import pandas as pd
 import requests
 
 import calculateCalibrationConstant
-import vdmDriverII
-import Scripts.plotFitResults as plotFitResults
 import Configurator
+import Scripts.plotFitResults as plotFitResults
+import vdmDriverII
 from postvdm import PostOutput
 
 
@@ -61,52 +62,70 @@ def RunAnalysis(name, luminometer, fit, corr = 'noCorr', automation_folder = 'Au
         logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') +
                       '\n\tFile ' + name + '\n' + message)
 
-
-'''THIS MAY NOT BE WORKING'''
-#and that's ok, you don't need it
 if (__name__ == '__main__'):
-    """Analyse data for fill with premade configuration,
-        - default runs through luminometers with SG and SGconst fits
-        - you can choose single luminometer and fit funciton
-        - default posts to test""" 
-    luminometers = ['PLT', 'BCM1F', 'HFLumi', 'HFLumiET']
-    fits = ['SG', 'SGConst', 'SGConst', 'SGConst']
-    dfits = ['DG', 'DGConst', 'DGConst', 'DGConst']
-    endpoint = None
-    logging.basicConfig(filename="Logs/run_" + dt.datetime.now().strftime(
-        '%y%m%d%H%M%S') + '.log', level=logging.DEBUG)
+    '''Should just be the above method runnable from console, but is not tested'''
     parser = argparse.ArgumentParser()
-    
-    parser.add_argument('-d', '--double', help='Fit with double Gaussians')
-    parser.add_argument('-l', '--luminometer', help='you should also provide a fit function with this')
-    parser.add_argument('-fit', '--fitfunction', help='you should also provide a luminometer with this')
-    parser.add_argument('-c', '--correction', help='currently only BeamBeam and noCorr are possible')                    
-    parser.add_argument('-f', '--file', help='File you want analysed')
-    parser.add_argument('--fill', help='Number of fill you want analysed (old data or single scan fills)')
-    
+    parser.add_argument('-n', '--name', help='name of new analysis folder')
+    parser.add_argument('-l', '--luminometer')
+    parser.add_argument('-f', '--fit')
+    parser.add_argument('-c', '--corr')
+    parser.add_argument('-a', '--automation_folder')
     args = parser.parse_args()
-
-    if args.fill:
-        FillNum = args.fill
-        configfolders = os.listdir('autoconfigs/')
-        name = FillNum
-        for config in configfolders:
-            if config[:4] == str(FillNum):
-                name = config
-                break
-    else:
-        name = args.file
-    corr = 'noCorr'
-    if args.correction:
-        corr = args.correction
+    logging.basicConfig(filename=args.automation_folder + "Logs/run_" + dt.datetime.now().strftime(
+    '%y%m%d%H%M%S') + '_' + args.luminometer + '.log', level=logging.DEBUG)
+    logging.info('name' + args.name)
+    logging.info('luminometer' + args.luminometer)
+    logging.info('fit' + args.fit)
+    logging.info('corr' + args.corr)
+    logging.info('automation_folder' + args.automation_folder)
     
-    if args.fitfunction:
-        RunAnalysis(name, args.luminometer, args.fitfunction, corr)
-    elif args.double:
-        print luminometers, '\n', dfits, '\nYou sure?'
-        for lumi, fit in zip(luminometers,dfits):
-            RunAnalysis(name,lumi,fit,corr)
-    else:
-        print luminometers, '\n', fits, '\nYou sure?'
-        for lumi, fit in zip(luminometers,fits):
-            RunAnalysis(name,lumi,fit,corr)
+    RunAnalysis(args.name,args.luminometer,args.fit,args.corr,args.automation_folder)
+### OLD
+# '''THIS MAY NOT BE WORKING'''
+# #and that's ok, you don't need it
+# if (__name__ == '__main__'):
+#     """Analyse data for fill with premade configuration,
+#         - default runs through luminometers with SG and SGconst fits
+#         - you can choose single luminometer and fit funciton
+#         - default posts to test""" 
+#     luminometers = ['PLT', 'BCM1F', 'HFLumi', 'HFLumiET']
+#     fits = ['SG', 'SGConst', 'SGConst', 'SGConst']
+#     dfits = ['DG', 'DGConst', 'DGConst', 'DGConst']
+#     endpoint = None
+#     logging.basicConfig(filename="Logs/run_" + dt.datetime.now().strftime(
+#         '%y%m%d%H%M%S') + '.log', level=logging.DEBUG)
+#     parser = argparse.ArgumentParser()
+    
+#     parser.add_argument('-d', '--double', help='Fit with double Gaussians')
+#     parser.add_argument('-l', '--luminometer', help='you should also provide a fit function with this')
+#     parser.add_argument('-fit', '--fitfunction', help='you should also provide a luminometer with this')
+#     parser.add_argument('-c', '--correction', help='currently only BeamBeam and noCorr are possible')                    
+#     parser.add_argument('-f', '--file', help='File you want analysed')
+#     parser.add_argument('--fill', help='Number of fill you want analysed (old data or single scan fills)')
+    
+#     args = parser.parse_args()
+
+#     if args.fill:
+#         FillNum = args.fill
+#         configfolders = os.listdir('autoconfigs/')
+#         name = FillNum
+#         for config in configfolders:
+#             if config[:4] == str(FillNum):
+#                 name = config
+#                 break
+#     else:
+#         name = args.file
+#     corr = 'noCorr'
+#     if args.correction:
+#         corr = args.correction
+    
+#     if args.fitfunction:
+#         RunAnalysis(name, args.luminometer, args.fitfunction, corr)
+#     elif args.double:
+#         print luminometers, '\n', dfits, '\nYou sure?'
+#         for lumi, fit in zip(luminometers,dfits):
+#             RunAnalysis(name,lumi,fit,corr)
+#     else:
+#         print luminometers, '\n', fits, '\nYou sure?'
+#         for lumi, fit in zip(luminometers,fits):
+#             RunAnalysis(name,lumi,fit,corr)

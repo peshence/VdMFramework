@@ -205,7 +205,6 @@ def CalculateCalibrationConstant(configFile):
         sbilmean = []
         sbilmeanweights = []
         for bx in XYbxlist:
-            print bx
             considerInMean = True
             #print "now at bx", bx
             CapSigmaX = [CapSigmaDict[XscanID][bx], CapSigmaErrDict[XscanID][bx]]
@@ -262,8 +261,6 @@ def CalculateCalibrationConstant(configFile):
             
             table.append(row)
             csvtable.append(row)
-        print sbilmean
-        print sbilmeanweights
         # try:           
         #     if mean:
         #         av = np.average(mean, weights=meanweights)

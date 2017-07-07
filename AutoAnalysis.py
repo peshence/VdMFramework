@@ -17,9 +17,9 @@ from postvdm import PostOutput
 
 logging.basicConfig(filename="Automation/Logs/watcher_" +
                             dt.datetime.now().strftime('%y%m%d%H%M%S') + '.log', level=logging.DEBUG)
-luminometers = ['HFLumiET']
-fits = ['SGConst']
-ratetables = ['hfetlumi']
+# luminometers = ['HFLumiET']
+# fits = ['SGConst']
+# ratetables = ['hfetlumi']
 # luminometers = ['PLT0','PLT1','PLT2','PLT3','PLT4','PLT5','PLT6','PLT7','PLT8']
 # fits = ['SG','SG','SG','SG','SG','SG','SG','SG','SG']
 # ratetables = ['pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero']
@@ -55,7 +55,9 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
             raise Exception('no vdmscan table')
         data = Configurator.RemapVdMDIPData(
             pd.DataFrame.from_records(h5.root.vdmscan[:]))
-            
+
+        # ratetables = [i.name for i in h5.root if 'lumi' in i.name]
+        
         fill = int(data.loc[0,'fill'])
         run = int(data.loc[0,'run'])
     if filename2:        
@@ -67,6 +69,21 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
                 pd.DataFrame.from_records(h5.root.vdmscan[:]))
             filename = os.path.dirname(filename)
         data = data.append(data2, ignore_index = True)
+
+    # luminometers = []
+    # fits = []
+    # for r in ratetables:
+    #     l = re.match('([a-z1]*)lumi(.*)', r).group(1)#('PLT' if 'plt' == r[:3] else (r[:4] if r[:5] != 'bcm1f' else 'bcm1f'))
+    #     l = l if r != 'hflumi' else 'hfoc'
+    #     if filename2:
+    #         f = ('DG' if 'plt' == r[:3] else 'DGConst')
+    #     else:
+    #         f = ('SG' if 'plt' == r[:3] else 'SGConst')
+    #     if str.isdigit(r[-1]):
+    #         l = l + r[-2:]
+    #     luminometers.append(l.upper())
+    #     fits.append(f)
+
 
     timestamp = lambda i: dt.datetime.fromtimestamp(
         data.iloc[i]['sec']).strftime('%d%b%y_%H%M%S')
@@ -80,27 +97,21 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
         logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
                             + '\n' + message)
         return
-    print 'chmod -R 777 ' + automation_folder + 'Analysed_Data/' + name
 
     for i, [luminometer, fit, ratetable] in enumerate(zip(luminometers, fits, ratetables)):
         if ratetable == 'hfoclumi' and fill < 5737:
             ratetable = 'hflumi'
+        angle = 0
         if int(fill) > 5737:
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = int(data.iloc[0]['bstar5'])/100, _angle = data.iloc[0]['xingHmurad'], automation_folder=automation_folder)
+            angle = int(data.iloc[0]['xingHmurad'])
+            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = int(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
         else:
             Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, automation_folder=automation_folder)
         fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
         
         if post:
-            PostOutput(fitresults, calibration, times, fill, True if test else False, name, luminometer, fit, corr, automation_folder=folder)
-        # gb = dict(list(fitresults.groupby('Scan')))
-        # for j in range(len(gb))[::2]:
-        #     output = runAnalysis.GetOutput(gb[str(j+1)].append(gb[str(j+2)]),
-        #                 calibration.loc[calibration.XscanNumber_YscanNumber == str(j+1) + '_' + str(j+2)],
-        #                 int(times[j][0][0]), fill, run, luminometer)
-        #     pickle.dump(output, open('output' + luminometer + fit + '.pkl', 'w'))
-        #     json.dump(output, open('output' + luminometer + fit + '.json', 'w'))
-        #     requests.post('http://srv-s2d16-22-01.cms:11001/vdm', json.dumps(output))
+            PostOutput(fitresults, calibration, times, fill, run, True if test else False, name, luminometer, fit, angle, corr, automation_folder=folder)
+        
     print 'chmod -R 777 ' + automation_folder + 'Analysed_Data/' + name
     os.system('chmod -R 777 ' + os.getcwd() + '/' + automation_folder + 'Analysed_Data/' + name)
 
@@ -170,18 +181,16 @@ if __name__ == '__main__':
     parser.add_argument( '-f2', '--filename2', help='Second scan of your scan pair')
     parser.add_argument( '-d', '--double', help='Use double gaussians instead of single', action='store_true')
     args = parser.parse_args()
+
     corr = 'noCorr'
-    # folder = 'Automation/'
     print os.umask(int('000',base=8))
-    #print os.umask(7777)
-    # if os.getcwd()[-4:] == 'Test' or os.getcwd()[-6:] == 'Backup':
-    #     folder = '../' + folder
     config = json.load(open('configAutoAnalysis.json'))
     global luminometers,fits,ratetables
     luminometers = config['luminometers']
     ratetables = config['ratetables']
     fits = config['fits']
     folder = config['automation_folder']
+
     if args.double:
         fits = config['dfits']
     if args.beambeam:
