@@ -39,7 +39,7 @@ central_default = '/brildata/vdmdata17/'
 folder = 'Automation/'
 
 
-def Analyse(filename, corr, test,filename2 = None, post = True, automation_folder = folder):
+def Analyse(filename, corr, test,filename2 = None, post = True, automation_folder = folder, dg = False):
     '''Uses vdm data from hd5 file to create configurations for analysis and run them,
         then posts results to web monitor service and saves json dumps of data sent
         
@@ -58,8 +58,10 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
         data = Configurator.RemapVdMDIPData(
             pd.DataFrame.from_records(h5.root.vdmscan[:]))
 
-        ratetables = [i.name for i in h5.root if 'lumi' in i.name]
-        
+        #ratetables = [i.name for i in h5.root if 'lumi' in i.name]
+        ratetables = [i.name for i in h5.root if 'lumi' in i.name and
+            i.name != 'pltslinklumi' and 'utca' not in i.name]# and not str.isdigit(i.name[-1])]
+
         fill = int(data.loc[0,'fill'])
         run = int(data.loc[0,'run'])
     if filename2:        
@@ -74,14 +76,18 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
     luminometers = []
     fits = []
     for r in ratetables:
-        l = re.match('([a-z1]*)lumi(.*)', r).group(1)#('PLT' if 'plt' == r[:3] else (r[:4] if r[:5] != 'bcm1f' else 'bcm1f'))
+        print r
+        l = re.match('([a-z1_]*)lumi(.*)', r).group(1)#('PLT' if 'plt' == r[:3] else (r[:4] if r[:5] != 'bcm1f' else 'bcm1f'))
         l = l if r != 'hflumi' else 'hfoc'
-        if filename2:
+        if dg or filename2:
             f = ('DG' if 'plt' == r[:3] else 'DGConst')
         else:
             f = ('SG' if 'plt' == r[:3] else 'SGConst')
         if str.isdigit(r[-1]):
-            l = l + r[-2:]
+            if str.isdigit(r[-2]):
+                l = l + r[-2:]
+            else:
+                l = l + r[-1]
         luminometers.append(l.upper())
         fits.append(f)
 
@@ -106,7 +112,7 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
         angle = 0
         if int(fill) > 5737:
             angle = int(data.iloc[0]['xingHmurad'])
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = int(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
+            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = float(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
         else:
             Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, automation_folder=automation_folder)
         # fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
@@ -185,8 +191,8 @@ def RunWatcher(corr, test, central = central_default):
             logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
                             + '\n' + message)
                     
-        print 'step' + dt.datetime.now()
-        time.sleep(20)
+        print 'step' + str(dt.datetime.now())
+        time.sleep(30)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -215,14 +221,14 @@ if __name__ == '__main__':
     if args.filename2:
         Analyse(args.filename, corr, args.test, args.filename2, args.post, automation_folder = folder)
     elif (args.filename):
-        Analyse(args.filename, corr, args.test, post = args.post, automation_folder = folder)
+        Analyse(args.filename, corr, args.test, post = args.post, automation_folder = folder, dg = args.double)
     elif (args.central):
         RunWatcher(corr, args.test, args.central)
     elif (args.rerun):
         for i in os.listdir(central_default):
             if i[-4:]=='.hd5':# and int(i[:4]) > 5746:
                 try:
-                    Analyse(central_default+i,corr,args.test, post = args.post, automation_folder = folder)
+                    Analyse(central_default+i,corr,args.test, post = args.post, automation_folder = folder, dg = args.double)
                 except (KeyboardInterrupt, SystemExit):
                     raise 
                 except:

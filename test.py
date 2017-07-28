@@ -4,7 +4,7 @@ import pandas as pd
 import json
 import Configurator
 import os
-import MiniScanAnalysis
+import AutoAnalysis
 import logging
 import traceback
 import datetime as dt
@@ -18,9 +18,9 @@ if os.getcwd()[-4:] == 'Test':
     global folder
     folder = '../' + folder
 for a in os.listdir(central):
-    if a[0] != 'b' and int(a[:4])>5837:
+    if a[0] != 'b':# and int(a[:4])>5837:
         try:
-            MiniScanAnalysis.Analyse(central + a, corr, test, post=True)
+            AutoAnalysis.Analyse(central + a, corr, test, post=True)
         except (KeyboardInterrupt, SystemExit):
             raise 
         except:
