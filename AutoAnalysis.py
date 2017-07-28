@@ -13,6 +13,7 @@ import tables
 import pickle
 import json
 import Configurator
+import re
 from postvdm import PostOutput
 
 logging.basicConfig(filename="Automation/Logs/watcher_" +
@@ -23,9 +24,9 @@ logging.basicConfig(filename="Automation/Logs/watcher_" +
 # luminometers = ['PLT0','PLT1','PLT2','PLT3','PLT4','PLT5','PLT6','PLT7','PLT8']
 # fits = ['SG','SG','SG','SG','SG','SG','SG','SG','SG']
 # ratetables = ['pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero']
-# luminometers = ['BCM1F', 'HFLumi', 'PLT', 'HFET']
-# fits = ['SGConst', 'SGConst', 'SG', 'SGConst']
-# ratetables = ['bcm1flumi', 'hfoclumi', 'pltlumizero', 'hfetlumi']
+luminometers = ['BCM1F', 'HFOC', 'PLT', 'HFET']
+fits = ['SGConst', 'SGConst', 'SG', 'SGConst']
+ratetables = ['bcm1flumi', 'hfoclumi', 'pltlumizero', 'hfetlumi']
 # luminometers = ['PLT','HFLumi', 'BCM1F', 'HFLumiET']
 # fits = ['DG', 'DGConst', 'DGConst', 'DGConst']
 # ratetables = ['pltlumizero', 'hfoclumi', 'bcm1flumi', 'hfetlumi']
@@ -56,7 +57,7 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
         data = Configurator.RemapVdMDIPData(
             pd.DataFrame.from_records(h5.root.vdmscan[:]))
 
-        # ratetables = [i.name for i in h5.root if 'lumi' in i.name]
+        # ratetables = [i.name for i in h5.root if 'lumi' in i.name and not str.isdigit(i.name[-1])]
         
         fill = int(data.loc[0,'fill'])
         run = int(data.loc[0,'run'])
@@ -73,7 +74,7 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
     # luminometers = []
     # fits = []
     # for r in ratetables:
-    #     l = re.match('([a-z1]*)lumi(.*)', r).group(1)#('PLT' if 'plt' == r[:3] else (r[:4] if r[:5] != 'bcm1f' else 'bcm1f'))
+    #     l = re.match('([a-z1_]*)lumi(.*)', r).group(1)#('PLT' if 'plt' == r[:3] else (r[:4] if r[:5] != 'bcm1f' else 'bcm1f'))
     #     l = l if r != 'hflumi' else 'hfoc'
     #     if filename2:
     #         f = ('DG' if 'plt' == r[:3] else 'DGConst')
@@ -104,7 +105,7 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
         angle = 0
         if int(fill) > 5737:
             angle = int(data.iloc[0]['xingHmurad'])
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = int(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
+            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = int(data.iloc[0]['bstar5'])/100.0, _angle = angle, automation_folder=automation_folder)
         else:
             Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, automation_folder=automation_folder)
         fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
@@ -183,7 +184,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     corr = 'noCorr'
-    print os.umask(int('000',base=8))
     config = json.load(open('configAutoAnalysis.json'))
     global luminometers,fits,ratetables
     luminometers = config['luminometers']

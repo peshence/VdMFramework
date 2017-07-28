@@ -4,7 +4,7 @@ import pandas as pd
 import json
 import Configurator
 import os
-import MiniScanAnalysis
+import AutoAnalysis
 import logging
 import traceback
 import datetime as dt
@@ -12,15 +12,21 @@ import datetime as dt
 import tables
 central = '/brildata/vdmdata17/'
 corr = 'BeamBeam'
-test = True
+test = False
 folder = 'Automation/'
 if os.getcwd()[-4:] == 'Test':
     global folder
     folder = '../' + folder
+config = json.load(open('configAutoAnalysis.json'))
+global luminometers,fits,ratetables
+luminometers = config['luminometers']
+ratetables = config['ratetables']
+fits = config['fits']
+folder = config['automation_folder']
 for a in os.listdir(central):
-    if a[0] != 'b' and int(a[:4])>5837:
+    if a[0] != 'b' and int(a[:4])>=5887 and int(a[:4]) < 5980:
         try:
-            MiniScanAnalysis.Analyse(central + a, corr, test, post=True)
+            AutoAnalysis.Analyse(central + a, corr, test, post=True)
         except (KeyboardInterrupt, SystemExit):
             raise 
         except:
