@@ -45,7 +45,9 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
                         #    (data.nominal_separation_plane != data.shift(-1).nominal_separation_plane) |
                            
     timestamp_data = data[((data.plane != data.shift(-1).plane) | (data.plane != data.shift(1).plane) |
-                           (data.step - data.shift(1).step < 0) | (data.shift(-1).step - data.step < 0))]  # .loc[:,['fill','sec','plane','nominal_separation_plane']]
+                        (data.nominal_separation_plane != data.shift(1).nominal_separation_plane) |
+                        (data.nominal_separation_plane != data.shift(-1).nominal_separation_plane) |
+                        (data.step - data.shift(1).step < 0) | (data.shift(-1).step - data.step < 0))]  # .loc[:,['fill','sec','plane','nominal_separation_plane']]
                            
     print timestamp_data.loc[:, ['fill', 'sec', 'plane', 'nominal_separation_plane']]
     logging.info('Timestamps (that look like beginnings and endings of scans):\n' + 
@@ -56,6 +58,15 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
         # Scan should finish progress, and it goes down from a certain max
         # number to 1, we don't get data for each but we should always get
         # at least last 3
+        if t2 - t1 < 30:
+            timestamp_data = timestamp_data[(
+                timestamp_data.index != t1) & (timestamp_data.index != t2)]
+            message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
+                t2, 'sec')) + ' removed due to scan under 50 seconds'
+            print message
+            logging.warning('\n\t' + dt.datetime.now().strftime(
+                '%d %b %Y %H:%M:%S\n') + message)
+            continue
         if data.get_value(t2, 'progress') > 3:
             timestamp_data = timestamp_data[(
                 timestamp_data.index != t1) & (timestamp_data.index != t2)]

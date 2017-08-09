@@ -6,8 +6,9 @@ import re
 import datetime as dt
 
 
+#lumis = ['HFLumi', 'HFLumiET']
 #lumis = ['PLT', 'HFLumi', 'BCM1F', 'HFLumiET']
-lumis = ['PLT', 'HFOC', 'BCM1F', 'HFET', 'HFLumi', 'HFLumiET']
+# lumis = ['PLT', 'HFOC', 'BCM1F', 'HFET']
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file')
 args = parser.parse_args()
@@ -19,26 +20,29 @@ def repost(folder):
     td = t2-t1
     fit = 'SG' if td.total_seconds() <= 600 else 'DG'
     jsons = [i for i in os.listdir(folder) if fit in i]
-    for lumi in lumis:
+    # for lumi in lumis:
         # if lumi != 'HFLumiET':
         #     continue
-        fitr = 'output\d+' + lumi + '(.*).json'
-        for j in jsons:
-            if lumi in j and not (lumi == 'HFLumi' and 'HFLumiET' in j):
-                jd = json.load(open(folder + j))                
-                jd['detector'] = 'HFOC' if jd['detector']=='HFLumi' else ('HFET' if jd['detector']=='HFLumiET' else jd['detector'])
-                jd.update({'fit': re.match(fitr, j).group(1)})
-                requests.post(
-                    'http://srv-s2d16-22-01.cms:11001/vdmtest', json.dumps(jd))
+        #fitr = 'output\d+' + lumi + '(.*).json'
+    for j in jsons:
+        #if lumi in j and not (lumi == 'HFLumi' and 'HFLumiET' in j):
+            jd = json.load(open(folder + j))
+            print j
+            if str.isdigit(str(jd['detector'][-1])) or jd['detector'] == 'PLTSLINK':
+                continue
+            jd['detector'] = 'HFOC' if jd['detector']=='HFLumi' else ('HFET' if jd['detector']=='HFLumiET' else jd['detector'])
+            #jd.update({'fit': re.match(fitr, j).group(1)})
+            print requests.post(
+                'http://srv-s2d16-22-01.cms:11001/vdm', json.dumps(jd))
 
 
 if args.file:
     repost(args.file)
 else:
     for f in os.listdir('Analysed_Data/'):
-        if f[0] != 'F': #and int(f[:4])>5750:
-            repost('Analysed_Data/' + f + '/')
-# r = requests.get('http://srv-s2d16-22-01/es/data-vdm/_search?size=5000')
-# j = r.json()
-# for hit in [i for i in j['hits']['hits'] if i['_source']['data']['detector'] == 'HFLumiET' and i['_source']['data']['fill'] == 5839]:
-#         requests.delete('http://srv-s2d16-22-01/es/' + hit['_index'] + '/logs/' + hit['_id'])
+        if f[0] != 'F' and int(f[:4])>6026:# and int(f[:4])<5980) : #f == '6016_28Jul17_100004_28Jul17_112346':
+            print 'yes'
+            repost('Analysed_Data/' + f + '/')# or int(f[:4])>=5980):
+            #if f[0] != 'F': #and int(f[:4])>5750:
+            #if f == '6016_28Jul17_055855_28Jul17_060431':
+

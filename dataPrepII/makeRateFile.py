@@ -38,12 +38,20 @@ def getRates(datapath, rateTable, scanpt, fill):
  
                 
             # sum over all bx
-            table = [(r['avgraw'], r['bxraw']) for r in beamtable.where(tw)]
-            avglist = [r[0] for r in table]
-            if avglist:
-                avgdata = avgdata + avglist
-            # rates per bx 
-            bxlist = [r[1] for r in table]
+            if rateTable != 'pltslinklumi':
+                table = [(r['avgraw'], r['bxraw']) for r in beamtable.where(tw)]
+                avglist = [r[0] for r in table]
+                if avglist:
+                    avgdata = avgdata + avglist
+                # rates per bx 
+                bxlist = [r[1] for r in table]
+            else:
+                avglist = [r['avgraw'] for r in beamtable.where(tw)]
+                
+                if avglist:
+                    avgdata = avgdata + avglist
+                # rates per bx 
+                bxlist = [[r for i in range(3564)] for r in avglist]
 
             if bxlist:
                 # only consider nominally filled bunches

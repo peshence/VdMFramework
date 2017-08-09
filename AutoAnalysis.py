@@ -10,7 +10,7 @@ import re
 
 import numpy as np
 import pandas as pd
-import runAnalysis
+#import runAnalysis
 import tables
 import pickle
 import json
@@ -19,25 +19,14 @@ from postvdm import PostOutput
 
 logging.basicConfig(filename="Automation/Logs/watcher_" +
                             dt.datetime.now().strftime('%y%m%d%H%M%S') + '.log', level=logging.DEBUG)
-# luminometers = ['HFLumiET']
-# fits = ['SGConst']
-# ratetables = ['hfetlumi']
-# luminometers = ['PLT0','PLT1','PLT2','PLT3','PLT4','PLT5','PLT6','PLT7','PLT8']
-# fits = ['SG','SG','SG','SG','SG','SG','SG','SG','SG']
-# ratetables = ['pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero','pltlumizero']
-# luminometers = ['BCM1F', 'HFLumi', 'PLT', 'HFET']
-# fits = ['SGConst', 'SGConst', 'SG', 'SGConst']
-# ratetables = ['bcm1flumi', 'hfoclumi', 'pltlumizero', 'hfetlumi']
-# luminometers = ['PLT','HFLumi', 'BCM1F', 'HFLumiET']
-# fits = ['DG', 'DGConst', 'DGConst', 'DGConst']
-# ratetables = ['pltlumizero', 'hfoclumi', 'bcm1flumi', 'hfetlumi']
-# luminometers = ['PLT','HFLumi', 'BCM1F', 'HFLumiET']
-# fits = ['DG', 'DGConst', 'DGConst', 'DGConst']
-# ratetables = ['pltlumizero', 'hfoclumi', 'bcm1flumi', 'hfetlumi']
 
 central_default = '/brildata/vdmdata17/'
 folder = 'Automation/'
-
+config = json.load(open('configAutoAnalysis.json'))
+_luminometers = config['luminometers']
+_ratetables = config['ratetables']
+_fits = config['fits']
+folder = config['automation_folder']
 
 def Analyse(filename, corr, test,filename2 = None, post = True, automation_folder = folder, dg = False):
     '''Uses vdm data from hd5 file to create configurations for analysis and run them,
@@ -58,9 +47,9 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
         data = Configurator.RemapVdMDIPData(
             pd.DataFrame.from_records(h5.root.vdmscan[:]))
 
-        #ratetables = [i.name for i in h5.root if 'lumi' in i.name]
-        ratetables = [i.name for i in h5.root if 'lumi' in i.name and
-            i.name != 'pltslinklumi' and 'utca' not in i.name]# and not str.isdigit(i.name[-1])]
+        ratetables = [i.name for i in h5.root if 'lumi' in i.name and i.name != 'pltslinklumi']
+        # ratetables = [i.name for i in h5.root if 'lumi' in i.name and
+        #     i.name != 'pltslinklumi' and 'utca' not in i.name]# and not str.isdigit(i.name[-1])]
 
         fill = int(data.loc[0,'fill'])
         run = int(data.loc[0,'run'])
@@ -99,43 +88,75 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
 
     times = Configurator.GetTimestamps(data, fill, name, automation_folder=automation_folder)
     if not times or len(times) < 2:
-        message = 'No times'
-        print message
-        logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
-                            + '\n' + message)
-        return
+        raise Exception('No times')
 
     procs = []
-    for i, [luminometer, fit, ratetable] in enumerate(zip(luminometers, fits, ratetables)):
-        if ratetable == 'hfoclumi' and fill < 5737:
-            ratetable = 'hflumi'
-        angle = 0
-        if int(fill) > 5737:
-            angle = int(data.iloc[0]['xingHmurad'])
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = float(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
-        else:
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, automation_folder=automation_folder)
-        # fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
-        if i == 0:
-            fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
-        else:
+    threads = zip(luminometers, fits, ratetables)
+    threadcount = 10
+    angle = 0
+    luminometer = threads[0][0]
+    fit = threads[0][1]
+    ratetable = threads[0][2]
+    if int(fill) > 5737:
+        angle = int(data.iloc[0]['xingHmurad']) # assuming it doesn't change DURING a scan; UPDATE: it changes between scans that might be in the same file, so needs to be changed
+        Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, True, _bstar = float(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
+    else:
+        Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, True, automation_folder=automation_folder)
+    #fitresults, calibration = runAnalysis.RunAnalysis(name, threads[0][0], threads[0][1], corr, automation_folder=automation_folder)
+    proc = subprocess.Popen(['python', 'runAnalysis.py','-n', name,'-l',luminometer,'-f',fit,'-c',corr,'-a',automation_folder])
+    proc.wait()
+    
+    if post:
+        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/' + fit + '_FitResults.pkl') as fr:
+            fitresults = pickle.load(fr)
+        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
+            calibration = pickle.load(cal)
+        fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
+        calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
+        PostOutput(fitresults, calibration, times, fill, run, True, name, luminometer, fit, angle, corr, automation_folder=automation_folder)
+        if luminometer in luminometers:
+            PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer, fit, angle, corr, automation_folder=automation_folder)
+    for k in xrange(1,len(threads),threadcount):
+        for i, (luminometer, fit, ratetable) in enumerate(threads[k:k+threadcount]):
+            if ratetable == 'hfoclumi' and fill < 5737:
+                ratetable = 'hflumi'
+            if int(fill) > 5737:
+                Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = float(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
+            else:
+                Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, automation_folder=automation_folder)
+            # fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
+            # if i == 0:
+            #     fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
+            # else:
             # this is done like this because ROOT is being a bitch and I'm in a hurry, it should be doable with the threading module 
+            # UPDATE: Apparently this is actually the best way to do this, due to python's Global Interpreter Lock
             proc = subprocess.Popen(['python', 'runAnalysis.py','-n', name,'-l',luminometer,'-f',fit,'-c',corr,'-a',automation_folder])
             procs.append(proc)
-        # if post:
-        #     PostOutput(fitresults, calibration, times, fill, run, True if test else False, name, luminometer, fit, angle, corr, automation_folder=folder)
-    print len(procs)
-    for j,p in enumerate(procs):
-        print j
-        p.wait()
-    if post:
-        for i, [luminometer, fit, ratetable] in enumerate(zip(luminometers, fits, ratetables)):
-            fitresults = pickle.load(open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/' + fit + '_FitResults.pkl'))
-            calibration = pickle.load(open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl'))
-            fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
-            calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
-            PostOutput(fitresults, calibration, times, fill, run, True if test else False, name, luminometer, fit, angle, corr, automation_folder=folder)
-    
+            # if post:
+            #     PostOutput(fitresults, calibration, times, fill, run, True if test else False, name, luminometer, fit, angle, corr, automation_folder=folder)
+        print len(procs)
+        for j,p in enumerate(procs):
+            print j
+            p.wait()
+        if post:
+            for i, (luminometer, fit, ratetable) in enumerate(threads[k:k+threadcount]):
+                try:
+                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/' + fit + '_FitResults.pkl') as fr:
+                        fitresults = pickle.load(fr)
+                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
+                        calibration = pickle.load(cal)
+                    fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
+                    calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
+                    PostOutput(fitresults, calibration, times, fill, run, True, name, luminometer, fit, angle, corr, automation_folder=automation_folder)
+                    if luminometer in _luminometers:
+                        PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer, fit, angle, corr, automation_folder=automation_folder)
+                except (KeyboardInterrupt, SystemExit):
+                    raise SystemExit                                         
+                except:
+                    message = 'Couldnt post ' + luminometer + '\n' + traceback.format_exc()
+                    print message
+                    logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
+                                    + '\n' + message)
     os.system('chmod -R 777 ' + os.getcwd() + '/' + automation_folder + 'Analysed_Data/' + name)
 
 def RunWatcher(corr, test, central = central_default):
@@ -167,11 +188,11 @@ def RunWatcher(corr, test, central = central_default):
                         print message
                         logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
                                          + '\n' + message)
-                        message = 'trying to rerun after 10 seconds'
+                        message = 'trying to rerun after 60 seconds'
                         print message
                         logging.info('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
                                          + '\n' + message)
-                        time.sleep(10)
+                        time.sleep(60)
                         try:
                             Analyse(central + a, corr, test)
                         except (KeyboardInterrupt, SystemExit):
@@ -192,7 +213,7 @@ def RunWatcher(corr, test, central = central_default):
                             + '\n' + message)
                     
         print 'step' + str(dt.datetime.now())
-        time.sleep(30)
+        time.sleep(60)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -207,12 +228,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     corr = 'noCorr'
     
-    config = json.load(open('configAutoAnalysis.json'))
-    global luminometers,fits,ratetables
-    luminometers = config['luminometers']
-    ratetables = config['ratetables']
-    fits = config['fits']
-    folder = config['automation_folder']
+    
 
     if args.double:
         fits = config['dfits']

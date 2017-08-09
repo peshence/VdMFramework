@@ -14,13 +14,14 @@ central = '/brildata/vdmdata17/'
 corr = 'BeamBeam'
 test = True
 folder = 'Automation/'
+
 if os.getcwd()[-4:] == 'Test':
     global folder
     folder = '../' + folder
 for a in os.listdir(central):
-    if a[0] != 'b':# and int(a[:4])>5837:
+    if str.isdigit(str(a[0])) and int(a[:4])>6035:#>5940 and int(a[:4])<5980:
         try:
-            AutoAnalysis.Analyse(central + a, corr, test, post=True)
+            AutoAnalysis.Analyse(central + a, corr, test, post=True, dg=False)
         except (KeyboardInterrupt, SystemExit):
             raise 
         except:

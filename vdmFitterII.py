@@ -15,7 +15,6 @@ import json
 import pickle
 import os
 import ROOT as r
-from datetime import datetime as dt, timedelta
 import pandas as pd
 import numpy as np
 
@@ -47,8 +46,6 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
     #    shutil.copy('./forTmpStorage/'+element, InputDataDir)
 
     # for 2D fits
-    ti = dt.now()
-    f = open('timelog.log','a')
     if '_2D' in FitName:
 
         # test that when 2D fit function is requested, the graph file used is
@@ -142,10 +139,7 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
         table = [fitter.table]
         # sys.stdout = sysstdout
         # sys.stderr = sysstderr
-        # fitlogfile.close()
-        
-        f.write(str((dt.now()-ti).total_seconds()) + '\n')
-        f.close()
+        # fitlogfile.close()        
 
         return resultsAll, table
     else:  # Sim Fit
@@ -250,9 +244,9 @@ if __name__ == '__main__':
 
     print " "
 
-    # FitConfig = open(FitConfigFile)
-    # FitConfigInfo = json.load(FitConfig)
-    # FitConfig.close()
+    FitConfig = open(FitConfigFile)
+    FitConfigInfo = json.load(FitConfig)
+    FitConfig.close()
 
     # needs to be the same name as assumed in the fit function python files,
     # where it is ./minuitlogtmp/Minuit.log
