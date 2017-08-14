@@ -20,7 +20,7 @@ def PostOutput(fitresults, calibration, times, fill, run, test, name, luminomete
                     calibration.loc[calibration.XscanNumber_YscanNumber == str(j+1) + '_' + str(j+2)],
                     int(times[j][0][0]), fill, run, luminometer, crossing_angle)
 
-        json.dump(output, open(automation_folder + 'Analysed_Data/' + name + '/' + 'output' + str(fill) + luminometer + fit + '.json', 'w'))
+        json.dump(output, open(automation_folder + 'Analysed_Data/' + name + '/' + 'output' + str(fill) + luminometer + fit + str(j/2 + 1) + '.json', 'w'))
         if test:
         #requests.post(endpoint, json.dumps(output))
             output.update({'fit':fit})

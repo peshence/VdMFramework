@@ -1,6 +1,6 @@
 {
     "Comment": "Folder path has to be relative",
-    "automation_folder": "../Automation/",
+    "automation_folder": "../../../../../../brildata/vdmoutput/Automation/",
     "luminometers": ["PLT", "HFET", "HFOC", "BCM1FSI", "BCM1FPCVD", "BCM1FSCVD", "BCM1FUTCA_"],
     "fits": ["SG", "SGConst","SGConst","SGConst","SGConst","SGConst"],
     "dfits": ["DG","DGConst","DGConst","DGConst","DGConst","DGConst"],

@@ -90,7 +90,6 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
     if not times or len(times) < 2:
         raise Exception('No times')
 
-    procs = []
     threads = zip(luminometers, fits, ratetables)
     threadcount = 10
     angle = 0
@@ -117,13 +116,14 @@ def Analyse(filename, corr, test,filename2 = None, post = True, automation_folde
         if luminometer in luminometers:
             PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer, fit, angle, corr, automation_folder=automation_folder)
     for k in xrange(1,len(threads),threadcount):
+        procs = []
         for i, (luminometer, fit, ratetable) in enumerate(threads[k:k+threadcount]):
             if ratetable == 'hfoclumi' and fill < 5737:
                 ratetable = 'hflumi'
             if int(fill) > 5737:
-                Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, _bstar = float(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
+                Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, False, _bstar = float(data.iloc[0]['bstar5'])/100, _angle = angle, automation_folder=automation_folder)
             else:
-                Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, not i, automation_folder=automation_folder)
+                Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, False, automation_folder=automation_folder)
             # fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
             # if i == 0:
             #     fitresults, calibration = runAnalysis.RunAnalysis(name, luminometer, fit, corr, automation_folder=automation_folder)
