@@ -16,5 +16,5 @@ dfloc[x,'Fill']=f
 ### DELETE RECORDS
 r = requests.get('http://srv-s2d16-22-01/es/data-vdmtest/_search?size=5000')
 j = r.json()
-for hit in [i for i in j['hits']['hits'] if 'data' not in i ['_source'] or 'PLTSLINK' in i['_source']['data']['detector']]:
+for hit in [i for i in j['hits']['hits'] if 'data' not in i['_source'] or i['_source']['data']['timestamp'] == 1501231474 or i['_source']['data']['timestamp'] == 1501228894]:
         requests.delete('http://srv-s2d16-22-01/es/' + hit['_index'] + '/logs/' + hit['_id'])

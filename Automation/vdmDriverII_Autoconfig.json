@@ -58,7 +58,7 @@
 	"Comment": "Input scan file in <AnalysisDir>/<InputScanFile>",
 	"InputScanFile" : "cond/Scan_{fill}.pkl",
 	"OutputSubDir" : "cond",
-	"CalibrateFBCTtoDCCT" : false
+	"CalibrateFBCTtoDCCT" : true
 	}},
 "makeBeamBeamFileConfig":
 	{{
