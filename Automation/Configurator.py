@@ -157,15 +157,20 @@ def FormatTimestamps(times):
     if not times:
         return False
     rang = range(1, len(times) + 1)
-    pairs = map(lambda a, b: [a, b], rang[::2], rang[1::2])
+    pairs = []#map(lambda a, b: [a, b], rang[::2], rang[1::2])
     names = []
-    for i in xrange(0, len(pairs)):
+    crossfirst = True
+    for i in xrange(0, len(times)/2):
         if times[2 * i][0][1] == 'CROSSING':
             names.append("X" + str(i + 1))
             names.append("Y" + str(i + 1))
+            crossfirst = True
         else:
             names.append("Y" + str(i + 1))
             names.append("X" + str(i + 1))
+            crossfirst = False
+        if i%2 == 0:
+            pairs.append([i+1,i+2] if crossfirst else [i+2,i+1])
 
     # Get scan data in correct format for auto config
     times = map(lambda a: [a[0][0], a[1][0]], times)
