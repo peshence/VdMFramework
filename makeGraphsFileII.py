@@ -45,6 +45,7 @@ def doMakeGraphsFile(ConfigInfo):
     inputBeamCurrentFile = str(ConfigInfo['InputBeamCurrentFile'])
     inputLuminometerData = str(ConfigInfo['InputLuminometerData'])
     corrName = ConfigInfo['Corr']
+    makepdf = ConfigInfo['MakePDF']
 
     # For scan 1, which is always there as long as there are any scans at all:
 
@@ -126,7 +127,10 @@ def doMakeGraphsFile(ConfigInfo):
         if 'inputlumi' in ConfigInfo:
             corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + ConfigInfo['inputlumi'] + '_' + Fill +'.pkl'
             
-        corrector.doCorr(inData, corrValueFile)
+        if entry == "BeamBeam":
+            corrector.doCorr(inData, corrValueFile, makepdf)
+        else:
+            corrector.doCorr(inData, corrValueFile)
 
         corrFull = corrFull + '_' + entry 
 

@@ -25,6 +25,8 @@
 "makeGraphs2D": false,
 "Comment": "Output of following step goes to <AnalysisDir>/<Luminometer>/results/<Corr>", 
 "runVdmFitter": {runVdmFitter},
+"MakePDF": {makepdf},
+"MakeLogs": {makelogs},
 "makeScanFileConfig":
 	{{
 	"InputCentralPath": "{central}",		
@@ -103,7 +105,8 @@
 	"InputBeamCurrentFile" : "cond/BeamCurrents_{fill}.pkl",
 	"Comment": "Input luminometer data in <AnalysisDir>/<InputLuminometerData>",
 	"InputLuminometerData" : "LuminometerData/Rates_{luminometer}_{fill}.pkl",
-	"OutputSubDir" : "graphs"       
+	"OutputSubDir" : "graphs"
+	"MakePDF": {makepdf}
 	}},
 "makeGraphs2DConfig":
 	{{

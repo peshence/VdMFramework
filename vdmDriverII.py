@@ -64,6 +64,9 @@ def DriveVdm(ConfigFile):
     runVdmFitter = False
     runVdmFitter = ConfigInfo['runVdmFitter']
 
+    makepdf = ConfigInfo['MakePDF']
+    makelogs = ConfigInfo['MakeLogs']
+
     print ""
     print "Running with this config info:"
     print "Fill ", Fill
@@ -372,7 +375,7 @@ def DriveVdm(ConfigFile):
 
         FitName = vdmFitterConfig['FitName']
         FitConfigFile = vdmFitterConfig['FitConfigFile']
-        PlotsTempPath = [["./plotstmp/"]]
+        PlotsTempPath = [["./" + AnalysisDir + '/' + Luminometer + '/' + "plotstmp/"]]
 
         corrFull = ""
         for entry in Corr:
@@ -447,7 +450,7 @@ def DriveVdm(ConfigFile):
         resultsAll = {}
         table = []
 
-        resultsAll, table = doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDirs[0], PlotsTempPath, FitConfigInfo, AnalysisDir)
+        resultsAll, table = doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDirs[0], PlotsTempPath, FitConfigInfo, AnalysisDir, makepdf=makepdf, makelogs=makelogs)
 
         for (i,OutputDir) in enumerate(OutputDirs):
             outResults ='./'+ OutputDir + '/'+FitName+'_FitResults.pkl'
@@ -468,28 +471,30 @@ def DriveVdm(ConfigFile):
         # outFileMinuit = './'+OutputDirs[0] + '/'+FitName+'_Minuit.log'
         # os.rename(MinuitLogFile, outFileMinuit)
 
-        # output_FittedGraphs = dict(zip(OutputDirs,PlotsTempPath))
-        # for OutputDir in output_FittedGraphs:
-        #     outPdf = './'+OutputDir + '/'+FitName+'_FittedGraphs.pdf'
-        #     PlotsPath = output_FittedGraphs[OutputDir][0]
-        #     filelist = os.listdir(PlotsPath)
-        #     merge =-999.
-        #     for element in filelist:
-        #         if element.find(".ps") > 0:
-        #             merge = +1.
-        #     if merge > 0:
-        #         os.system("gs -dNOPAUSE -sDEVICE=pdfwrite -dBATCH -sOutputFile="+outPdf+" " + PlotsPath+"/*.ps")
+        output_FittedGraphs = dict(zip(OutputDirs,PlotsTempPath))
+        for OutputDir in output_FittedGraphs:
+            outPdf = './'+OutputDir + '/'+FitName+'_FittedGraphs.pdf'
+            PlotsPath = output_FittedGraphs[OutputDir][0]
+            filelist = os.listdir(PlotsPath)
+            merge =-999.
+            for element in filelist:
+                if element.find(".ps") > 0:
+                    merge = +1.
+            if merge > 0:
+                os.system("gs -dNOPAUSE -sDEVICE=pdfwrite -dBATCH -sOutputFile="+outPdf+" " + PlotsPath+"/*.ps")
 
-        #     outRoot = './'+OutputDir + '/'+FitName+'_FittedGraphs.root'
-        #     if os.path.isfile(outRoot):
-        #         os.remove(outRoot)
-        #     merge =-999.
-        #     os.system('rm plotstmp/*')
-            # for element in filelist:
-            #     if element.find(".root") > 0:
-            #        merge = +1.
-            #if merge > 0:
-            #    os.system("hadd " + outRoot + "  " + PlotsPath + "*.root")
+            outRoot = './'+OutputDir + '/'+FitName+'_FittedGraphs.root'
+            if os.path.isfile(outRoot):
+                os.remove(outRoot)
+            merge =-999.
+
+            for element in filelist:
+                if element.find(".root") > 0:
+                   merge = +1.
+            if merge > 0:
+               os.system("hadd " + outRoot + "  " + PlotsPath + "*.root")
+                        
+            os.system('rm ' + PlotsPath + '/*')
         return table[0]
 
 if __name__=='__main__':

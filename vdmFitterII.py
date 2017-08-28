@@ -19,7 +19,7 @@ import pandas as pd
 import numpy as np
 
 
-def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, FitConfigInfo, inputfolder = None):
+def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, FitConfigInfo, inputfolder = None, makepdf = True, makelogs = True):
 
     showAvailableFits()
 
@@ -32,12 +32,13 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
 
     fitter = availableFits[FitName + '_Fit']()
 
-    # FitLogFile = OutputDir + FitName + '.log'
-    # fitlogfile = open(FitLogFile, 'w')
-    # sysstdout = sys.stdout
-    # sys.stdout = fitlogfile
-    # sysstderr = sys.stderr
-    # sys.stderr = fitlogfile
+    if makelogs:
+        FitLogFile = OutputDir + FitName + '.log'
+        fitlogfile = open(FitLogFile, 'w')
+        sysstdout = sys.stdout
+        sys.stdout = fitlogfile
+        sysstderr = sys.stderr
+        sys.stderr = fitlogfile
 
     # temporarily: move graphs files over from forTmpStorage directory
     #list = os.listdir('./forTmpStorage/')
@@ -131,15 +132,17 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
                     result = fitter.doFit(graph, FitConfigInfo)
                     results[key] = result
                     functions = result[0]
-                    # canvas = fitter.doPlot(
-                    #     graph, functions, Fill, PlotsTempPath[0])
-                #f.write('\n'+str((dt.now()-ti).total_seconds()))
+                    if makepdf:
+                        canvas = fitter.doPlot(
+                            graph, functions, Fill, PlotsTempPath[0])
+                
 
         resultsAll[keyAll] = results
         table = [fitter.table]
-        # sys.stdout = sysstdout
-        # sys.stderr = sysstderr
-        # fitlogfile.close()        
+        if makelogs:
+            sys.stdout = sysstdout
+            sys.stderr = sysstderr
+            fitlogfile.close()        
 
         return resultsAll, table
     else:  # Sim Fit

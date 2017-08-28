@@ -55,18 +55,19 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
     # Remove rows with timestamps which don't look like scans and sort the
     # rest into pairs (each pair is a scan)
     for t1, t2 in zip(timestamp_data.index[::2], timestamp_data.index[1::2]):
-        # Scan should finish progress, and it goes down from a certain max
-        # number to 1, we don't get data for each but we should always get
-        # at least last 3
+        # Something happened during VdM that made this think there were multiple super small scans, so I added this
         if t2 - t1 < 30:
             timestamp_data = timestamp_data[(
                 timestamp_data.index != t1) & (timestamp_data.index != t2)]
             message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
-                t2, 'sec')) + ' removed due to scan under 50 seconds'
+                t2, 'sec')) + ' removed due to scan under 30 seconds'
             print message
             logging.warning('\n\t' + dt.datetime.now().strftime(
                 '%d %b %Y %H:%M:%S\n') + message)
             continue
+        # Scan should finish progress, and it goes down from a certain max
+        # number to 1, we don't get data for each but we should always get
+        # at least last 3
         if data.get_value(t2, 'progress') > 3:
             timestamp_data = timestamp_data[(
                 timestamp_data.index != t1) & (timestamp_data.index != t2)]
@@ -183,15 +184,17 @@ def FormatTimestamps(times):
     return _scannames, _timewindows, _scanpairs, _offsets, times
 
 
-def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, first=True, automation_folder='Automation/', _bstar = False, _angle = False, autoconfigs_folder = 'na'):
+def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, first=True, automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na'):
     """Makes a folder with configuration files with given timestamps paired for beginnings and endings of scans
 
         times should be of the form [ (timestamp, nominal_separation_plane), (timestamp, nominal_separation_plane) ] (like from GetTimestamps)
         name is the name of the analysis folder (fill number and datetimes from the beginning and ending of the scan pair)
         central is the path to the data file or folder. give hd5 file path for emittance scans and folder (currently /brildata/vdmdata17/)
         first tells whether this configuration should also have scan and beamcurrents files made
-        automation_folder is the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders
-        _bstar and _angle should be values of those variables if you have them
+        automation_folder is the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders (default is 'Automation/')
+        _bstar and _angle should be values of those variables if you have them (otherwise default is False)
+        makepdf tells whether to make pdfs with beam beam corrections and fitted functions
+        makelogs tells whether to make logs for the fitting (minuit and otherwise)
         autoconfigs_folder is the folder where your templates for configurations are"""
     if autoconfigs_folder == 'na':
         autoconfigs_folder = automation_folder
@@ -216,6 +219,8 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
     _makeBeamBeamFile = false
     _makeGraphsFile = true
     _runVdmFitter = true
+    _makepdf = json.dumps(makepdf)
+    _makelogs = json.dumps(makelogs)
 
     # Start without correction
     _corr = 'noCorr'
@@ -242,7 +247,8 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
                                     dip=_dip, central=_central, luminometer=_luminometer, fit=_fit, offsets=_offsets,
                                     ratetable=_ratetable, corr=_corr, corrs=_corrs, makeScanFile=_makeScanFile,
                                     makeRateFile=_makeRateFile, makeBeamCurrentFile=_makeBeamCurrentFile, 
-                                    makeBeamBeamFile=_makeBeamBeamFile, makeGraphsFile=_makeGraphsFile, runVdmFitter=_runVdmFitter))
+                                    makeBeamBeamFile=_makeBeamBeamFile, makeGraphsFile=_makeGraphsFile,
+                                    runVdmFitter=_runVdmFitter, makepdf = _makepdf, makelogs = _makelogs))
         else:
             with open(autoconfigs_folder + 'vdmDriverII_Autoconfigv2.json', 'r') as f:
                 config = f.read()
@@ -255,7 +261,7 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
                                     ratetable=_ratetable, corr=_corr, corrs=_corrs, makeScanFile=_makeScanFile,
                                     makeRateFile=_makeRateFile, makeBeamCurrentFile=_makeBeamCurrentFile, 
                                     makeBeamBeamFile=_makeBeamBeamFile, makeGraphsFile=_makeGraphsFile, runVdmFitter=_runVdmFitter,
-                                    bstar = _bstar, angle = _angle))
+                                    bstar = _bstar, angle = _angle,  makepdf = _makepdf, makelogs = _makelogs))
         # Configure calibration constant calculation
         with open(autoconfigs_folder + 'calculateCalibrationConstant_Autoconfig.json', 'r') as f:
             config = f.read()
@@ -272,7 +278,7 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
         with open(path + name + '/' + _luminometer +
                 _corr + '_' + _fit + '_plotFit.json', 'w') as f:
             f.write(config.format(fill=_fill, date=_date,
-                                luminometer=_luminometer, fit=_fit, corrs=_corrs, analysisdir=automation_folder + 'Analysed_Data/' + name))
+                                luminometer=_luminometer, fit=_fit, corrs=_corrs,analysisdir=automation_folder + 'Analysed_Data/' + name))
 
     # Configure a noCorr driver run
     Config()

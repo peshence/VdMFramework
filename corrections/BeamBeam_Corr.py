@@ -31,7 +31,7 @@ class BeamBeam_Corr(CorrectionManager.CorrectionProvider):
         print ""
 
 
-    def doCorr(self,inData,configFile):
+    def doCorr(self,inData,configFile,makepdf):
 
         print "Correcting coordinates with beambeam correction factors"
 
@@ -107,13 +107,15 @@ class BeamBeam_Corr(CorrectionManager.CorrectionProvider):
                     histo.Draw("AP")
                     histo.GetXaxis().SetTitle('nominal displacement in mm')
                     histo.GetYaxis().SetTitle('correction from beam-beam in mm')
-                    # canvas.SaveAs(pdfName+'(')
+                    if makepdf:
+                        canvas.SaveAs(pdfName+'(')
                 except:
                     print bx," is missing; no BeamBeam corr."
 
             logbuffer=logbuffer+str(exclBXList)+"\n"
 
-        # canvas.SaveAs(pdfName + ']')
+        if makepdf:
+            canvas.SaveAs(pdfName + ']')
         
         logName = configFile[:configFile.index(".pkl")] + ".log"                
         excldata=open(logName,'w')
