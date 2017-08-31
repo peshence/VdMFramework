@@ -25,7 +25,7 @@ for a in os.listdir(central):
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')
             td = t2-t1
             _dg = td.total_seconds() > 600
-            AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg)
+            AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg, pdfs = True, logs = True)
         except (KeyboardInterrupt, SystemExit):
             raise 
         except:

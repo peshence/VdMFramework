@@ -76,7 +76,7 @@ def checkFBCTcalib(table, CalibrateFBCTtoDCCT):
 
     return [h_ratioB1, h_ratioB2, table]
 
-def getCurrents(datapath, scanpt, fill, filename = ''):
+def getCurrents(datapath, scanpt, fill):
 
     beamts = []
     bx1data = []

@@ -27,6 +27,12 @@ _luminometers = config['luminometers']
 _ratetables = config['ratetables']
 _fits = config['fits']
 folder = config['automation_folder']
+if not os.path.exists('./' + folder):
+    os.mkdir('./' + folder)
+subfolders = ['Analysed_Data/', 'Logs/', 'dipfiles/', 'autoconfigs/']
+for subfolder in subfolders:
+    if not os.path.exists('./' + folder + subfolder):
+        os.mkdir('./' + folder + subfolder)
 
 
 def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=folder, dg=False, logs = False, pdfs = False):
@@ -241,7 +247,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-b', '--beambeam', help='If you want beam beam correction', action='store_true')
     parser.add_argument(
-        '-t', '--test', help='Post to test instead of normal service', action='store_true')
+        '-t', '--test', help='Only use the luminometers from the config file', action='store_true')
     parser.add_argument(
         '-p', '--post', help='if you want your one time analysis posted (watcher automatically posts)', action='store_true')
     parser.add_argument('-f2', '--filename2',
@@ -251,9 +257,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '-r', '--rerun', help='Runs all hd5 file analysis with single gaussians', action='store_true')
     parser.add_argument(
-        '-pdf', '--pdfs', help='tells whether to make pdfs with beam beam corrections and fitted functions', action='store_true')
+        '-pdf', '--pdfs', help='Make pdfs with beam beam corrections and fitted functions', action='store_true')
     parser.add_argument(
-        '-l', '--logs', help='tells whether to make logs for the fitting (minuit and otherwise)', action='store_true')
+        '-l', '--logs', help='Make logs for the fitting (no minuit yet)', action='store_true')
     args = parser.parse_args()
     corr = 'noCorr'
 
