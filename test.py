@@ -12,20 +12,20 @@ import datetime as dt
 import tables
 central = '/brildata/vdmdata17/'
 corr = 'BeamBeam'
-test = True
+test = False
 folder = 'Automation/'
 
 if os.getcwd()[-4:] == 'Test':
     global folder
     folder = '../' + folder
 for a in os.listdir(central):
-    if str.isdigit(str(a[0])) and int(a[:4])==6016:#>5940 and int(a[:4])<5980:
+    if str.isdigit(str(a[0])) and int(a[:4])>=6152:#>5940 and int(a[:4])<5980:
         try:
             t1 = dt.datetime.strptime(a[5:15],'%y%m%d%H%M%S')
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')
             td = t2-t1
             _dg = td.total_seconds() > 600
-            AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg, pdfs = True, logs = True)
+            AutoAnalysis.Analyse(central + a, corr, test, post=True, dg=False, pdfs = False, logs = False)
         except (KeyboardInterrupt, SystemExit):
             raise 
         except:

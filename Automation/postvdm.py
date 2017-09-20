@@ -2,13 +2,15 @@ import numpy as np
 import pandas as pd
 import json
 import requests
+import os
+import re
 
 endpoint = 'http://srv-s2d16-22-01.cms:11001/vdm'
 testendpoint = 'http://srv-s2d16-22-01.cms:11001/vdmtest'
-
+perchannelendpoint = 'http://srv-s2d16-22-01.cms:11001/vdmch'
 
 def PostOutput(fitresults, calibration, times, fill, run, test, name,
-               luminometer, fit, crossing_angle, corr='noCorr', automation_folder='Automation/', post=False):
+               luminometer, fit, crossing_angle, corr='noCorr', automation_folder='Automation/', perchannel = False, post=False):
     ''' Posts data to listener service for online monitoring
         fitresults is the fit results table that comes out of vdmFitterII.py and vdmDriverII.py
         calibration is the table that comes out of calculateCalibrationConstant.py
@@ -19,17 +21,33 @@ def PostOutput(fitresults, calibration, times, fill, run, test, name,
     gb = dict(list(fitresults.groupby('Scan')))
     for j in range(len(gb))[::2]:
         output = GetOutput(gb[str(j + 1)].append(gb[str(j + 2)]),
-                           calibration.loc[calibration.XscanNumber_YscanNumber == str(
-                               j + 1) + '_' + str(j + 2)],
-                           int(times[j][0][0]), fill, run, luminometer, crossing_angle)
-
-        json.dump(output, open(automation_folder + 'Analysed_Data/' + name + '/' +
-                               'output' + str(fill) + luminometer + fit + str(j / 2 + 1) + '.json', 'w'))
+                            calibration.loc[calibration.XscanNumber_YscanNumber == str(
+                               j + 1) + '_' + str(j + 2)], int(times[j][0][0]),
+                               fill, run, luminometer, crossing_angle)
+        output.update({'fit': fit})
+        if perchannel:
+            detector = output['detector']
+            if str.isdigit(str(detector[-2])):
+                channel = int(str(detector[-2:]))
+            else:
+                channel = int(str(detector[-1]))
+            detector = re.match('([A-Z1]*[A-Z])_?[0-9]*', detector).group(1)
+            output['detector'] = detector
+            output.update({'channel':channel})
+            if not os.path.exists(automation_folder + 'Analysed_Data/' + name + '/PerChannelJSONS/'):
+                os.mkdir(automation_folder + 'Analysed_Data/' + name + '/PerChannelJSONS/')
+            with open(automation_folder + 'Analysed_Data/' + name + '/PerChannelJSONS/' + 'output' +
+                        str(fill) + luminometer + fit + str(j / 2 + 1) + '.json', 'w') as f:
+                json.dump(output,f)
+        else:
+            with open(automation_folder + 'Analysed_Data/' + name + '/' + 'output' +
+                        str(fill) + luminometer + fit + str(j / 2 + 1) + '.json', 'w') as f:
+                json.dump(output, f)
         if post:
             if test:
-                #requests.post(endpoint, json.dumps(output))
-                output.update({'fit': fit})
                 requests.post(testendpoint, json.dumps(output))
+            elif perchannel:
+                requests.post(perchannelendpoint, json.dumps(output))
             else:
                 requests.post(endpoint, json.dumps(output))
 

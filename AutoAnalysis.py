@@ -75,7 +75,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
     for r in ratetables:
         print(r)
         # ('PLT' if 'plt' == r[:3] else (r[:4] if r[:5] != 'bcm1f' else 'bcm1f'))
-        l = re.match('([a-z1_]*)lumi(.*)', r).group(1)
+        l = re.match('([a-z1]*)_?lumi(.*)', r).group(1)
         l = l if r != 'hflumi' else 'hfoc'
         if dg or filename2:
             f = ('DG' if 'plt' == r[:3] else 'DGConst')
@@ -110,6 +110,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         ratetable = threads[0][2]
         if int(fill) > 5737:
             # assuming it doesn't change DURING a scan; UPDATE: it changes between scans that might be in the same file, so needs to be changed
+            # UPDATE: this is probably fixed and I forgot to delete the comment, need to check
             angle = int(data.iloc[data[data.sec==times[0][0][0]].index[0]]['xingHmurad'])
             Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, True, _bstar=float(
                 data.iloc[0]['bstar5']) / 100, _angle=angle, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
@@ -127,9 +128,10 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             calibration = pickle.load(cal)
         fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
         calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
-        PostOutput(fitresults, calibration, times, fill, run, True, name, luminometer,
-                    fit, angle, corr, automation_folder=automation_folder, post=post)
-        if luminometer in luminometers:
+        if str.isdigit(str(luminometer[-1])):
+            PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
+                      fit, angle, corr, automation_folder=automation_folder, post=post, perchannel=True)
+        if luminometer in _luminometers:
             PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                         fit, angle, corr, automation_folder=automation_folder, post=post)
         for k in xrange(1, len(threads), threadcount):
@@ -144,8 +146,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                 else:
                     Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename,
                         False, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
-                # this is done like this because ROOT is being a bitch and I'm in a hurry, it should be doable with the threading module
-                # UPDATE: Apparently this is actually the best way to do this, due to python's Global Interpreter Lock
+                
                 proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
                                          '-l', luminometer, '-f', fit, '-c', corr, '-a', automation_folder])
                 procs.append(proc)
@@ -162,11 +163,13 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                         calibration = pickle.load(cal)
                     fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
                     calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
-                    PostOutput(fitresults, calibration, times, fill, run, True, name, luminometer,
-                                fit, angle, corr, automation_folder=automation_folder, post=post)
+                    if str.isdigit(str(luminometer[-1])):
+                        PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
+                                fit, angle, corr, automation_folder=automation_folder, post=post, perchannel=True)
                     if luminometer in _luminometers:
                         PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                                     fit, angle, corr, automation_folder=automation_folder, post=post)
+                    
                 except (KeyboardInterrupt, SystemExit):
                     raise SystemExit
                 except:

@@ -39,7 +39,7 @@ class SG_Fit(FitManager.FitProvider):
 # if one does not want to set limits, set lower bound larger than upper bound in config file
         if LimitSigma_upper > LimitSigma_lower:
             ff.SetParLimits(0, LimitSigma_lower,LimitSigma_upper)
-        if LimitPeak_upper > LimitPeak_lower:
+        if LimitPeak_upper >= LimitPeak_lower:
             ff.SetParLimits(2, LimitPeak_lower,LimitPeak_upper)
 
 
