@@ -163,7 +163,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                         calibration = pickle.load(cal)
                     fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
                     calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
-                    if str.isdigit(str(luminometer[-1])):
+                    if str.isdigit(str(ratetable[-1])):
                         PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                                 fit, angle, corr, automation_folder=automation_folder, post=post, perchannel=True)
                     if luminometer in _luminometers:

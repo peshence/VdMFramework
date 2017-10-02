@@ -19,7 +19,7 @@ if os.getcwd()[-4:] == 'Test':
     global folder
     folder = '../' + folder
 for a in os.listdir(central):
-    if str.isdigit(str(a[0])) and int(a[:4])>=6152:#>5940 and int(a[:4])<5980:
+    if str.isdigit(str(a[0])) and int(a[:4])>6240:#>5940 and int(a[:4])<5980:
         try:
             t1 = dt.datetime.strptime(a[5:15],'%y%m%d%H%M%S')
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')

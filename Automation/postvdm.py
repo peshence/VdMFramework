@@ -20,9 +20,13 @@ def PostOutput(fitresults, calibration, times, fill, run, test, name,
     '''
     gb = dict(list(fitresults.groupby('Scan')))
     for j in range(len(gb))[::2]:
+        local_calibration = calibration.loc[calibration.XscanNumber_YscanNumber == 
+                                        str(j + 1) + '_' + str(j + 2)]
+        if local_calibration.empty:
+            local_calibration = calibration.loc[calibration.XscanNumber_YscanNumber == 
+                                        str(j + 2) + '_' + str(j + 1)]
         output = GetOutput(gb[str(j + 1)].append(gb[str(j + 2)]),
-                            calibration.loc[calibration.XscanNumber_YscanNumber == str(
-                               j + 1) + '_' + str(j + 2)], int(times[j][0][0]),
+                            local_calibration, int(times[j][0][0]),
                                fill, run, luminometer, crossing_angle)
         output.update({'fit': fit})
         if perchannel:
