@@ -4,5 +4,5 @@
     "luminometers": ["PLT", "HFET", "HFOC", "BCM1FSI", "BCM1FPCVD", "BCM1FSCVD", "BCM1FUTCA_"],
     "fits": ["SG", "SGConst","SGConst","SGConst","SGConst","SGConst"],
     "dfits": ["DG","DGConst","DGConst","DGConst","DGConst","DGConst"],
-    "ratetables": ["pltlumizero", "hfetlumi", "hfoclumi", "bcm1fsilumi", "bcm1fpcvdlumi", "bcm1fscvdlumi"]
+    "ratetables": ["bcm1fpcvdlumi"]
 }

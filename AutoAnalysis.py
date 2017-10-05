@@ -53,7 +53,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             raise Exception('no vdmscan table')
         data = Configurator.RemapVdMDIPData(pd.DataFrame.from_records(h5.root.vdmscan[:]))
 
-        ratetables = [i.name for i in h5.root if 'lumi' in i.name and i.name != 'pltslinklumi']
+        ratetables = [i.name for i in h5.root if 'lumi' in i.name and i.name != 'pltslinklumi' and i.name != 'luminousregion']
         # ratetables = [i.name for i in h5.root if 'lumi' in i.name and
         #     i.name != 'pltslinklumi' and 'utca' not in i.name]# and not str.isdigit(i.name[-1])]
 
@@ -131,7 +131,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         if str.isdigit(str(luminometer[-1])):
             PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                       fit, angle, corr, automation_folder=automation_folder, post=post, perchannel=True)
-        if luminometer in _luminometers:
+        if ratetable in _ratetables:
             PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                         fit, angle, corr, automation_folder=automation_folder, post=post)
         for k in xrange(1, len(threads), threadcount):
@@ -166,7 +166,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                     if str.isdigit(str(ratetable[-1])):
                         PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                                 fit, angle, corr, automation_folder=automation_folder, post=post, perchannel=True)
-                    if luminometer in _luminometers:
+                    if ratetable in _ratetables:
                         PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                                     fit, angle, corr, automation_folder=automation_folder, post=post)
                     
