@@ -111,7 +111,22 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
             # need to do this because PCC uses only subset of 5 bcids of all
             # possible bcids with collisions
 
-            for key in orderedIntKeysFirst(graphs.keys()):
+            orderedkeys = orderedIntKeysFirst(graphs.keys())
+            pdfbxs = [i for i in orderedkeys if type(i) == int][:100]
+            pdfbxs.append([key for key in orderedkeys if type(i) == int and key not in pdfbxs and
+                            key - 1 not in orderedkeys and key + 1 not in orderedkeys])
+            #pdfbxs = []
+            # train = True
+            # for key in orderedkeys:
+            #     if type(key) != int:
+            #         continue
+            #     if key - 1 not in orderedkeys and key + 1 not in orderedkeys:
+            #         pdfbxs.append(key)
+            #     elif train:
+            #         pdfbxs.append(key)
+            #         if key + 1 not in orderedkeys:
+            #             train = False
+            for key in orderedkeys:
                 if type(key) == int and key%100 == 0:
                     print "Now fitting BCID ", key
                 graph = graphs[key]
@@ -132,7 +147,7 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
                     result = fitter.doFit(graph, FitConfigInfo)
                     results[key] = result
                     functions = result[0]
-                    if makepdf:
+                    if makepdf and key in pdfbxs:
                         canvas = fitter.doPlot(
                             graph, functions, Fill, PlotsTempPath[0])
                 
