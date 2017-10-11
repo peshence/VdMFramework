@@ -139,7 +139,7 @@ def getCurrents(datapath, scanpt, fill):
     else:        
         filelist = os.listdir(datapath)
         for file in filelist:
-            if file[0] != 'b' and int(file[:4]) == int(fill):
+            if str.isdigit(str(file[0])) and int(file[:4]) == int(fill):
                 collBunches, filledBunches1, filledBunches2, beam1data, beam2data, bx1data, bx2data,beamts = readh5(datapath + '/' + file, collBunches, filledBunches1, filledBunches2, beam1data, beam2data, bx1data, bx2data,beamts)        
 
     beam1df = pd.DataFrame(beam1data)

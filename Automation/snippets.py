@@ -164,3 +164,63 @@ with open('6140xsec(sbil)_late' + '.csv','w') as f:
         out.writerow((i,j,k,l))
 
 
+
+### single bunch raw rates
+import tables, pandas as pd, Configurator, numpy as np, matplotlib.pyplot as plt
+
+h5 = tables.open_file('/cmsnfsbrildata/brildata/vdmdata17/6194_1709130911_1709131001.hd5')
+rateTable='hfetlumi'
+for table in h5.root:
+    if table.name == rateTable:
+        beamtable = table
+        break
+
+times = Configurator.GetTimestamps(Configurator.RemapVdMDIPData(pd.DataFrame.from_records(h5.root.vdmscan[:])), 6194, 'test')
+times = [[i[0][0],i[1][0]] for i in times]
+
+data = []
+for tp in times:
+    tw = '(timestampsec >' + str(tp[0]) + ') & (timestampsec <=' +  str(tp[1]) + ')'
+    table = [r['bxraw'] for r in beamtable.where(tw)]
+    data =  data + table
+
+
+dft = pd.DataFrame(data)
+df = dft.transpose()
+
+removestrays = lambda a: np.array([0 if i < 6e9 else 1 for i in a])
+table = [(removestrays(r['bxintensity1']), removestrays(r['bxintensity2'])) for r in h5.root.beam.where(tw)]
+bunchlist1 = [r[0] for r in table] 
+bunchlist2 = [r[1] for r in table]
+collBunches  = np.nonzero(bunchlist1[0]*bunchlist2[0])[0].tolist()
+print collBunches
+
+
+dfcsv = pd.DataFrame()
+dfcsv[2825] = df.iloc[2825]
+dfcsv[2809] = df.iloc[2809]
+dfcsv[781] = df.iloc[781]
+dfcsv[785] = df.iloc[785]
+dfcsv[90] = df.iloc[90]
+dfcsv.to_csv('hfetreducedmu6194rates.csv')
+plt.plot(df.iloc[2809], 'mo')
+plt.plot(df.iloc[2825], 'co')
+plt.plot(df.iloc[785], 'bo')
+plt.plot(df.iloc[781], 'ro')
+plt.plot(df.iloc[90], 'go')
+plt.show()
+
+
+for i,j in enumerate(df.iterrows()):
+    if i in collBunches:
+        if i-1 in collBunches:
+            plt.plot(j[1],'ro')
+        elif i+1 in collBunches:
+            plt.plot(j[1],'bo')
+        else:
+            plt.plot(j[1],'go')
+
+
+
+
+plt.show()

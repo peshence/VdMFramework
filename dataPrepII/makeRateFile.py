@@ -73,7 +73,7 @@ def getRates(datapath, rateTable, scanpt, fill):
     else:        
         filelist = os.listdir(datapath)
         for file in filelist:
-            if file[0] != 'b' and int(file[:4]) == int(fill):
+            if str.isdigit(str(file[0])) and int(file[:4]) == int(fill):
                 bxdata, avgdata, bxdf, avgdf, rates, ratesErr, collBunches = readh5(datapath + '/' + file, bxdata, avgdata, bxdf, avgdf, rates, ratesErr, collBunches)
 
     bxdf = pd.DataFrame(bxdata)
