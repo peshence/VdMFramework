@@ -168,14 +168,14 @@ with open('6140xsec(sbil)_late' + '.csv','w') as f:
 ### single bunch raw rates
 import tables, pandas as pd, Configurator, numpy as np, matplotlib.pyplot as plt
 
-h5 = tables.open_file('/cmsnfsbrildata/brildata/vdmdata17/6194_1709130911_1709131001.hd5')
-rateTable='hfetlumi'
+h5 = tables.open_file('/cmsnfsbrildata/brildata/vdmdata17/6259_1709302212_1709302224.hd5')
+rateTable='bcm1fpcvdlumi'
 for table in h5.root:
     if table.name == rateTable:
         beamtable = table
         break
 
-times = Configurator.GetTimestamps(Configurator.RemapVdMDIPData(pd.DataFrame.from_records(h5.root.vdmscan[:])), 6194, 'test')
+times = Configurator.GetTimestamps(Configurator.RemapVdMDIPData(pd.DataFrame.from_records(h5.root.vdmscan[:])), 6259, 'test')
 times = [[i[0][0],i[1][0]] for i in times]
 
 data = []
@@ -194,7 +194,13 @@ bunchlist1 = [r[0] for r in table]
 bunchlist2 = [r[1] for r in table]
 collBunches  = np.nonzero(bunchlist1[0]*bunchlist2[0])[0].tolist()
 print collBunches
-
+dfcsv = pd.DataFrame()
+dfcsv[9] = df.iloc[9]
+dfcsv[90] = df.iloc[90]
+plt.plot(df.iloc[9], 'ro', label='BCID 9')
+plt.plot(df.iloc[90], 'bo', label='BCID 90')
+plt.legend()
+plt.show()
 
 dfcsv = pd.DataFrame()
 dfcsv[2825] = df.iloc[2825]
@@ -224,3 +230,39 @@ for i,j in enumerate(df.iterrows()):
 
 
 plt.show()
+
+
+### calculating sigmavis with adjusted peak (+const)
+import numpy as np,pandas as pd,matplotlib.pyplot as plt
+fr = pd.DataFrame.from_csv('/cmsnfsbrildata/brildata/vdmoutput/Automation/Analysed_Data/6259_01Oct17_001440_01Oct17_001718/BCM1FPCVD/results/BeamBeam/SGConst_FitResults.csv')
+fr = fr.loc[fr.BCID!='sum']
+fr1 = fr.iloc[:1909]
+fr2 = fr.iloc[1909:]
+old = []
+for s1,s2,p1,p2 in zip(fr1.CapSigma,fr2.CapSigma, fr1.peak,fr2.peak):
+    old.append(np.pi*s1*s2*(p1+p2))
+
+
+new = []
+for s1,s2,p1,p2,c1,c2 in zip(fr1.CapSigma,fr2.CapSigma, fr1.peak,fr2.peak,fr1.Const,fr2.Const):
+    new.append(np.pi*s1*s2*(p1+p2+c1+c2))
+
+
+wtf = []
+for s1,s2,p1,p2,c1,c2 in zip(fr1.CapSigma,fr2.CapSigma, fr1.peak,fr2.peak,fr1.Const,fr2.Const):
+    wtf.append((np.pi*s1*s2+0.043093*c1/2 + 0.030781*c2/2)*(p1+p2+c1+c2))
+
+
+
+plt.plot(fr1.BCID,old,'ro',label='Gaussian Peak')
+plt.plot(fr1.BCID,new,'bo',label='Peak+Const')
+plt.plot(fr1.BCID,wtf,'go',label='wtf')
+plt.legend()
+plt.show()
+
+0.043093 0.030781
+
+
+import json
+for f in os.listdir('/brildata/vdmoutput/')
+json.load()

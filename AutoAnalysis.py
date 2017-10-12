@@ -78,9 +78,9 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         l = re.match('([a-z1]*)_?lumi(.*)', r).group(1)
         l = l if r != 'hflumi' else 'hfoc'
         if dg or filename2:
-            f = ('DG' if 'plt' == r[:3] else 'DGConst')
+            f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
         else:
-            f = ('SG' if 'plt' == r[:3] else 'SGConst')
+            f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
         if str.isdigit(str(r[-1])):
             if str.isdigit(str(r[-2])):
                 l = l + r[-2:]

@@ -1,8 +1,6 @@
 {
     "Comment": "Folder path has to be relative",
-    "automation_folder": "../../../../../brildata/vdmoutput/AutomationTest/",
-    "luminometers": ["PLT", "HFET", "HFOC", "BCM1FSI", "BCM1FPCVD", "BCM1FSCVD", "BCM1FUTCA_"],
-    "fits": ["SG", "SGConst","SGConst","SGConst","SGConst","SGConst"],
-    "dfits": ["DG","DGConst","DGConst","DGConst","DGConst","DGConst"],
-    "ratetables": ["bcm1fpcvdlumi"]
+    "automation_folder": "../../../../../brildata/vdmoutput/Automation/",
+    "ratetables": ["bcm1fpcvdlumi"],
+    "exampleratetables": ["pltlumizero", "hfetlumi", "hfoclumi", "bcm1fsilumi", "bcm1fpcvdlumi", "bcm1fscvdlumi"]
 }
