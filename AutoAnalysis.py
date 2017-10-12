@@ -23,9 +23,8 @@ logging.basicConfig(filename="Automation/Logs/watcher_" +
 central_default = '/brildata/vdmdata17/'
 folder = 'Automation/'
 config = json.load(open('configAutoAnalysis.json'))
-_luminometers = config['luminometers']
+
 _ratetables = config['ratetables']
-_fits = config['fits']
 folder = config['automation_folder']
 if not os.path.exists('./' + folder):
     os.mkdir('./' + folder)
