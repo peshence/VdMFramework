@@ -14,6 +14,7 @@ jsonData = jsonFile.read()
 sigma = json.loads(jsonData[3:])
 folder = 'Analysed_Data/'
 lumis = ["PLT", "HFET", "HFOC", 'BCM1F', "BCM1FSI", "BCM1FPCVD", "BCM1FSCVD"]
+lumis = ["BCM1FPCVD"]
 fillr = 'output(\d+).*\.json'
 
 
@@ -39,7 +40,6 @@ for dir in dirs:
         fitr = 'output\d+' + lumi + '(.*).json'
         fit = re.match(fitr,j).group(1)
         fill = re.match(fillr,j).group(1)
-        for key in keys:
         key=cols[0]
         row.update({key:dt.datetime.fromtimestamp(j[key])})
         key = cols[1]

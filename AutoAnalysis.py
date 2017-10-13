@@ -38,13 +38,13 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
     '''Uses vdm data from hd5 file to create configurations for analysis and run them,
         then posts results to web monitor service and saves json dumps of data sent
 
-        filename is the name of the hd5 file you're analysing
-        corr is the correction you want applied, which is only BeamBeam right now (or noCorr)
-        test is a boolean that tells if you want to post to test instance
+        filename : the name of the hd5 file you're analysing
+        corr : the correction you want applied, which is only BeamBeam right now (or noCorr)
+        test : a boolean that tells if you want to post to test instance
             (which looks at different fits as different data series) or normal instance
-        filename2 is the name of the second file of a scan pair for large scans
-        post is a boolean that tells if you want your data posted at all (and ouput to json)
-        automation_folder is the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders
+        filename2 : the name of the second file of a scan pair for large scans
+        post : a boolean that tells if you want your data posted at all (and ouput to json)
+        automation_folder : the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders
     '''
     with tables.open_file(filename) as h5:
         if 'vdmscan' not in h5.root:
@@ -77,9 +77,11 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         l = re.match('([a-z1]*)_?lumi(.*)', r).group(1)
         l = l if r != 'hflumi' else 'hfoc'
         if dg or filename2:
-            f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
+            f = ('DG' if 'plt' == r[:3] else 'DGConst')
+            #f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
         else:
-            f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
+            f = ('SG' if 'plt' == r[:3] else 'SGConst')
+            #f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
         if str.isdigit(str(r[-1])):
             if str.isdigit(str(r[-2])):
                 l = l + r[-2:]
@@ -187,10 +189,10 @@ def RunWatcher(corr, test, central=central_default):
     '''Checks folder for new hd5 files, 
         makes configuration files for them and runs analysis, sending the results to an external service
 
-        corr is the correction you want applied, which is only BeamBeam right now (or noCorr)
-        test is a boolean that tells if you want to post to test instance
+        corr : the correction you want applied, which is only BeamBeam right now (or noCorr)
+        test : a boolean that tells if you want to post to test instance
             (which looks at different fits as different data series) or normal instance
-        central is the folder you'll be watching, you should leave it as is
+        central : the folder you'll be watching, you should leave it as is
         '''
 
     before = os.listdir(central)

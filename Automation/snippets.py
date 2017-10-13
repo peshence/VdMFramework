@@ -264,5 +264,35 @@ plt.show()
 
 
 import json
-for f in os.listdir('/brildata/vdmoutput/')
-json.load()
+import pandas as pd
+import os
+fills = [6275,6283,6287,6288,6291]
+lumi = 'BCM1FPCVD'
+folder = '/brildata/vdmoutput/Automation/Analysed_Data/'
+keys = ['timestamp', 'fill', 'fit', 'sigmavis_avg', 'sbil_avg']
+df = pd.DataFrame()
+allscans = os.listdir(folder)
+for name in allscans:
+    if (not str.isdigit(str(name[0]))) or (int(name[:4]) not in fills):
+        continue
+    jsons = [i for i in os.listdir(folder+name) if i[-4:] == 'json' and lumi in i]
+    for jsonFile in jsons:
+        with open(folder+name+'/'+jsonFile) as f:
+            data = json.load(f)
+        row = {}
+        row.update({'scannum':})
+        for key in keys:
+            row.update({key:data[key]})
+        if df.empty:
+            df = pd.DataFrame(data=row,index=[0])
+        else:
+            df = df.append(row,ignore_index=True)
+            
+fits = list(set(df.fit))
+for fit in fits:
+    tempdf = df.loc[df.fit==fit]
+    plt.plot(tempdf.timestamp,tempdf.sigmavis_avg,'o',label=fit)
+
+
+plt.legend()
+plt.show()

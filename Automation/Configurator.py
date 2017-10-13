@@ -20,9 +20,9 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
         (beginning end end of scan respectively)
         Saves a new reduced vdm file as automation_folder + 'dipfiles/vdm_' + name + '.csv'
 
-        data is the data from a vdm dip csv file or vdmscan table of hd5 files remapped by RemapVdMDIPData
-        name is the name of the analysed data folder (fill_datestart_timestart_dateend_timend usually)
-        automation_folder is the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders
+        data : the data from a vdm dip csv file or vdmscan table of hd5 files remapped by RemapVdMDIPData
+        name : the name of the analysed data folder (fill_datestart_timestart_dateend_timend usually)
+        automation_folder : the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders
      """
     # Get cms data for fill
     _dip = automation_folder + 'dipfiles/vdm_' + name + '.csv'
@@ -187,15 +187,15 @@ def FormatTimestamps(times):
 def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, first=True, automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na'):
     """Makes a folder with configuration files with given timestamps paired for beginnings and endings of scans
 
-        times should be of the form [ (timestamp, nominal_separation_plane), (timestamp, nominal_separation_plane) ] (like from GetTimestamps)
-        name is the name of the analysis folder (fill number and datetimes from the beginning and ending of the scan pair)
-        central is the path to the data file or folder. give hd5 file path for emittance scans and folder (currently /brildata/vdmdata17/)
-        first tells whether this configuration should also have scan and beamcurrents files made
-        automation_folder is the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders (default is 'Automation/')
-        _bstar and _angle should be values of those variables if you have them (otherwise default is False)
-        makepdf tells whether to make pdfs with beam beam corrections and fitted functions
-        makelogs tells whether to make logs for the fitting (minuit and otherwise)
-        autoconfigs_folder is the folder where your templates for configurations are"""
+        times : should be of the form [ (timestamp, nominal_separation_plane), (timestamp, nominal_separation_plane) ] (like from GetTimestamps)
+        name : the name of the analysis folder (fill number and datetimes from the beginning and ending of the scan pair)
+        central : the path to the data file or folder. give hd5 file path for emittance scans and folder (currently /brildata/vdmdata17/)
+        first : tells whether this configuration should also have scan and beamcurrents files made
+        automation_folder : the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders (default is 'Automation/')
+        _bstar and _angle : should be values of those variables if you have them (otherwise default is False)
+        makepdf : tells whether to make pdfs with beam beam corrections and fitted functions
+        makelogs : tells whether to make logs for the fitting (minuit and otherwise)
+        autoconfigs_folder : is the folder where your templates for configurations are"""
     if autoconfigs_folder == 'na':
         autoconfigs_folder = automation_folder
     # time-related data for all configurations

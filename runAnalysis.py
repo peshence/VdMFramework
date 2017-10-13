@@ -22,8 +22,8 @@ def RunAnalysis(name, luminometer, fit, corr='noCorr', automation_folder='Automa
         then calculates the calibration constant ant plots the results in pdfs
         You need to have already made the configuration files in automation_folder + '/autoconfigs'
 
-        name is the name of the analysis folder (fill number and datetimes from the beginning and ending of the scan pair)
-        automation_folder is the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders
+        name : the name of the analysis folder (fill number and datetimes from the beginning and ending of the scan pair)
+        automation_folder : the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders
         """
     def LogInfo(message):
         print(message)
