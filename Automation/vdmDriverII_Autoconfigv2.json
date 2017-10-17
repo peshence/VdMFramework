@@ -104,7 +104,7 @@
 	"Comment": "Input beam currents file in <AnalysisDir>/<InputBeamCurrentFile>",
 	"InputBeamCurrentFile" : "cond/BeamCurrents_{fill}.pkl",
 	"Comment": "Input luminometer data in <AnalysisDir>/<InputLuminometerData>",
-	"InputLuminometerData" : "LuminometerData/Rates_{luminometer}_{fill}.pkl",
+	"InputLuminometerData" : "LuminometerData/Rates_{luminometer}_{fill}.json",
 	"OutputSubDir" : "graphs",
 	"MakePDF": {makepdf}
 	}},

@@ -91,8 +91,12 @@ class vdmInputData:
     def GetScanInfo(self, fileName):
 
         table = {}
-        with open(fileName, 'rb') as f:
-            table = json.load(f)
+        if 'json' == fileName[-4:]:
+            with open(fileName, 'rb') as f:
+                table = json.load(f)
+        else:
+            with open(fileName, 'rb') as f:
+                table = pickle.load(f)
 
         self.fill = table["Fill"]
         self.date = table["Date"]
@@ -130,7 +134,7 @@ class vdmInputData:
         key = "Scan_" + str(self.scanNumber)
         self.curr = table[key]
  
-# curr values for filled bunches per beam, first index SP, second index BCID
+        # curr values for filled bunches per beam, first index SP, second index BCID
         self.avrgFbctB1PerSP = [{} for entry in self.curr]
         self.avrgFbctB2PerSP = [{} for entry in self.curr]
         for entry in self.curr:
@@ -143,7 +147,7 @@ class vdmInputData:
             self.sumAvrgFbctB1.append(self.curr[index][5])
             self.sumAvrgFbctB2.append(self.curr[index][6])
 
-# BCID list, colliding bunches, for scanpoints
+        # BCID list, colliding bunches, for scanpoints
         self.collidingBunchesPerSP=[[] for a in range(self.nSP)]
         for i in range(self.nSP):
             BunchListB1PerSP=list(self.avrgFbctB1PerSP[i].keys())
@@ -155,7 +159,7 @@ class vdmInputData:
                         CollidingBunchPerSP.append(BunchListB1PerSP[j])
             self.collidingBunchesPerSP[i]=CollidingBunchPerSP
 
-# BCID list for the scan
+        # BCID list for the scan
         collidingBunchesForScan=[]
         for i in range(self.nSP):
             for j in range(len(self.collidingBunchesPerSP[i])):
@@ -163,8 +167,8 @@ class vdmInputData:
                     collidingBunchesForScan.append(self.collidingBunchesPerSP[i][j])
         self.collidingBunches=collidingBunchesForScan
 
-# natural order per BX for analysis: curr values only for colliding bunches
-# first index BCID (for colliding bx only), second index SP
+        # natural order per BX for analysis: curr values only for colliding bunches
+        # first index BCID (for colliding bx only), second index SP
         self.avrgFbctB1 = [[] for a in range(len(self.collidingBunches))]
         self.avrgFbctB2 = [[] for a in range(len(self.collidingBunches))]
         spNumberPerBX=[[] for a in range(len(self.collidingBunches))]
@@ -203,60 +207,115 @@ class vdmInputData:
         self.luminometerDataSource = fileName
 
         table = {}
-        with open(fileName, 'rb') as f:
-            table = pickle.load(f)
+        if 'json' == fileName[-4:]:
+            with open(fileName, 'rb') as f:
+                table = json.load(f)
+            key = "Scan_" + str(self.scanNumber)
+            rateData = table[key]
+    
+            self.lumiPerSP = [{} for entry in rateData]
+            self.lumiErrPerSP = [{} for entry in rateData]
+            for i,entry in enumerate(rateData):
+                self.lumiPerSP[i] = entry['Rates']
+                self.lumiErrPerSP[i] = entry['RateErrs']
 
-        key = "Scan_" + str(self.scanNumber)
-        self.lum = table[key]
- 
-        self.lumiPerSP = [{} for entry in self.lum]
-        self.lumiErrPerSP = [{} for entry in self.lum]
-        for entry in self.lum:
-            self.lumiPerSP[int(entry[2])-1] = entry[3][0]
-            self.lumiErrPerSP[int(entry[2])-1] = entry[3][1]
+            # determine which of the colliding bunches are in fact used
+            # for HF should be identical to all colliding ones
+            # for PCC should only be subset, typically 5
 
-# determine which of the colliding bunches are in fact used
-# for HF should be identical to all colliding ones
-# for PCC should only be subset, typically 5
+            usedCollidingBunches=[]
+            for i, bx in enumerate(self.collidingBunches):
+                for j in range(self.nSP):
+                    try:
+                        if str(bx) in self.lumiPerSP[j]:
+                            if bx not in usedCollidingBunches:
+                                usedCollidingBunches.append(bx)
+                    except:
+                        print "in usedCollidingBunches: BCID ", bx, " is not filled at the scanpoint ", j
+            self.usedCollidingBunches = usedCollidingBunches
 
-        usedCollidingBunches=[]
-        for i, bx in enumerate(self.collidingBunches):
+            # this is the natural order for analysis
+            self.lumi = [[] for a in range(len(self.usedCollidingBunches))]
+            self.lumiErr = [[] for a in range(len(self.usedCollidingBunches))]
+            SPNumberPerBX=[[] for a in range(len(self.usedCollidingBunches))]
+            for i, bx in enumerate(self.usedCollidingBunches):
+                for j in range(self.nSP):
+                    try:
+                        value = self.lumiPerSP[j][str(bx)]
+                        self.lumi[i].append(value)
+                        valueErr = self.lumiErrPerSP[j][str(bx)]
+                        self.lumiErr[i].append(valueErr)
+                    except:
+                        print "in GetLuminometerData: BCID ", bx, "is not filled at the scanpoint ", j
+                    else:
+                        SPNumberPerBX[i].append(self.displacement[j])
+                self.lumiPerBX[bx] = self.lumi[i]
+                self.lumiErrPerBX[bx] = self.lumiErr[i]
+                self.splumiPerBX[bx]=SPNumberPerBX[i]
+
+            self.sumLumi = [0.0 for a in range(self.nSP)]
+            self.sumLumiErr = [0.0 for a in range(self.nSP)]
             for j in range(self.nSP):
                 try:
-                    if str(bx) in self.lumiPerSP[j]:
-                        if bx not in usedCollidingBunches:
-                            usedCollidingBunches.append(bx)
-                except:
-                    print "in usedCollidingBunches: BCID ", bx, " is not filled at the scanpoint ", j
-        self.usedCollidingBunches = usedCollidingBunches
-
-# this is the natural order for analysis
-        self.lumi = [[] for a in range(len(self.usedCollidingBunches))]
-        self.lumiErr = [[] for a in range(len(self.usedCollidingBunches))]
-        SPNumberPerBX=[[] for a in range(len(self.usedCollidingBunches))]
-        for i, bx in enumerate(self.usedCollidingBunches):
-            for j in range(self.nSP):
-                try:
-                    value = self.lumiPerSP[j][str(bx)]
-                    self.lumi[i].append(value)
-                    valueErr = self.lumiErrPerSP[j][str(bx)]
-                    self.lumiErr[i].append(valueErr)
+                    self.sumLumi[j] = self.lumiPerSP[j]['sum'] 
+                    self.sumLumiErr[j] = self.lumiErrPerSP[j]['sum'] 
                 except:
                     print "in GetLuminometerData: BCID ", bx, "is not filled at the scanpoint ", j
-                else:
-                    SPNumberPerBX[i].append(self.displacement[j])
-            self.lumiPerBX[bx] = self.lumi[i]
-            self.lumiErrPerBX[bx] = self.lumiErr[i]
-            self.splumiPerBX[bx]=SPNumberPerBX[i]
+        else:
+            with open(fileName, 'rb') as f:
+                table = pickle.load(f)
 
-        self.sumLumi = [0.0 for a in range(self.nSP)]
-        self.sumLumiErr = [0.0 for a in range(self.nSP)]
-        for j in range(self.nSP):
-            try:
-                self.sumLumi[j] = self.lumiPerSP[j]['sum'] 
-                self.sumLumiErr[j] = self.lumiErrPerSP[j]['sum'] 
-            except:
-                print "in GetLuminometerData: BCID ", bx, "is not filled at the scanpoint ", j
+            key = "Scan_" + str(self.scanNumber)
+            self.lum = table[key]
+    
+            self.lumiPerSP = [{} for entry in self.lum]
+            self.lumiErrPerSP = [{} for entry in self.lum]
+            for entry in self.lum:
+                self.lumiPerSP[int(entry[2])-1] = entry[3][0]
+                self.lumiErrPerSP[int(entry[2])-1] = entry[3][1]
+
+            # determine which of the colliding bunches are in fact used
+            # for HF should be identical to all colliding ones
+            # for PCC should only be subset, typically 5
+
+            usedCollidingBunches=[]
+            for i, bx in enumerate(self.collidingBunches):
+                for j in range(self.nSP):
+                    try:
+                        if str(bx) in self.lumiPerSP[j]:
+                            if bx not in usedCollidingBunches:
+                                usedCollidingBunches.append(bx)
+                    except:
+                        print "in usedCollidingBunches: BCID ", bx, " is not filled at the scanpoint ", j
+            self.usedCollidingBunches = usedCollidingBunches
+
+            # this is the natural order for analysis
+            self.lumi = [[] for a in range(len(self.usedCollidingBunches))]
+            self.lumiErr = [[] for a in range(len(self.usedCollidingBunches))]
+            SPNumberPerBX=[[] for a in range(len(self.usedCollidingBunches))]
+            for i, bx in enumerate(self.usedCollidingBunches):
+                for j in range(self.nSP):
+                    try:
+                        value = self.lumiPerSP[j][str(bx)]
+                        self.lumi[i].append(value)
+                        valueErr = self.lumiErrPerSP[j][str(bx)]
+                        self.lumiErr[i].append(valueErr)
+                    except:
+                        print "in GetLuminometerData: BCID ", bx, "is not filled at the scanpoint ", j
+                    else:
+                        SPNumberPerBX[i].append(self.displacement[j])
+                self.lumiPerBX[bx] = self.lumi[i]
+                self.lumiErrPerBX[bx] = self.lumiErr[i]
+                self.splumiPerBX[bx]=SPNumberPerBX[i]
+
+            self.sumLumi = [0.0 for a in range(self.nSP)]
+            self.sumLumiErr = [0.0 for a in range(self.nSP)]
+            for j in range(self.nSP):
+                try:
+                    self.sumLumi[j] = self.lumiPerSP[j]['sum'] 
+                    self.sumLumiErr[j] = self.lumiErrPerSP[j]['sum'] 
+                except:
+                    print "in GetLuminometerData: BCID ", bx, "is not filled at the scanpoint ", j
 
         return
         
@@ -308,14 +367,14 @@ class vdmInputData:
 
     def PrintLuminometerData(self):
 
-        print self.lum
+        # print self.lum
 
         print ""
         print" ===="
         print "PrintLuminometerData"
         print "LuminometerDataSource", self.luminometerDataSource
         print "usedCollidingBunches", self.usedCollidingBunches
-        print "complete Luminometer Rate info", self.lum
+        # print "complete Luminometer Rate info", self.lum
         for idx, val in enumerate(self.lumiPerSP, start=1):
             print "For SP ", idx, " Luminometer Rates for each BX ", val
         for idx, val in enumerate(self.lumiErrPerSP, start=1):

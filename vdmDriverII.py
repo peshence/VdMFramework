@@ -127,20 +127,19 @@ def DriveVdm(ConfigFile):
         OutputSubDir = AnalysisDir + "/" + str(makeRateFileConfig['OutputSubDir'])
 
         table = {}
-        csvtable = []
 
         if Luminometer=='PCC':
             table, csvtable = doMakePCCRateFile(makeRateFileConfig)
         else:
-            table, csvtable = doMakeRateFile(makeRateFileConfig)
+            table = doMakeRateFile(makeRateFileConfig)
 
-        csvfile = open(OutputSubDir+'/Rates_'+ Luminometer + '_'+str(Fill)+'.csv', 'wb')
-        writer = csv.writer(csvfile)
-        writer.writerows(csvtable)
-        csvfile.close()
+        # csvfile = open(OutputSubDir+'/Rates_'+ Luminometer + '_'+str(Fill)+'.csv', 'wb')
+        # writer = csv.writer(csvfile)
+        # writer.writerows(csvtable)
+        # csvfile.close()
 
-        with open(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.pkl', 'wb') as f:
-            pickle.dump(table, f)
+        with open(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json', 'wb') as f:
+            json.dump(table, f)
 
 
     if makeBeamCurrentFile == True:
