@@ -109,8 +109,8 @@ def DriveVdm(ConfigFile):
         writer.writerows(csvtable)
         csvfile.close()
 
-        with open(outpath+'/Scan_'+str(Fill)+'.pkl', 'wb') as f:
-            pickle.dump(table, f)
+        with open(outpath+'/Scan_'+str(Fill)+'.json', 'wb') as f:
+            json.dump(table, f)
 
 
     if makeRateFile == True:
@@ -155,12 +155,6 @@ def DriveVdm(ConfigFile):
 
         OutputSubDir = str(makeBeamCurrentFileConfig['OutputSubDir'])
         outpath = './' + AnalysisDir + '/' + OutputSubDir 
-
-        InputScanFile = './' + AnalysisDir + '/' + str(makeBeamCurrentFileConfig['InputScanFile'])
-        with open(InputScanFile, 'rb') as f:
-            scanInfo = pickle.load(f)
-
-        Fill = scanInfo["Fill"]     
 
         table = {}
         csvtable = []

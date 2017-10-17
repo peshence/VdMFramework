@@ -221,7 +221,7 @@ def doMakeBeamCurrentFile(ConfigInfo):
     CalibrateFBCTtoDCCT = ConfigInfo['CalibrateFBCTtoDCCT']
 
     with open(InputScanFile, 'rb') as f:
-        scanInfo = pickle.load(f)
+        scanInfo = json.load(f)
 
     Fill = scanInfo["Fill"]     
     ScanNames = scanInfo["ScanNames"]     

@@ -49,7 +49,7 @@
 "makeRateFileConfig":
 	{{	
 	"Comment": "The following directories are relative to <AnalysisDir>",
-	"InputScanFile": "cond/Scan_{fill}.pkl",
+	"InputScanFile": "cond/Scan_{fill}.json",
 	"InputLumiDir" : "{central}",
 	"RateTable": "{ratetable}",
 	"OutputSubDir": "LuminometerData"
@@ -58,14 +58,14 @@
 	{{
 	"InputCentralPath": "{central}",	
 	"Comment": "Input scan file in <AnalysisDir>/<InputScanFile>",
-	"InputScanFile" : "cond/Scan_{fill}.pkl",
+	"InputScanFile" : "cond/Scan_{fill}.json",
 	"OutputSubDir" : "cond",
 	"CalibrateFBCTtoDCCT" : false
 	}},
 "makeBeamBeamFileConfig":
 	{{
 	"Comment": "Input scan info file is <AnalysisDir>/<InputScanFile>",
-	"InputScanFile" : "cond/Scan_{fill}.pkl",
+	"InputScanFile" : "cond/Scan_{fill}.json",
 	"Comment": "Input beam currents file is <AnalysisDir>/<InputBeamCurrentFile>",
 	"InputBeamCurrentFile" : "cond/BeamCurrents_{fill}.pkl",
 	"Comment": "Input CapSigmas in <AnalysisDir>/<Luminometer>/results",
@@ -100,7 +100,7 @@
 "makeGraphsFileConfig":
 	{{
 	"Comment": "Input scan file in <AnalysisDir>/<InputScanFile>",
-	"InputScanFile" : "cond/Scan_{fill}.pkl",
+	"InputScanFile" : "cond/Scan_{fill}.json",
 	"Comment": "Input beam currents file in <AnalysisDir>/<InputBeamCurrentFile>",
 	"InputBeamCurrentFile" : "cond/BeamCurrents_{fill}.pkl",
 	"Comment": "Input luminometer data in <AnalysisDir>/<InputLuminometerData>",

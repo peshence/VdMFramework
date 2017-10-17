@@ -1,5 +1,6 @@
 import ROOT as r
 import pickle
+import json
 
 class vdmInputData:
 
@@ -88,7 +89,7 @@ class vdmInputData:
 
         table = {}
         with open(fileName, 'rb') as f:
-            table = pickle.load(f)
+            table = json.load(f)
 
         self.fill = table["Fill"]
         self.date = table["Date"]

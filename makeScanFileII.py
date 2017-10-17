@@ -228,6 +228,6 @@ if __name__ == '__main__':
     csvfile.close()
 
 
-    with open(outpath+'/Scan_'+str(Fill)+'.pkl', 'wb') as f:
-        pickle.dump(table, f)
+    with open(outpath+'/Scan_'+str(Fill)+'.json', 'wb') as f:
+        json.dump(table, f)
 

@@ -259,8 +259,6 @@ if __name__ == '__main__':
     parser.add_argument(
         '-d', '--double', help='Use double gaussians instead of single', action='store_true')
     parser.add_argument(
-        '-r', '--rerun', help='Runs all hd5 file analysis with single gaussians', action='store_true')
-    parser.add_argument(
         '-pdf', '--pdfs', help='Make pdfs with beam beam corrections and fitted functions', action='store_true')
     parser.add_argument(
         '-l', '--logs', help='Make logs for the fitting (no minuit yet)', action='store_true')
@@ -279,18 +277,5 @@ if __name__ == '__main__':
                 automation_folder=folder, dg=args.double, pdfs=True if args.pdfs else False, logs=True if args.logs else False)
     elif (args.central):
         RunWatcher(corr, args.test, args.central)
-    elif (args.rerun):
-        for i in os.listdir(central_default):
-            if i[-4:] == '.hd5':  # and int(i[:4]) > 5746:
-                try:
-                    Analyse(central_default + i, corr, args.test,
-                            post=args.post, automation_folder=folder, dg=args.double)
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except:
-                    message = 'Error on ' + i + '\n' + traceback.format_exc()
-                    print(message)
-                    logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S')
-                                  + '\n' + message)
     else:
         RunWatcher(corr, args.test)
