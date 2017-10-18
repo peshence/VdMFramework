@@ -128,76 +128,130 @@ class vdmInputData:
     def GetBeamCurrentsInfo(self, fileName):
 
         table = {}
-        with open(fileName, 'rb') as f:
-            table = pickle.load(f)
-        
-        key = "Scan_" + str(self.scanNumber)
-        self.curr = table[key]
- 
-        # curr values for filled bunches per beam, first index SP, second index BCID
-        self.avrgFbctB1PerSP = [{} for entry in self.curr]
-        self.avrgFbctB2PerSP = [{} for entry in self.curr]
-        for entry in self.curr:
-            self.avrgFbctB1PerSP[int(entry[2])-1] = entry[7]
-            self.avrgFbctB2PerSP[int(entry[2])-1] = entry[8]
+        if 'json' == fileName[-4:]:
+            with open(fileName, 'rb') as f:
+                table = json.load(f)
+            key = "Scan_" + str(self.scanNumber)
+            beamData = table[key]
+    
+            # curr values for filled bunches per beam, first index SP, second index BCID
+            self.avrgFbctB1PerSP = [entry['fbctB1'] for entry in beamData]
+            self.avrgFbctB2PerSP = [entry['fbctB2'] for entry in beamData]
 
-        for index, value in enumerate(self.curr):
-            self.avrgDcctB1.append(self.curr[index][3])
-            self.avrgDcctB2.append(self.curr[index][4])
-            self.sumAvrgFbctB1.append(self.curr[index][5])
-            self.sumAvrgFbctB2.append(self.curr[index][6])
+            self.avrgDcctB1 = [i['dcctB1'] for i in beamData]
+            self.avrgDcctB2 = [i['dcctB2'] for i in beamData]
+            self.sumAvrgFbctB1 = [i['sumavrgfbct1'] for i in beamData]
+            self.sumAvrgFbctB2 = [i['sumavrgfbct2'] for i in beamData]
 
-        # BCID list, colliding bunches, for scanpoints
-        self.collidingBunchesPerSP=[[] for a in range(self.nSP)]
-        for i in range(self.nSP):
-            BunchListB1PerSP=list(self.avrgFbctB1PerSP[i].keys())
-            BunchListB2PerSP=list(self.avrgFbctB2PerSP[i].keys())
-            CollidingBunchPerSP=[]
-            for j in range(len(BunchListB1PerSP)):
-                if BunchListB1PerSP[j] in BunchListB2PerSP:
-                    if BunchListB1PerSP[j]!='sum':
-                        CollidingBunchPerSP.append(BunchListB1PerSP[j])
-            self.collidingBunchesPerSP[i]=CollidingBunchPerSP
+            # BCID list, colliding bunches, for scanpoints
+            self.collidingBunchesPerSP = [[k for k in i.keys() if k != 'sum' and k in j.keys()]
+                                    for i,j in zip(self.avrgFbctB1PerSP, self.avrgFbctB2PerSP)]
 
-        # BCID list for the scan
-        collidingBunchesForScan=[]
-        for i in range(self.nSP):
-            for j in range(len(self.collidingBunchesPerSP[i])):
-                if self.collidingBunchesPerSP[i][j] not in collidingBunchesForScan:
-                    collidingBunchesForScan.append(self.collidingBunchesPerSP[i][j])
-        self.collidingBunches=collidingBunchesForScan
+            # BCID list for the scan
+            self.collidingBunches = list(set(i for j in self.collidingBunchesPerSP for i in j))
 
-        # natural order per BX for analysis: curr values only for colliding bunches
-        # first index BCID (for colliding bx only), second index SP
-        self.avrgFbctB1 = [[] for a in range(len(self.collidingBunches))]
-        self.avrgFbctB2 = [[] for a in range(len(self.collidingBunches))]
-        spNumberPerBX=[[] for a in range(len(self.collidingBunches))]
-        for i, bx in enumerate(self.collidingBunches):
-            for j in range(self.nSP):
-                try:
-                  value = self.avrgFbctB1PerSP[j][str(bx)]
-                  self.avrgFbctB1[i].append(value)
-                  value = self.avrgFbctB2PerSP[j][str(bx)]
-                  self.avrgFbctB2[i].append(value)                 
-                except:
-                  print "self.displacement is longer than avrgFbctBPerSP"
-                else:
-                  spNumberPerBX[i].append(self.displacement[j])
-            self.avrgFbctB1PerBX[bx] = self.avrgFbctB1[i]
-            self.avrgFbctB2PerBX[bx] = self.avrgFbctB2[i]
-            self.spPerBX[bx]=spNumberPerBX[i]
+            # natural order per BX for analysis: curr values only for colliding bunches
+            # first index BCID (for colliding bx only), second index SP
+            self.avrgFbctB1 = [[] for a in range(len(self.collidingBunches))]
+            self.avrgFbctB2 = [[] for a in range(len(self.collidingBunches))]
+            spNumberPerBX=[[] for a in range(len(self.collidingBunches))]
+            for i, bx in enumerate(self.collidingBunches):
+                for j in range(self.nSP):
+                    try:
+                        value = self.avrgFbctB1PerSP[j][str(bx)]
+                        self.avrgFbctB1[i].append(value)
+                        value = self.avrgFbctB2PerSP[j][str(bx)]
+                        self.avrgFbctB2[i].append(value)                 
+                    except:
+                        print "self.displacement is longer than avrgFbctBPerSP"
+                    else:
+                        spNumberPerBX[i].append(self.displacement[j])
+                self.avrgFbctB1PerBX[bx] = self.avrgFbctB1[i]
+                self.avrgFbctB2PerBX[bx] = self.avrgFbctB2[i]
+                self.spPerBX[bx]=spNumberPerBX[i]
 
-        self.sumCollAvrgFbctB1 = [0.0 for a in range(self.nSP)]
-        self.sumCollAvrgFbctB2 = [0.0 for a in range(self.nSP)]
-        try:
-            for j in range(len(self.displacement)):
-                try:
-                  self.sumCollAvrgFbctB1[j] = self.avrgFbctB1PerSP[j]['sum']
-                  self.sumCollAvrgFbctB2[j] = self.avrgFbctB2PerSP[j]['sum']
-                except:
-                  print "self.displacement is longer than avrgFbctB1PerSP"
-        except KeyError, e:
-            print 'KeyError in inputDataReader- reason "%s"' % str(e)
+            self.sumCollAvrgFbctB1 = [0.0 for a in range(self.nSP)]
+            self.sumCollAvrgFbctB2 = [0.0 for a in range(self.nSP)]
+            try:
+                for j in range(len(self.displacement)):
+                    try:
+                        self.sumCollAvrgFbctB1[j] = self.avrgFbctB1PerSP[j]['sum']
+                        self.sumCollAvrgFbctB2[j] = self.avrgFbctB2PerSP[j]['sum']
+                    except:
+                        print "self.displacement is longer than avrgFbctB1PerSP"
+            except KeyError, e:
+                print 'KeyError in inputDataReader- reason "%s"' % str(e)
+        else:
+            with open(fileName, 'rb') as f:
+                table = pickle.load(f)
+            
+            key = "Scan_" + str(self.scanNumber)
+            self.curr = table[key]
+    
+            # curr values for filled bunches per beam, first index SP, second index BCID
+            self.avrgFbctB1PerSP = [{} for entry in self.curr]
+            self.avrgFbctB2PerSP = [{} for entry in self.curr]
+            for entry in self.curr:
+                self.avrgFbctB1PerSP[int(entry[2])-1] = entry[7]
+                self.avrgFbctB2PerSP[int(entry[2])-1] = entry[8]
+
+            for index, value in enumerate(self.curr):
+                self.avrgDcctB1.append(self.curr[index][3])
+                self.avrgDcctB2.append(self.curr[index][4])
+                self.sumAvrgFbctB1.append(self.curr[index][5])
+                self.sumAvrgFbctB2.append(self.curr[index][6])
+
+            # BCID list, colliding bunches, for scanpoints
+            self.collidingBunchesPerSP=[[] for a in range(self.nSP)]
+            for i in range(self.nSP):
+                BunchListB1PerSP=list(self.avrgFbctB1PerSP[i].keys())
+                BunchListB2PerSP=list(self.avrgFbctB2PerSP[i].keys())
+                CollidingBunchPerSP=[]
+                for j in range(len(BunchListB1PerSP)):
+                    if BunchListB1PerSP[j] in BunchListB2PerSP:
+                        if BunchListB1PerSP[j]!='sum':
+                            CollidingBunchPerSP.append(BunchListB1PerSP[j])
+                self.collidingBunchesPerSP[i]=CollidingBunchPerSP
+
+            # BCID list for the scan
+            collidingBunchesForScan=[]
+            for i in range(self.nSP):
+                for j in range(len(self.collidingBunchesPerSP[i])):
+                    if self.collidingBunchesPerSP[i][j] not in collidingBunchesForScan:
+                        collidingBunchesForScan.append(self.collidingBunchesPerSP[i][j])
+            self.collidingBunches=collidingBunchesForScan
+
+            # natural order per BX for analysis: curr values only for colliding bunches
+            # first index BCID (for colliding bx only), second index SP
+            self.avrgFbctB1 = [[] for a in range(len(self.collidingBunches))]
+            self.avrgFbctB2 = [[] for a in range(len(self.collidingBunches))]
+            spNumberPerBX=[[] for a in range(len(self.collidingBunches))]
+            for i, bx in enumerate(self.collidingBunches):
+                for j in range(self.nSP):
+                    try:
+                        value = self.avrgFbctB1PerSP[j][str(bx)]
+                        self.avrgFbctB1[i].append(value)
+                        value = self.avrgFbctB2PerSP[j][str(bx)]
+                        self.avrgFbctB2[i].append(value)                 
+                    except:
+                        print "self.displacement is longer than avrgFbctBPerSP"
+                    else:
+                        spNumberPerBX[i].append(self.displacement[j])
+                self.avrgFbctB1PerBX[bx] = self.avrgFbctB1[i]
+                self.avrgFbctB2PerBX[bx] = self.avrgFbctB2[i]
+                self.spPerBX[bx]=spNumberPerBX[i]
+
+            self.sumCollAvrgFbctB1 = [0.0 for a in range(self.nSP)]
+            self.sumCollAvrgFbctB2 = [0.0 for a in range(self.nSP)]
+            try:
+                for j in range(len(self.displacement)):
+                    try:
+                        self.sumCollAvrgFbctB1[j] = self.avrgFbctB1PerSP[j]['sum']
+                        self.sumCollAvrgFbctB2[j] = self.avrgFbctB2PerSP[j]['sum']
+                    except:
+                        print "self.displacement is longer than avrgFbctB1PerSP"
+            except KeyError, e:
+                print 'KeyError in inputDataReader- reason "%s"' % str(e)
 
         return
 
@@ -213,26 +267,14 @@ class vdmInputData:
             key = "Scan_" + str(self.scanNumber)
             rateData = table[key]
     
-            self.lumiPerSP = [{} for entry in rateData]
-            self.lumiErrPerSP = [{} for entry in rateData]
-            for i,entry in enumerate(rateData):
-                self.lumiPerSP[i] = entry['Rates']
-                self.lumiErrPerSP[i] = entry['RateErrs']
+            self.lumiPerSP = [entry['Rates'] for entry in rateData]
+            self.lumiErrPerSP = [entry['RateErrs'] for entry in rateData]
 
-            # determine which of the colliding bunches are in fact used
-            # for HF should be identical to all colliding ones
-            # for PCC should only be subset, typically 5
-
-            usedCollidingBunches=[]
-            for i, bx in enumerate(self.collidingBunches):
-                for j in range(self.nSP):
-                    try:
-                        if str(bx) in self.lumiPerSP[j]:
-                            if bx not in usedCollidingBunches:
-                                usedCollidingBunches.append(bx)
-                    except:
-                        print "in usedCollidingBunches: BCID ", bx, " is not filled at the scanpoint ", j
-            self.usedCollidingBunches = usedCollidingBunches
+            self.usedCollidingBunches = list(set([i for j in self.lumiPerSP
+                            for i in j.keys() if i in self.collidingBunches]))
+            # self.lumi=[[j[str(bx)] for j in self.lumiPerSP] for bx in usedCollidingBunches]
+            # self.lumiErr =[[j[str(bx)] for j in self.lumiErrPerSP] for bx in usedCollidingBunches]
+            # SPNumberPerBX=[[self.displacement[j] for j in range(self.nSP)] for i in usedCollidingBunches]
 
             # this is the natural order for analysis
             self.lumi = [[] for a in range(len(self.usedCollidingBunches))]
@@ -351,8 +393,8 @@ class vdmInputData:
         print ""
         print" ===="
         print "PrintBeamCurrentsInfo"
-        print "collidingBunches", self.collidingBunches 
-        print "complete current info table", self.curr
+        # print "collidingBunches", self.collidingBunches 
+        # print "complete current info table", self.curr
         print "avrgDcctB1 per SP", self.avrgDcctB1
         print "avrgDcctB2 per SP", self.avrgDcctB2
         print "sumAvrgFbctB1 per SP", self.sumAvrgFbctB1

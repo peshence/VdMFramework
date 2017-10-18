@@ -112,9 +112,10 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
             # possible bcids with collisions
 
             orderedkeys = orderedIntKeysFirst(graphs.keys())
-            pdfbxs = [i for i in orderedkeys if type(i) == int][:100]
-            pdfbxs.append([key for key in orderedkeys if type(i) == int and key not in pdfbxs and
-                            key - 1 not in orderedkeys and key + 1 not in orderedkeys])
+            pdfbxs = [i for i in orderedkeys][:100]
+            pdfbxs = pdfbxs + ([key for key in orderedkeys if type(i) == int and key
+                not in pdfbxs and key - 1 not in orderedkeys and key + 1 not in orderedkeys])
+            pdfbxs = orderedIntKeysFirst(pdfbxs)
             #pdfbxs = []
             # train = True
             # for key in orderedkeys:

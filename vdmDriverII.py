@@ -133,11 +133,6 @@ def DriveVdm(ConfigFile):
         else:
             table = doMakeRateFile(makeRateFileConfig)
 
-        # csvfile = open(OutputSubDir+'/Rates_'+ Luminometer + '_'+str(Fill)+'.csv', 'wb')
-        # writer = csv.writer(csvfile)
-        # writer.writerows(csvtable)
-        # csvfile.close()
-
         with open(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json', 'wb') as f:
             json.dump(table, f)
 
@@ -156,19 +151,11 @@ def DriveVdm(ConfigFile):
         outpath = './' + AnalysisDir + '/' + OutputSubDir 
 
         table = {}
-        csvtable = []
 
-        table, csvtable = doMakeBeamCurrentFile(makeBeamCurrentFileConfig)
+        table = doMakeBeamCurrentFile(makeBeamCurrentFileConfig)
 
-        csvfile = open(outpath+'/BeamCurrents_'+str(Fill)+'.csv', 'wb')
-        writer = csv.writer(csvfile)
-        writer.writerows(csvtable)
-        csvfile.close()
         with open(outpath+'/BeamCurrents_'+str(Fill)+'.json', 'wb') as f :
             json.dump(table,f)
-
-        with open(outpath+'/BeamCurrents_'+str(Fill)+'.pkl', 'wb') as f:
-            pickle.dump(table, f)
 
 
     if makeBeamBeamFile == True:

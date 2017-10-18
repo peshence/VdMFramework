@@ -173,10 +173,10 @@ def Residuals(g,ff):
 
 def doPlot1D(graph,fList, fill, tempPath): 
 
-# fList is a list of functions that is returned by doFit() in xxx_Fit.py
-# for 1D fit functions is usually the full fit function and a list of the various components, for example 
-# for a DG plus const fit, the components are firstGauss, secondGauss, const
-# for 2D fits, the fList usually has as first element the 1D projections of the 2D fit function
+    # fList is a list of functions that is returned by doFit() in xxx_Fit.py
+    # for 1D fit functions is usually the full fit function and a list of the various components, for example 
+    # for a DG plus const fit, the components are firstGauss, secondGauss, const
+    # for 2D fits, the fList usually has as first element the 1D projections of the 2D fit function
 
     new_flist = copy.deepcopy(fList)
     new_graph =copy.deepcopy(graph)
@@ -200,16 +200,16 @@ def doPlot1D(graph,fList, fill, tempPath):
     c.Update()
 
     
-# Convention: first entry in list is full fit function, second to len-1 is the various signal components, last entry is background function    
+    # Convention: first entry in list is full fit function, second to len-1 is the various signal components, last entry is background function    
     
     fittedFunctions = {}
     for i in range(0,len(new_flist)):
         fittedFunctions[i] = new_flist[i]
 
-# Convention: Amplitude is called "peak" in full fit function
+    # Convention: Amplitude is called "peak" in full fit function
     peak = new_flist[0].GetParameter("peak")
 
-# Convention: CapSigma, if it can be defined, is called "#Sigma"; if it is not defined for the fit function, root returns 1e-300 as value
+    # Convention: CapSigma, if it can be defined, is called "#Sigma"; if it is not defined for the fit function, root returns 1e-300 as value
     sigma = new_flist[0].GetParameter("#Sigma")
     m = new_flist[0].GetParNumber("#Sigma")
     sigmaE = new_flist[0].GetParError(m)
@@ -222,7 +222,7 @@ def doPlot1D(graph,fList, fill, tempPath):
     print "graph title", title
 
 
-# determine minimum rate in graph to set range of y axis for display 
+    # determine minimum rate in graph to set range of y axis for display 
 
     n = new_graph.GetN()
     y = array.array('d',[])
@@ -255,15 +255,15 @@ def doPlot1D(graph,fList, fill, tempPath):
     new_graph.Draw('AP')
     p2.Update()
 
-#    print "STATS", graph.GetListOfFunctions().FindObject("stats")
-#    print "STATS", graph.GetListOfFunctions().Print()
+    #print "STATS", graph.GetListOfFunctions().FindObject("stats")
+    #print "STATS", graph.GetListOfFunctions().Print()
 
 
-# this is the case for 2D fits, where the 1D projection of the 2D fit function is not associated to the 
-# 1D projection of the original graph2D; when adding the function to the 1D graph, the parameters of the 
-# 1D function as set in xx_2D_Fit.py are displayed in the stat box
+    # this is the case for 2D fits, where the 1D projection of the 2D fit function is not associated to the 
+    # 1D projection of the original graph2D; when adding the function to the 1D graph, the parameters of the 
+    # 1D function as set in xx_2D_Fit.py are displayed in the stat box
 
-#    if graph.GetListOfFunctions().Print("Q") == None:
+    #if graph.GetListOfFunctions().Print("Q") == None:
     if new_graph.GetListOfFunctions().FindObject("stats") == None:
         new_graph.GetListOfFunctions().Add(new_flist[0])
                 

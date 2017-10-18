@@ -15,7 +15,7 @@ import fitResultReader
 ###################
 #check for missed data
 def checkScanpointList(vdMData):
-    
+    print 'sum' in vdMData.usedCollidingBunches, 'sum' in vdMData.collidingBunches
     BCIDListLength=len(vdMData.usedCollidingBunches)
     SPListLength=vdMData.nSP
     SPList=vdMData.displacement

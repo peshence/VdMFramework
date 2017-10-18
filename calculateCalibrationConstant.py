@@ -147,22 +147,22 @@ def CalculateCalibrationConstant(configFile):
         YscanNumber = entry[1]
         XYbxlist=[]
         
-        with open('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.pkl') as f:
-            beamdata = pickle.load(f)
+        with open('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json') as f:
+            beamdata = json.load(f)
 
         s1 = beamdata['Scan_' + str(XscanNumber)]
         b1 = [0 for i in range(3654)]
         b2 = [0 for i in range(3654)]
-        bcx1 = {i[0]:i[1] for i in s1[len(s1)/2][-2].items()}
-        bcx2 = {i[0]:i[1] for i in s1[len(s1)/2][-1].items()}
+        bcx1 = {i[0]:i[1] for i in s1[len(s1)/2]['fbctB1'].items()}
+        bcx2 = {i[0]:i[1] for i in s1[len(s1)/2]['fbctB2'].items()}
 
 
 
         s2 = beamdata['Scan_' + str(YscanNumber)]
         b1 = [0 for i in range(3654)]
         b2 = [0 for i in range(3654)]
-        bcy1 = {i[0]:i[1] for i in s2[len(s2)/2][-2].items()}
-        bcy2 = {i[0]:i[1] for i in s2[len(s2)/2][-1].items()}
+        bcy1 = {i[0]:i[1] for i in s2[len(s2)/2]['fbctB1'].items()}
+        bcy2 = {i[0]:i[1] for i in s2[len(s2)/2]['fbctB2'].items()}
         
 
         xsec = defaultdict(float)

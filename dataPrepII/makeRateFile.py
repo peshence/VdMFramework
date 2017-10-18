@@ -111,12 +111,12 @@ def doMakeRateFile(ConfigInfo):
         table[key]=[]
         for j, sp in enumerate(scanpoints):
             rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"])
-            scanpoint = {}
-            scanpoint.update({'ScanNumber':i+1})
-            scanpoint.update({'ScanName':name})
-            scanpoint.update({'ScanPoint':j+1})
-            scanpoint.update({'Rates':rates[0]})
-            scanpoint.update({'RateErrs':rates[1]})
+            scanpoint = {
+                'ScanNumber':i+1,
+                'ScanName':name,
+                'ScanPoint':j+1,
+                'Rates':rates[0],
+                'RateErrs':rates[1]}
             table[key].append(scanpoint)
 
     return table
