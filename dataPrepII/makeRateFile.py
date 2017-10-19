@@ -25,17 +25,24 @@ def getRates(datapath, rateTable, scanpt, fill):
 
     # omit very first nibble because it may not be fully contained in VdM scan
     tw = '(timestampsec >' + str(scanpt[0]) + ') & (timestampsec <=' +  str(scanpt[1]) + ')'
-    def readh5(filename, bxdata, avgdata, bxdf, avgdf, rates, ratesErr, collBunches):
+    if datapath[-4:] == '.hd5':
+        filelist = [datapath]
+    else:        
+        filelist = [datapath + '/' + f for f in os.listdir(datapath)]
+    for f in filelist:
+        if len(f) > len(datapath) and (not str.isdigit(str(f[0])) or int(f[:4]) != fill):
+            continue
+    
         beamtable = None
-        with tables.open_file(filename, 'r') as h5file:
+        with tables.open_file(f, 'r') as h5file:
             for table in h5file.root:
                 if table.name == rateTable:
                     beamtable = table
                     break
             if not beamtable:
-                print 'No table name ' + rateTable + ' in this file - ' + filename
+                print 'No table name ' + rateTable + ' in this file - ' + f
                 return bxdata, avgdata, bxdf, avgdf, rates, ratesErr, collBunches
- 
+
                 
             # sum over all bx
             if rateTable != 'pltslinklumi':
@@ -63,14 +70,6 @@ def getRates(datapath, rateTable, scanpt, fill):
 
             if bunchlist1 and bunchlist2:
                 collBunches  = np.nonzero(bunchlist1[0]*bunchlist2[0])[0].tolist()
-        return bxdata, avgdata, bxdf, avgdf, rates, ratesErr, collBunches
-    if datapath[-4:] == '.hd5':
-        bxdata, avgdata, bxdf, avgdf, rates, ratesErr, collBunches = readh5(datapath, bxdata, avgdata, bxdf, avgdf, rates, ratesErr, collBunches)
-    else:        
-        filelist = os.listdir(datapath)
-        for file in filelist:
-            if str.isdigit(str(file[0])) and int(file[:4]) == int(fill):
-                bxdata, avgdata, bxdf, avgdf, rates, ratesErr, collBunches = readh5(datapath + '/' + file, bxdata, avgdata, bxdf, avgdf, rates, ratesErr, collBunches)
 
     bxdf = pd.DataFrame(bxdata)
     avgdf = pd.DataFrame(avgdata)
