@@ -165,48 +165,61 @@ def doMakeGraphsFile(ConfigInfo):
         from array import array
 
         graphsList = {}
-
         for i, bx in enumerate(entry.usedCollidingBunches):
             # BCIDs written at small number of SP are omitted (the list of short omitted bunches is added to log)            
             # to avoid problems in vdmFitter: the number of SP should exceed the minimal number of freedom degrees for fitting
 
              if len(entry.spPerBX[bx])>5:
                 coord=entry.spPerBX[bx]
-                coorde = [0.0 for a in coord] 
-                coord = array("d",coord)
-                coorde = array("d", coorde)
+                # coorde = [0.0 for a in coord] 
+                # coord = array("d",coord)
+                # coorde = array("d", coorde)
                 currProduct = [ a*b/1e22 for a,b in zip(entry.avrgFbctB1PerBX[bx],entry.avrgFbctB2PerBX[bx])]
                 if len(entry.spPerBX[bx])!=len(entry.splumiPerBX[bx]):
                     print "Attention: bx=", bx, ", number of scanpoints for lumi and currents do not match, normalization is not correct"
                 lumi = [a/b for a,b in zip(entry.lumi[i],currProduct)]
                 lumie = [a/b for a,b in zip(entry.lumiErr[i],currProduct)]
 
-                lumie = array("d",lumie)
-                lumi = array("d",lumi)
+                # lumie = array("d",lumie)
+                # lumi = array("d",lumi)
                 name = prefix +str(bx)
-                graph = r.TGraphErrors(len(coord),coord,lumi,coorde,lumie)
-                graph.SetName(name)
-                graph.SetTitle(name)
-                #graph.SetMinimum(0.000001)
-                graphsList[int(bx)] = graph
+                # graph = r.TGraphErrors(len(coord),coord,lumi,coorde,lumie)
+                # graph.SetName(name)
+                # graph.SetTitle(name)
+                # #graph.SetMinimum(0.000001)
+                # graphsList[int(bx)] = graph
+                graphsList.update({bx:{
+                    'name':name,
+                    'sep':coord,
+                    # 'seperr':coorde,
+                    'normrate':lumi,
+                    'normrateerr':lumie
+                }})
              else:
                 omittedBXList.append(bx)
         # same for the sum, as double check, where sumLumi comes from avgraw
         try:
             coord = entry.displacement
-            coorde = [0.0 for a in coord] 
-            coord = array("d",coord)
-            coorde = array("d", coorde)
+            # coorde = [0.0 for a in coord] 
+            # coord = array("d",coord)
+            # coorde = array("d", coorde)
             currProduct = [ a*b/1e22 for a,b in zip(entry.sumCollAvrgFbctB1,entry.sumCollAvrgFbctB2)]
             lumi = [a/b for a,b in zip(entry.sumLumi,currProduct)]
             lumie = [a/b for a,b in zip(entry.sumLumiErr,currProduct)]
-            lumie = array("d",lumie)
-            lumi = array("d",lumi)
+            # lumie = array("d",lumie)
+            # lumi = array("d",lumi)
             name = prefix + 'sum'
-            graph = r.TGraphErrors(len(coord),coord,lumi,coorde,lumie)
-            graph.SetName(name)
-            graph.SetTitle(name)
-            graphsList['sum'] = graph
+            # graph = r.TGraphErrors(len(coord),coord,lumi,coorde,lumie)
+            # graph.SetName(name)
+            # graph.SetTitle(name)
+            # graphsList['sum'] = graph
+            graphsList.update({'sum':{
+                'name':name,
+                'sep':coord,
+                # 'seperr':coorde,
+                'normrate':lumi,
+                'normrateerr':lumie
+            }})
         except KeyError,e: 
             print 'KeyError in makeGraphsFile- reason "%s"' % str(e)
 

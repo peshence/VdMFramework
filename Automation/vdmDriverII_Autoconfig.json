@@ -118,8 +118,9 @@
 "vdmFitterConfig":
 	 {{
 	 "Comment": "Input graphs file in <AnalysisDir>/<Luminometer>/graphs", 
-	 "InputGraphsFile" : "graphs/graphs_{fill}_{corr}.pkl",
+	 "InputGraphsFile" : "graphs/graphs_{fill}_{corr}.json",
 	 "FitName" : "{fit}",
-	 "FitConfigFile" : "fits/{fit}_Config.json"
+	 "FitConfigFile" : "fits/{fit}_Config.json",
+	 "ScanNames" : {scannames}
 	 }}
 }}

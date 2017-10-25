@@ -17,7 +17,7 @@ import os
 import ROOT as r
 import pandas as pd
 import numpy as np
-
+from array import array
 
 def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, FitConfigInfo, inputfolder = None, makepdf = True, makelogs = True):
 
@@ -76,9 +76,8 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
     for graphFile in InputGraphsFiles:
         print " "
         print "Now open input graphs file: ", graphFile
-        infile = open(graphFile, 'rb')
-        graphsAll_dict = pickle.load(infile)
-        infile.close()
+        with open(graphFile, 'rb') as infile:
+            graphsAll_dict = json.load(infile)        
         graphsAll_list.append(graphsAll_dict)
 
     # if input file is 2D graphs file, also open the corresponding 1D graph
@@ -130,8 +129,11 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
             for key in orderedkeys:
                 if type(key) == int and key%100 == 0:
                     print "Now fitting BCID ", key
-                graph = graphs[key]
-                
+                graphdata = graphs[str(key)]
+                name = graphdata['name']
+                graph = r.TGraphErrors(len(graphdata['sep']),array("d",graphdata['sep']),array("d",graphdata['normrate']),array("d",[0.0 for i in graphdata['sep']]),array("d",graphdata['normrateerr']))
+                graph.SetName(name)
+                graph.SetTitle(name)
                 if FitName [-1] == 'S':
                     FitConfigInfo['Sigma'] = np.mean(data.CapSigma)
                     FitConfigInfo['SigmaErr'] = np.mean(data.CapSigmaErr)

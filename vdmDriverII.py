@@ -286,27 +286,30 @@ def DriveVdm(ConfigFile):
 
         graphsListAll = {}
 
-        corrFull, graphsListAll, missedDataBuffer = doMakeGraphsFile(makeGraphsFileConfig)
+        corrFull, graphs, missedDataBuffer = doMakeGraphsFile(makeGraphsFileConfig)
 
         OutputSubDir = str(makeGraphsFileConfig['OutputSubDir'])
-        outputDir = AnalysisDir +'/' + Luminometer + '/' + OutputSubDir + '/'
+        OutputDir = AnalysisDir +'/' + Luminometer + '/' + OutputSubDir + '/'
         outFileName = 'graphs_' + str(Fill) + corrFull
 
+        with open(OutputDir + outFileName + '.json', 'wb') as f:
+            json.dump(graphs,f)
+
         # save TGraphs in a ROOT file
-        rfile = r.TFile(outputDir + outFileName + '.root',"recreate")
+        # rfile = r.TFile(outputDir + outFileName + '.root',"recreate")
 
-        for key in sorted(graphsListAll.iterkeys()):
-            graphsList = graphsListAll[key]
-            for key_bx in sorted(graphsList.iterkeys()):
-                graphsList[key_bx].Write()
+        # for key in sorted(graphsListAll.iterkeys()):
+        #     graphsList = graphsListAll[key]
+        #     for key_bx in sorted(graphsList.iterkeys()):
+        #         graphsList[key_bx].Write()
 
-        rfile.Write()
-        rfile.Close()
+        # rfile.Write()
+        # rfile.Close()
 
-        with open(outputDir + outFileName + '.pkl', 'wb') as file:
-            pickle.dump(graphsListAll, file)
+        # with open(outputDir + outFileName + '.pkl', 'wb') as file:
+        #     pickle.dump(graphsListAll, file)
 
-        misseddata=open(outputDir+"makeGraphsFile_MissedData.log",'w')
+        misseddata=open(OutputDir+"makeGraphsFile_MissedData.log",'w')
         misseddata.write(missedDataBuffer)
         misseddata.close()
 

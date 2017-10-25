@@ -77,8 +77,9 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         l = re.match('([a-z1]*)_?lumi(.*)', r).group(1)
         l = l if r != 'hflumi' else 'hfoc'
         if dg or filename2:
-            f = ('DG' if 'plt' == r[:3] else 'DGConst')
+            # f = ('DG' if 'plt' == r[:3] else 'DGConst')
             #f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
+            f= 'DG'
         else:
             f = ('SG' if 'plt' == r[:3] else 'SGConst')
             #f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
@@ -265,8 +266,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     corr = 'noCorr'
 
-    if args.double:
-        fits = config['dfits']
     if args.beambeam:
         corr = 'BeamBeam'
     if args.filename2:
