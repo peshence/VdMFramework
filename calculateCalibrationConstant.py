@@ -14,6 +14,7 @@ import luminometers
 from fitResultReader import fitResultReader
 from luminometers import *
 from vdmUtilities import makeCorrString
+import pandas as pd
 
 # [in Hz]
 LHC_revolution_frequency =  11245
@@ -133,12 +134,8 @@ def CalculateCalibrationConstant(configFile):
     fitstatusDict = fitResult.getFitParam("fitStatus")
     chi2Dict = fitResult.getFitParam("chi2")
     ndofDict = fitResult.getFitParam('ndof')
-        
-    table =[]
-    csvtable = []
-    csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])#, "normChange", "normChangeErr"] )
-    table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])#, "normChange", "normChangeErr"] )
 
+    datalist = []
     logbuffer="CalculateCalibrationConstant - excluded BCIDs\n"
 
     for entry in Scanpairs:
@@ -200,13 +197,8 @@ def CalculateCalibrationConstant(configFile):
         chi2exclBX=[]
         logbuffer=logbuffer+"BCIDs excluded because chi2 is too high\n"    
         
-        mean = []
-        meanweights = []
-        sbilmean = []
-        sbilmeanweights = []
         for bx in XYbxlist:
-            considerInMean = True
-            #print "now at bx", bx
+
             CapSigmaX = [CapSigmaDict[XscanID][bx], CapSigmaErrDict[XscanID][bx]]
             CapSigmaY = [CapSigmaDict[YscanID][bx], CapSigmaErrDict[YscanID][bx]]
             peakX = [peakDict[XscanID][bx], peakErrDict[XscanID][bx]]
@@ -232,74 +224,42 @@ def CalculateCalibrationConstant(configFile):
                 if chi2Dict[YscanID][bx]/ndofDict[YscanID][bx] >200:
                    print "chi2 Yscan for bx", bx, chi2Dict[YscanID][bx]
                    considerInMean = False
-
-                #printall(bx, CapSigmaX, CapSigmaY, peakX, peakY, xsec[bx], xsecErr[bx])
+                   
             
-            sbil = (LHC_revolution_frequency*(peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx]))/(1e22*2*xsec[bx])
+            sbil = (LHC_revolution_frequency*(peakX[0]*bcx1[bx]*bcx2[bx] +
+                    peakY[0]*bcy1[bx]*bcy2[bx]))/(1e22*2*xsec[bx])
             sbilerr = (LHC_revolution_frequency/(1e22*2*xsec[bx])) * math.sqrt(
                 (peakX[1] * bcx1[bx]*bcx2[bx])**2 + (peakY[1] * bcy1[bx]*bcy2[bx])**2 +
                 (xsecErr[bx] * (peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx])/xsec[bx])**2)
-            # normChange = -999. 
-            # normChangeErr = -999.
 
-            # print OldNormAvailable
-            # print normChange
-            # if OldNormAvailable:
-            #     print 'wtf'
-            #     normChange = LHC_revolution_frequency/xsec[bx] * 1/oldNormalization
-            #     normChangeErr = normChange*xsecErr[bx]/xsec[bx]
-            # print normChange
-            row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], sbil, sbilerr, considerInMean]#, normChange, normChangeErr]
-            if considerInMean:
-                mean.append(xsec[bx])
-                meanweights.append(xsecErr[bx]**(-2))
-                sbilmean.append(sbil)
-                sbilmeanweights.append(sbilerr**(-2))
-            else:
-                print "bcid ", bx, " excluded because chi2 value too high: ", chi2Dict[XscanID][bx]/ndofDict[XscanID][bx], chi2Dict[YscanID][bx]/ndofDict[YscanID][bx]
-                chi2exclBX.append(bx)
-            
-            table.append(row)
-            csvtable.append(row)
-        # try:           
-        #     if mean:
-        #         av = np.average(mean, weights=meanweights)
-        #         averr = np.sqrt(1/sum(meanweights))
-        #         sbilav = np.average(sbilmean, weights=sbilmeanweights)
-                
-        #         sbilaverr = np.sqrt(1/sum(sbilmeanerr))
-        #         avrow = [str(XscanNumber)+"_"+str(YscanNumber), "XY",'wav', av, averr, sbilav, sbilaverr, False]
-        #         table.append(avrow)
-        #         csvtable.append(avrow)
-        # except ZeroDivisionError:
-        #     message = 'Weights sum to zero (what?)' + '\n' + traceback.format_exc()
-        #     print message
-        #     logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
-        #                         + '\n' + message)
+            row = {
+                'XscanNumber_YscanNumber':str(XscanNumber)+"_"+str(YscanNumber),
+                'Type':"XY",
+                'BCID':bx,
+                'xsec':xsec[bx],
+                'xsecErr':xsecErr[bx],
+                'SBIL':sbil,
+                'SBILErr':sbilerr}
+            datalist.append(row)
             
         
         logbuffer=logbuffer+str(chi2exclBX)+"\n"
-    # need to name output file such that fit function name in file name
 
-
-    csvfile = open(OutputDir+'/LumiCalibration_'+ Luminometer+ '_'+ fit + str(Fill)+'.csv', 'wb')
-    writer = csv.writer(csvfile)
-    writer.writerows(csvtable)
-    csvfile.close()
-
-
-    with open(OutputDir+'/LumiCalibration_'+ Luminometer+ '_'+ fit + str(Fill)+'.pkl', 'wb') as f:
-        pickle.dump(table, f)
-
-    excldata=open(OutputDir+'/LumiCalibration_'+ Luminometer+ '_'+ fit + str(Fill)+'.log','w')
+    df = pd.DataFrame(datalist,columns=["XscanNumber_YscanNumber","Type", "BCID",
+                                        "xsec", "xsecErr", "SBIL", 'SBILErr'])
+    df.to_csv(OutputDir+'/LumiCalibration_'+ Luminometer+ '_'+ fit + str(Fill)+'.csv', index=False)
+    
+    excldata=open(OutputDir+'/LumiCalibration_'+ Luminometer+ '_' + fit + '_'
+                  + corrFull + str(Fill)+'.log','w')
     excldata.write(logbuffer)
     excldata.close()
 
-    return csvtable
+    return df
        
 
 if __name__ == '__main__':
     configFile = sys.argv[1]
     logging.basicConfig(filename="Automation/Logs/calibrationconst_" +
-                            dt.datetime.now().strftime('%y%m%d%H%M%S') + '.log', level=logging.DEBUG)
+                            dt.datetime.now().strftime('%y%m%d%H%M%S') +
+                            '.log', level=logging.DEBUG)
     CalculateCalibrationConstant(configFile)

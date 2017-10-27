@@ -50,7 +50,7 @@ def RunAnalysis(name, luminometer, fit, corr='noCorr', automation_folder='Automa
         fill = config['Fill']
         time = config['makeScanFileConfig']['ScanTimeWindows'][0][0]
         fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
-        calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
+        #calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
         #LogInfo(luminometer + fit + ' END')
         return fitresults, calibration
 

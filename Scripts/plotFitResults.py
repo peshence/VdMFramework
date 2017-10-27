@@ -2,6 +2,7 @@ from fitResultReader import fitResultReader
 import ROOT as r
 import sys, json
 from vdmUtilities import makeCorrString
+import pandas as pd
 
 r.gROOT.SetBatch(r.kTRUE)
 
@@ -173,28 +174,41 @@ def PlotFit(configFile):
     InputFitResultsFile = ConfigInfo['InputFitResultsFile']
 
     corrFull = makeCorrString(Corr)
-    InputFitResultsFile = AnalysisDir + "/" + Luminometer + "/results/" + corrFull + "/" + InputFitResultsFile
+    InputFitResultsFile = (AnalysisDir + "/" + Luminometer + "/results/" +
+                          corrFull + "/" + InputFitResultsFile)
 
-    InputXsecResultsFile = AnalysisDir + "/" + Luminometer + "/results/" + corrFull + "/" + 'LumiCalibration_'+ Luminometer+ '_'+ FitName + "_" + str(Fill)+'.pkl'
+    InputXsecResultsFile = (AnalysisDir + "/" + Luminometer + "/results/" + corrFull + "/" + 
+                           'LumiCalibration_'+ Luminometer+ '_'+ FitName + "_" + str(Fill)+'.csv')
 
-    outFileName = AnalysisDir + "/" + Luminometer + "/results/" + corrFull + "/plots_"+FitName+"_"+Fill+".pdf"
+    outFileName = (AnalysisDir + "/" + Luminometer + "/results/" + corrFull +
+                  "/plots_" + FitName + "_" + Fill + ".pdf")
 
     fitResult = fitResultReader(InputFitResultsFile)
-    xsecResult = fitResultReader(InputXsecResultsFile)
+    xsecResult = pd.DataFrame.from_csv(InputXsecResultsFile)
 
     description = Fill + " " + Luminometer + " " + FitName
 
     # special treatment for xsec plot where the result is per scan _pair_
-
     paramName = "xsec"
     paramErrName = "xsecErr"
-    param = xsecResult.getFitParam(paramName)
-    paramErr = xsecResult.getFitParam(paramErrName)
+    param = {}
+    paramErr={}
+    scans = list(set(xsecResult.XscanNumber_YscanNumber))
+    for scan in scans:
+        scanres = xsecResult.loc[xsecResult.XscanNumber_YscanNumber == scan]
+        temp = {}
+        temperr = {}
+        for i in scanres.iterrows():
+            temp.update({i[1]['BCID']:i[1]['xsec']})
+            temperr.update({i[1]['BCID']:i[1]['xsecErr']})
+        param.update({scan:temp})
+        paramErr.update({scan:temperr})
     addXsecPlots(description, paramName, param, paramErr, outFileName)
 
     # Fit function parameters come in pairs of: value, valueErr
     # Hand over value, valuerErr dictionaries to plotAll
-    # For other parameters, e.g. fit status, chi2, ndf, put them in separate list, for which pseudo error dictionary is provided where all errrors are set to 0.0
+    # For other parameters, e.g. fit status, chi2, ndf, put them in separate list,
+    # for which pseudo error dictionary is provided where all errrors are set to 0.0
     # First find out where block of fit function parameters with their errors is
     paramlist = fitResult.fitParamNames[3:]
     lasterridx = 0

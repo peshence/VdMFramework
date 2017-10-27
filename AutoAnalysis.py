@@ -129,10 +129,10 @@ def Analyse(filename, corr, test, filename2=None, post=True,
 
         with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/' + fit + '_FitResults.pkl') as fr:
             fitresults = pickle.load(fr)
-        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
-            calibration = pickle.load(cal)
+        calibration = pd.DataFrame.from_csv(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.csv')
+            
         fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
-        calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
+        #calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
         if str.isdigit(str(luminometer[-1])):
             PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                       fit, angle, corr, automation_folder=automation_folder, post=post, perchannel=True)
