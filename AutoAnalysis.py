@@ -34,7 +34,8 @@ for subfolder in subfolders:
         os.mkdir('./' + folder + subfolder)
 
 
-def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=folder, dg=False, logs = False, pdfs = False):
+def Analyse(filename, corr, test, filename2=None, post=True,
+            automation_folder=folder, dg=False, logs=False, pdfs=False):
     '''Uses vdm data from hd5 file to create configurations for analysis and run them,
         then posts results to web monitor service and saves json dumps of data sent
 
@@ -44,7 +45,8 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             (which looks at different fits as different data series) or normal instance
         filename2 : the name of the second file of a scan pair for large scans
         post : a boolean that tells if you want your data posted at all (and ouput to json)
-        automation_folder : the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders
+        automation_folder : the relative path to folder with your dipfiles,
+                            autoconfigs and Analysed_Data folders
     '''
     with tables.open_file(filename) as h5:
         if 'vdmscan' not in h5.root:
@@ -79,7 +81,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         if dg or filename2:
             # f = ('DG' if 'plt' == r[:3] else 'DGConst')
             #f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
-            f= 'DG'
+            f = 'DG'
         else:
             f = ('SG' if 'plt' == r[:3] else 'SGConst')
             #f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
@@ -111,9 +113,10 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         fit = threads[0][1]
         ratetable = threads[0][2]
         if int(fill) > 5737:
-            # assuming it doesn't change DURING a scan; UPDATE: it changes between scans that might be in the same file, so needs to be changed
+            # assuming it doesn't change DURING a scan;
+            # UPDATE: it changes between scans that might be in the same file, so needs to be changed
             # UPDATE: this is probably fixed and I forgot to delete the comment, need to check
-            angle = int(data.iloc[data[data.sec==times[0][0][0]].index[0]]['xingHmurad'])
+            angle = int(data.iloc[data[data.sec == times[0][0][0]].index[0]]['xingHmurad'])
             Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, True, _bstar=float(
                 data.iloc[0]['bstar5']) / 100, _angle=angle, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
         else:
