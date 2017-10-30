@@ -91,8 +91,8 @@ class BeamBeam_Corr(CorrectionManager.CorrectionProvider):
 
             #for bx in entry.collidingBunches:
             pdfbxs = [i for i in BB_bxList if type(i) == int][:100]
-            pdfbxs.append([key for key in BB_bxList if type(i) == int and key not in pdfbxs and
-                            key - 1 not in BB_bxList and key + 1 not in BB_bxList])
+            pdfbxs.append([i for i in BB_bxList if type(i) == int and i not in pdfbxs and
+                            i - 1 not in BB_bxList and i + 1 not in BB_bxList])
             for bx in pdfbxs:
                 histo = r.TGraph()
                 histo.SetMarkerStyle(8)

@@ -33,6 +33,9 @@ def RunAnalysis(name, luminometer, fit, corr='noCorr', automation_folder='Automa
         LogInfo('NO CORR ' + luminometer + fit + ' START')
         fitresults = vdmDriverII.DriveVdm(automation_folder + 'autoconfigs/' + name + '/' +
                                           luminometer + 'noCorr_' + fit + '_driver.json')
+        LogInfo('CALIBRATION CONST ' + luminometer + fit + ' START')
+        calibration = calculateCalibrationConstant.CalculateCalibrationConstant(
+            automation_folder + 'autoconfigs/' + name + '/' + luminometer + 'noCorr' + '_' + fit + '_calibrationConst.json')
         if corr != 'noCorr':
             LogInfo(corr + ' ' + luminometer + fit + ' START')
             fitresults = vdmDriverII.DriveVdm(automation_folder + 'autoconfigs/' + name + '/' +

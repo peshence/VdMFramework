@@ -52,7 +52,9 @@
 	"InputScanFile": "cond/Scan_{fill}.json",
 	"InputLumiDir" : "{central}",
 	"RateTable": "{ratetable}",
-	"OutputSubDir": "LuminometerData"
+	"OutputSubDir": "LuminometerData",
+	"eff": {eff},
+	"sbil": "noCorr/LumiCalibration_{luminometer}_{fit}_{fill}.csv"
 	}},
 "makeBeamCurrentFileConfig":
 	{{
