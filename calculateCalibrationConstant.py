@@ -247,7 +247,7 @@ def CalculateCalibrationConstant(configFile):
 
     df = pd.DataFrame(datalist,columns=["XscanNumber_YscanNumber","Type", "BCID",
                                         "xsec", "xsecErr", "SBIL", 'SBILErr'])
-    df.to_csv(OutputDir+'/LumiCalibration_'+ Luminometer+ '_'+ fit + str(Fill)+'.csv', index=False)
+    df.to_csv(OutputDir+'/LumiCalibration_'+ Luminometer+ '_'+ fit + str(Fill)+'.csv')
     
     excldata=open(OutputDir+'/LumiCalibration_'+ Luminometer+ '_' + fit + '_'
                   + corrFull + str(Fill)+'.log','w')

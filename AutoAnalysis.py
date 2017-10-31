@@ -34,7 +34,7 @@ for subfolder in subfolders:
         os.mkdir('./' + folder + subfolder)
 
 
-def Analyse(filename, corr, test, filename2=None, post=True,
+def Analyse(filename, corr, test, filename2=None, post=True, eff = 0,
             automation_folder=folder, dg=False, logs=False, pdfs=False):
     '''Uses vdm data from hd5 file to create configurations for analysis and run them,
         then posts results to web monitor service and saves json dumps of data sent
@@ -94,7 +94,7 @@ def Analyse(filename, corr, test, filename2=None, post=True,
         fits.append(f)
 
     def timestamp(i): return dt.datetime.fromtimestamp(data.iloc[i]['sec']).strftime('%d%b%y_%H%M%S')
-    name = str(fill) + '_' + timestamp(0) + '_' + timestamp(-1)
+    name = str(fill) + '_' + timestamp(0) + '_' + timestamp(-1) + '_' + str(int(eff))
 
     times = Configurator.GetTimestamps(data, fill, name, automation_folder=automation_folder)
     if not times or len(times) < 2:
@@ -102,7 +102,7 @@ def Analyse(filename, corr, test, filename2=None, post=True,
 
     def AnalyseScanPair(times, scanpair):
         def ts(i): return dt.datetime.fromtimestamp(i).strftime('%d%b%y_%H%M%S')
-        name = str(fill) + '_' + ts(times[0][0][0]) + '_' + ts(times[1][0][0])
+        name = str(fill) + '_' + ts(times[0][0][0]) + '_' + ts(times[1][0][0]) + '_' + str(int(eff))
 
         Configurator.GetTimestamps(data, fill, name, automation_folder=automation_folder)
 
@@ -117,11 +117,11 @@ def Analyse(filename, corr, test, filename2=None, post=True,
             # UPDATE: it changes between scans that might be in the same file, so needs to be changed
             # UPDATE: this is probably fixed and I forgot to delete the comment, need to check
             angle = int(data.iloc[data[data.sec == times[0][0][0]].index[0]]['xingHmurad'])
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, True, _bstar=float(
+            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, True, eff = eff/100, _bstar=float(
                 data.iloc[0]['bstar5']) / 100, _angle=angle, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
         else:
             Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename,
-                True, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
+                True, eff = eff/100, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
         #fitresults, calibration = runAnalysis.RunAnalysis(name, threads[0][0], threads[0][1], corr, automation_folder=automation_folder)
         proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
                                 '-l', luminometer, '-f', fit, '-c', corr, '-a', automation_folder])
@@ -275,8 +275,9 @@ if __name__ == '__main__':
         Analyse(args.filename, corr, args.test, args.filename2,
                 args.post, automation_folder=folder, pdfs=args.pdfs, logs=args.logs)
     elif (args.filename):
-        Analyse(args.filename, corr, args.test, post=args.post,
-                automation_folder=folder, dg=args.double, pdfs=True if args.pdfs else False, logs=True if args.logs else False)
+        for i in range(-5,6):
+            Analyse(args.filename, corr, args.test, post=args.post, eff = i*1.0,
+                    automation_folder=folder, dg=args.double, pdfs=True if args.pdfs else False, logs=True if args.logs else False)
     elif (args.central):
         RunWatcher(corr, args.test, args.central)
     else:

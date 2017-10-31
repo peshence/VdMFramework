@@ -45,9 +45,9 @@ def RunAnalysis(name, luminometer, fit, corr='noCorr', automation_folder='Automa
         calibration = calculateCalibrationConstant.CalculateCalibrationConstant(
             automation_folder + 'autoconfigs/' + name + '/' + luminometer + corr + '_' + fit + '_calibrationConst.json')
 
-        LogInfo('PLOT FIT ' + luminometer + fit + ' START')
-        plotFitResults.PlotFit(automation_folder + 'autoconfigs/' + name + '/' +
-                               luminometer + corr + '_' + fit + '_plotFit.json')
+        # LogInfo('PLOT FIT ' + luminometer + fit + ' START')
+        # plotFitResults.PlotFit(automation_folder + 'autoconfigs/' + name + '/' +
+        #                        luminometer + corr + '_' + fit + '_plotFit.json')
         config = json.load(open(automation_folder + 'autoconfigs/' + name + '/' +
                                 luminometer + 'noCorr_' + fit + '_driver.json'))
         fill = config['Fill']

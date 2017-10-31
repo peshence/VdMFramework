@@ -184,7 +184,7 @@ def FormatTimestamps(times):
     return _scannames, _timewindows, _scanpairs, _offsets, times
 
 
-def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, first=True, automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na'):
+def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, first=True, automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na', eff = 0):
     """Makes a folder with configuration files with given timestamps paired for beginnings and endings of scans
 
         times : should be of the form [ (timestamp, nominal_separation_plane), (timestamp, nominal_separation_plane) ] (like from GetTimestamps)
@@ -259,7 +259,7 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
                                     analysisdir=automation_folder + 'Analysed_Data/' + name, scanpairs=_scanpairs,
                                     dip=_dip, central=_central, luminometer=_luminometer, fit=_fit, offsets=_offsets,
                                     ratetable=_ratetable, corr=_corr, corrs=_corrs, makeScanFile=_makeScanFile,
-                                    makeRateFile=_makeRateFile, makeBeamCurrentFile=_makeBeamCurrentFile, 
+                                    makeRateFile=_makeRateFile, makeBeamCurrentFile=_makeBeamCurrentFile, eff = eff,
                                     makeBeamBeamFile=_makeBeamBeamFile, makeGraphsFile=_makeGraphsFile, runVdmFitter=_runVdmFitter,
                                     bstar = _bstar, angle = _angle,  makepdf = _makepdf, makelogs = _makelogs))
         # Configure calibration constant calculation

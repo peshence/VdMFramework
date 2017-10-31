@@ -99,12 +99,12 @@ def doMakeRateFile(ConfigInfo):
     InputLumiDir = str(ConfigInfo['InputLumiDir'])
     RateTable = str(ConfigInfo['RateTable'])
     eff = float(ConfigInfo['eff'])
-    sbilfile = ConfigInfo['sbil']
+    # sbilfile = ConfigInfo['sbil']
     
-    lumicalibration = pd.DataFrame.from_csv(sbilfile)
-    sbil = {}
-    for i in lumicalibration.iterrows():
-        sbil.update({i[1]['BCID']:i[1]['SBIL']})
+    # lumicalibration = pd.DataFrame.from_csv(sbilfile)
+    # sbil = {}
+    # for i in lumicalibration.iterrows():
+    #     sbil.update({i[1]['BCID']:i[1]['SBIL']})
 
     with open(InputScanFile, 'rb') as f:
         scanInfo = json.load(f)
@@ -119,7 +119,7 @@ def doMakeRateFile(ConfigInfo):
         for j, sp in enumerate(scanpoints):
             rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"])
             for bx in rates[0].keys():
-                rates[0][bx] = rates[0][bx]*(1 + n *(sbil[bx] - rates[0][bx]/peak[0][bx]*sbil[bx]))
+                rates[0][bx] = rates[0][bx]*(1 + eff *(7.3 - rates[0][bx]/peak[bx]*7.3))
             scanpoint = {
                 'ScanNumber':i+1,
                 'ScanName':name,

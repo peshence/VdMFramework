@@ -53,8 +53,7 @@
 	"InputLumiDir" : "{central}",
 	"RateTable": "{ratetable}",
 	"OutputSubDir": "LuminometerData",
-	"eff": {eff},
-	"sbil": "noCorr/LumiCalibration_{luminometer}_{fit}_{fill}.csv"
+	"eff": {eff}
 	}},
 "makeBeamCurrentFileConfig":
 	{{
