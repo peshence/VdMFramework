@@ -296,3 +296,113 @@ for fit in fits:
 
 plt.legend()
 plt.show()
+
+###ratios plots
+import json
+import matplotlib.pyplot as plot
+hf = json.load(open('../Analysed_Data/6194_13Sep17_111416_13Sep17_113651/LuminometerData/Rates_HFET_6194.json'))
+plt = json.load(open('../Analysed_Data/6194_13Sep17_111416_13Sep17_113651/LuminometerData/Rates_PLT_6194.json'))
+freq = 11265
+pltsig = 297
+hfsig = 2565
+for scan in plt.keys():
+    for bx in plt[scan][0]['Rates'].keys():
+        plot.close()
+        single = [i['Rates'][bx]*freq/pltsig for i in plt[scan]]
+        singlehf = [i['Rates'][bx]*freq/hfsig for i in hf[scan]]
+        plot.rcParams["figure.figsize"] = (13,10)
+        plot.subplot(3,1,1)
+        plot.plot(single, label='PLT')
+        plot.plot(singlehf, label='HF')
+        plot.title('SBIL(step)')
+        plot.legend()
+        plot.subplot(3,1,2)
+        plot.plot([i/j for i,j in zip(single,singlehf) if j!=0])
+        plot.title('PLT/HF(step)')
+        plot.subplot(3,1,3)
+        plot.plot([i for i in singlehf if i!=0],[i/j for i,j in zip(single,singlehf) if j!=0],'o')
+        plot.title('PLT/HF(HFSBIL)')
+        #plot.show()
+        plot.savefig(scan + 'bx' + bx + '.png',dpi=150,format='png')
+        
+
+
+## ratios with train distinction
+import json
+import matplotlib.pyplot as plot
+import csv
+hf = json.load(open('../Analysed_Data/6194_13Sep17_111416_13Sep17_113651/LuminometerData/Rates_HFET_6194.json'))
+plt = json.load(open('../Analysed_Data/6194_13Sep17_111416_13Sep17_113651/LuminometerData/Rates_PLT_6194.json'))
+freq = 11265
+pltsig = 297
+hfsig = 2565
+xsingle=[]
+ysingle=[]
+xlead=[]
+ylead=[]
+xtrain=[]
+ytrain=[]
+xtrain8b4e=[]
+ytrain8b4e=[]
+for scan in plt.keys():
+    for bx in plt[scan][0]['Rates'].keys():
+        if bx=='sum':
+            continue
+        single = [i['Rates'][bx]*freq/pltsig for i in plt[scan]]
+        singlehf = [i['Rates'][bx]*freq/hfsig for i in hf[scan]]
+        if(str(int(bx)-1) not in plt[scan][0]['Rates'].keys()):
+            if(str(int(bx)+1) not in plt[scan][0]['Rates'].keys()):
+                xsingle = xsingle + ([i for i in singlehf if i!=0])
+                ysingle = ysingle + ([i/j for i,j in zip(single,singlehf) if j!=0])
+                continue
+            xlead = xlead + ([i for i in singlehf if i!=0])
+            ylead = ylead + ([i/j for i,j in zip(single,singlehf) if j!=0])
+            continue
+        ## to separate 8b4e
+        # if(int(bx)>1000):
+        #     xtrain8b4e = xtrain8b4e + ([i for i in singlehf if i!=0])
+        #     ytrain8b4e = ytrain8b4e + ([i/j for i,j in zip(single,singlehf) if j!=0])
+        #     continue
+        xtrain = xtrain + ([i for i in singlehf if i!=0])
+        ytrain = ytrain + ([i/j for i,j in zip(single,singlehf) if j!=0])
+    ##to separate per scan
+    with open(scan + 'train.csv', 'wb') as f:
+        writer = csv.writer(f)
+        writer.writerow(('HFSBIL','PLT/HF'))
+        writer.writerows(zip(xtrain,ytrain))
+    plot.plot(xtrain,ytrain,'o',label=scan+'train')
+    xtrain=[]
+    ytrain=[]
+    
+
+plot.plot(xsingle,ysingle,'o',label='Single')
+plot.plot(xlead,ylead,'o',label='Lead')
+#plot.plot(xtrain,ytrain,'o',label='Train')
+#plot.plot(xtrain8b4e,ytrain8b4e,'o',label='Train8b4e')
+plot.legend()
+plot.title('PLT/HF(HFSBIL)')
+plot.show()
+
+with open('single.csv', 'wb') as f:
+    writer = csv.writer(f)
+    writer.writerow(('HFSBIL','PLT/HF'))
+    writer.writerows(zip(xsingle,ysingle))
+
+
+with open('lead.csv', 'wb') as f:
+    writer = csv.writer(f)
+    writer.writerow(('HFSBIL','PLT/HF'))
+    writer.writerows(zip(xlead,ylead))
+
+
+with open('trainnormal.csv', 'wb') as f:
+    writer = csv.writer(f)
+    writer.writerow(('HFSBIL','PLT/HF'))
+    writer.writerows(zip(xtrain,ytrain))
+
+
+with open('train8b4e.csv', 'wb') as f:
+    writer = csv.writer(f)
+    writer.writerow(('HFSBIL','PLT/HF'))
+    writer.writerows(zip(xtrain8b4e,ytrain8b4e))
+

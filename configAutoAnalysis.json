@@ -1,6 +1,6 @@
 {
     "Comment": "Folder path has to be relative",
-    "automation_folder": "../../../../../brildata/vdmoutput/Automation/",
-    "ratetables": ["bcm1fpcvdlumi"],
+    "automation_folder": "../../../../../brildata/vdmoutput/AutomationRatios/",
+    "ratetables": ["pltlumizero","hfetlumi"],
     "exampleratetables": ["pltlumizero", "hfetlumi", "hfoclumi", "bcm1fsilumi", "bcm1fpcvdlumi", "bcm1fscvdlumi"]
 }
