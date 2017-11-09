@@ -13,19 +13,16 @@ import tables
 central = '/brildata/vdmdata17/'
 corr = 'BeamBeam'
 test = True
-folder = 'Automation/'
 
-if os.getcwd()[-4:] == 'Test':
-    global folder
-    folder = '../' + folder
 for a in os.listdir(central):
-    if str.isdigit(str(a[0])) and (int(a[:4]) in [6287,6288,6291]):#6275,6283,
+    if str.isdigit(str(a[0])) and (int(a[:4]) in [6016,6020,5984,6336,6348]):#6275,6283,
         try:
             t1 = dt.datetime.strptime(a[5:15],'%y%m%d%H%M%S')
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')
             td = t2-t1
-            _dg = td.total_seconds() > 600
-            AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=True, pdfs = True, logs = False)
+            _dg = int(a[:4])==6016#td.total_seconds() > 600
+            AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg,
+                                 pdfs = True, logs = False)
             
             #AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=False, pdfs = True, logs = False)
         except (KeyboardInterrupt, SystemExit):
