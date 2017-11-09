@@ -115,11 +115,10 @@ def doMakeRateFile(ConfigInfo):
         key = "Scan_" + str(i+1)        
         scanpoints = scanInfo[key]
         table[key]=[]
-        peak = getRates(InputLumiDir, RateTable, scanpoints[len(scanpoints)/2][3:], scanInfo['Fill'])[0]
         for j, sp in enumerate(scanpoints):
             rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"])
             for bx in rates[0].keys():
-                rates[0][bx] = rates[0][bx]*(1 + eff *(7.3 - rates[0][bx]/peak[bx]*7.3))
+                rates[0][bx] = rates[0][bx]*(1 + eff * rates[0][bx] * 297)
             scanpoint = {
                 'ScanNumber':i+1,
                 'ScanName':name,

@@ -31,43 +31,7 @@ np.mean([rates['Scan_1'][3][3][0][i]*beams['Scan_2'][3][-1][i]*beams['Scan_2'][3
 np.mean([rates['Scan_1'][3][3][0][i]/rates['Scan_2'][3][3][0][i] for i in rates['Scan_1'][3][3][0].keys() if i!='sum'])
 1.0043421343801477
 
-
-fill = 6097
-rateTable = 'pltlumizero'
-scanpt = [1503006260.0,1503006220.0]
-datapath = '/cmsnfsbrildata/brildata/vdmdata17/6097_1708172141_1708172152.hd5'
-
-import dataPrepII.makeRateFile as mrf
-import makeBeamCurrentFileII as mbcf
-
-def UsingFrameWork(datapath, rateTable, scanpt, fill):
-    r = mrf.getRates(datapath, rateTable, scanpt, fill)
-    b = mbcf.getCurrents(datapath, scanpt, fill)
-    avr = np.mean([r[0][k] for k in r[0].keys() if k !='sum'])
-    avb1 = np.mean([b[2][k] for k in b[2].keys() if k !='sum'])
-    avb2 = np.mean([b[3][k] for k in b[3].keys() if k !='sum'])
-    print avr/avb1/avb2*1e22, avr
-
-    
-
-
-
-
-
 ### get raw rates, beam currents and normalized rates for a scan into a csv 
-### WRONG, includes unfilled bunches
-# import tables
-# h5 = tables.open_file('/cmsnfsbrildata/brildata/vdmdata17/6097_1708172141_1708172152.hd5')
-# a = [(i['timestampsec'], i['bxraw']) for i in h5.root.pltlumizero]
-# b = [(i['timestampsec'], i['bxintensity1'], i['bxintensity1']) for i in h5.root.beam]
-
-# with open('6097_0.csv','w') as f:
-#     out = csv.writer(f)
-#     out.writerow(['timestamp', 'rate', 'beam1', 'beam2', 'normalized'])
-#     for i,j in zip(a,b):
-#         out.writerow((i[0], np.mean(i[1]), np.mean(j[1]), np.mean(j[2]), np.mean(i[1]) / (np.mean(j[1]) * np.mean(j[2]) / 1e22)))
-
-
 filename = '/cmsnfsbrildata/brildata/vdmdata17/6097_1708172141_1708172152.hd5'
 
 with tables.open_file(filename, 'r') as h5:
@@ -121,21 +85,7 @@ for n in names:
                 out.writerow((i['timestamp'], np.mean([i['rates'][k] for k in i['rates'].keys()]), np.mean([i['beam1'][k] for k in i['beam1'].keys()]), np.mean([i['beam2'][k] for k in i['beam2'].keys()]), np.mean([i['normalized'][k] for k in i['normalized'].keys()])))
                 # out.writerow((i['timestamp'], i['rates'][u'343'], i['beam1'][u'343'], i['beam2'][u'343']))
 
-# def notnull(arr):
-#     return [i for i in arr if i != 0]
-
-# ### use those jsons
-# names = [i for i in os.listdir('./') if i[-4:]=='json' and i[0] == '6']
-# for n in names:
-#     with json.load(open(n)) as j:
-#         for i in j:
-#             with open(n[:6] + '.csv','w') as f:
-#                 out = csv.writer(f)
-#                 out.writerow(['timestamp', 'rate', 'beam1', 'beam2', 'normalized'])
-#                 for i,j in zip(a,b):
-#                     out.writerow((notnull(i['timestamp']), np.mean(notnull(i['rate'])), np.mean(notnull(i['beam1'])),
-#                         np.mean(notnull(i['beam2'])), np.mean(notnull(i['rate'])) / (np.mean(notnull(i['beam1'])) * np.mean(notnull(i['beam1'])) / 1e22)))
-
+###xsec(sbil) 
 early = json.load(open('/cmsnfsbrildata/brildata/vdmoutput/Automation/Analysed_Data/6140_27Aug17_202522_27Aug17_202854/output6140PLTSG1.json'))
 late = json.load(open('/cmsnfsbrildata/brildata/vdmoutput/Automation/Analysed_Data/6140_28Aug17_094708_28Aug17_095059/output6140PLTSG1.json'))
 x = []
