@@ -16,16 +16,17 @@ corr = 'BeamBeam'
 test = True
 folder = 'Automation/'
 
-def do(a):
+def do(a,pool):
     print a
-    if str.isdigit(str(a[0])) and (int(a[:4]) in [6016,6362]):#6275,6283,
+    if str.isdigit(str(a[0])) and (int(a[:4]) in [6016,6194,6362]):#6275,6283,
         try:
             t1 = dt.datetime.strptime(a[5:15],'%y%m%d%H%M%S')
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')
             td = t2-t1
             _dg = td.total_seconds() > 600
-            for i in range(-5,6):
-                AutoAnalysis.Analyse(central + a, corr, test, post=False, eff = i*1.0, dg= int(a[:4])==6016, pdfs = True, logs = False)
+            
+            AutoAnalysis.Analyse(central + a, corr, test, post=False, eff = i*1.0,
+                                 dg= int(a[:4])!=6362, pdfs = True, logs = False)
             
             #AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=False, pdfs = True, logs = False)
         except (KeyboardInterrupt, SystemExit):
@@ -45,6 +46,23 @@ if os.getcwd()[-4:] == 'Test':
     folder = '../' + folder
 ts=[]
 pool = Pool(8)
-pool.map(do, [a for a in os.listdir(central) if str.isdigit(str(a[0])) and (int(a[:4]) in [6016,6362])])
+arguments = []
+for a in os.listdir(central):
+    if str.isdigit(str(a[0])) and (int(a[:4]) in [6016,6362] or a=='6194_1709130911_1709131001.hd5'):
+        for i in range(-5,6):
+            arguments.append((a,i))
+def do2(t):
+    a,i=t
+    try:
+        return AutoAnalysis.Analyse(central + a, corr, test, post=False, eff = i*1.0,
+                            dg= int(a[:4])!=6362, pdfs = True, logs = False)
+    except (KeyboardInterrupt, SystemExit):
+        raise 
+    except:
+        message = 'Error on ' + a + '\n' + traceback.format_exc()
+        print message
+        logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
+                            + '\n' + message)
+pool.map(do2, arguments)
 pool.close()
 pool.join()
