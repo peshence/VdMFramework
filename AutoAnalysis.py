@@ -82,7 +82,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             #f= 'DG'
         else:
             f = ('SG' if 'plt' == r[:3] else 'SGConst')
-            #f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
+            # f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
         if str.isdigit(str(r[-1])):
             if str.isdigit(str(r[-2])):
                 l = l + r[-2:]
@@ -124,9 +124,9 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                                 '-l', luminometer, '-f', fit, '-c', corr, '-a', automation_folder])
         proc.wait()
 
-        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/' + fit + '_FitResults.pkl') as fr:
+        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ corr + '/' + fit + '_FitResults.pkl') as fr:
             fitresults = pickle.load(fr)
-        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
+        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ corr + '/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
             calibration = pickle.load(cal)
         fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
         calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
@@ -159,9 +159,9 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                 p.wait()
             for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + threadcount]):
                 try:
-                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/' + fit + '_FitResults.pkl') as fr:
+                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ corr + '/' + fit + '_FitResults.pkl') as fr:
                         fitresults = pickle.load(fr)
-                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/BeamBeam/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
+                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ corr + '/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
                         calibration = pickle.load(cal)
                     fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
                     calibration = pd.DataFrame(calibration[1:], columns=calibration[0])

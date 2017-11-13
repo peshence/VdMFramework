@@ -270,8 +270,19 @@ class vdmInputData:
             self.lumiPerSP = [entry['Rates'] for entry in rateData]
             self.lumiErrPerSP = [entry['RateErrs'] for entry in rateData]
 
-            self.usedCollidingBunches = list(set([i for j in self.lumiPerSP
-                            for i in j.keys() if i in self.collidingBunches]))
+            usedCollidingBunches=[]
+            for i, bx in enumerate(self.collidingBunches):
+                for j in range(self.nSP):
+                    try:
+                        if str(bx) in self.lumiPerSP[j]:
+                            if bx not in usedCollidingBunches:
+                                usedCollidingBunches.append(bx)
+                    except:
+                        print "in usedCollidingBunches: BCID ", bx, " is not filled at the scanpoint ", j
+            self.usedCollidingBunches = usedCollidingBunches
+
+            # self.usedCollidingBunches = list(set([i for j in self.lumiPerSP
+            #                 for i in j.keys() if i in self.collidingBunches]))
             # self.lumi=[[j[str(bx)] for j in self.lumiPerSP] for bx in usedCollidingBunches]
             # self.lumiErr =[[j[str(bx)] for j in self.lumiErrPerSP] for bx in usedCollidingBunches]
             # SPNumberPerBX=[[self.displacement[j] for j in range(self.nSP)] for i in usedCollidingBunches]

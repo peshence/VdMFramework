@@ -192,7 +192,7 @@ def CalculateCalibrationConstant(configFile):
         temp = [int(i) for i in XYbxlist if i != 'sum']
         temp.sort()
         temp = [str(i) for i in temp]
-        temp.append('sum')
+        # temp.append('sum')
         XYbxlist = temp
         logbuffer=logbuffer+XscanID+":"+str(XexclBX)+"\n"
         logbuffer=logbuffer+YscanID+":"+str(YexclBX)+"\n"

@@ -129,6 +129,8 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
             for key in orderedkeys:
                 if type(key) == int and key%100 == 0:
                     print "Now fitting BCID ", key
+                if key == 'sum':
+                    continue
                 graphdata = graphs[str(key)]
                 name = graphdata['name']
                 graph = r.TGraphErrors(len(graphdata['sep']),array("d",graphdata['sep']),array("d",graphdata['normrate']),array("d",[0.0 for i in graphdata['sep']]),array("d",graphdata['normrateerr']))

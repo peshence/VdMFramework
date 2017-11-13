@@ -42,8 +42,8 @@
 	"ParticleTypeB1" : "proton",
 	"ParticleTypeB2" : "proton",
 	"Comment": "Beam energies in MeV", 
-	"EnergyB1" : 6500,
-	"EnergyB2" : 6500,
+	"EnergyB1" : 2510,
+	"EnergyB2" : 2510,
 	"OutputSubDir" : "cond"
 	}},
 "makeRateFileConfig":
