@@ -63,6 +63,8 @@ def do2(t):
         print message
         logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
                             + '\n' + message)
-pool.map(do2, arguments)
-pool.close()
-pool.join()
+for a in arguments:
+    do2(a)
+# pool.map(do2, arguments)
+# pool.close()
+# pool.join()

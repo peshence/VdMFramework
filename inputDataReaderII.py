@@ -144,11 +144,24 @@ class vdmInputData:
             self.sumAvrgFbctB2 = [i['sumavrgfbct2'] for i in beamData]
 
             # BCID list, colliding bunches, for scanpoints
-            self.collidingBunchesPerSP = [[k for k in i.keys() if k != 'sum' and k in j.keys()]
-                                    for i,j in zip(self.avrgFbctB1PerSP, self.avrgFbctB2PerSP)]
-
+            self.collidingBunchesPerSP=[[] for a in range(self.nSP)]
+            for i in range(self.nSP):
+                BunchListB1PerSP=list(self.avrgFbctB1PerSP[i].keys())
+                BunchListB2PerSP=list(self.avrgFbctB2PerSP[i].keys())
+                CollidingBunchPerSP=[]
+                for j in range(len(BunchListB1PerSP)):
+                    if BunchListB1PerSP[j] in BunchListB2PerSP:
+                        if BunchListB1PerSP[j]!='sum':
+                            CollidingBunchPerSP.append(BunchListB1PerSP[j])
+                self.collidingBunchesPerSP[i]=CollidingBunchPerSP
+            
             # BCID list for the scan
-            self.collidingBunches = list(set(i for j in self.collidingBunchesPerSP for i in j))
+            collidingBunchesForScan=[]
+            for i in range(self.nSP):
+                for j in range(len(self.collidingBunchesPerSP[i])):
+                    if self.collidingBunchesPerSP[i][j] not in collidingBunchesForScan:
+                        collidingBunchesForScan.append(self.collidingBunchesPerSP[i][j])
+            self.collidingBunches=collidingBunchesForScan
 
             # natural order per BX for analysis: curr values only for colliding bunches
             # first index BCID (for colliding bx only), second index SP
@@ -270,8 +283,16 @@ class vdmInputData:
             self.lumiPerSP = [entry['Rates'] for entry in rateData]
             self.lumiErrPerSP = [entry['RateErrs'] for entry in rateData]
 
-            self.usedCollidingBunches = list(set([i for j in self.lumiPerSP
-                            for i in j.keys() if i in self.collidingBunches]))
+            usedCollidingBunches=[]
+            for i, bx in enumerate(self.collidingBunches):
+                for j in range(self.nSP):
+                    try:
+                        if str(bx) in self.lumiPerSP[j]:
+                            if bx not in usedCollidingBunches:
+                                usedCollidingBunches.append(bx)
+                    except:
+                        print "in usedCollidingBunches: BCID ", bx, " is not filled at the scanpoint ", j
+            self.usedCollidingBunches = usedCollidingBunches
             # self.lumi=[[j[str(bx)] for j in self.lumiPerSP] for bx in usedCollidingBunches]
             # self.lumiErr =[[j[str(bx)] for j in self.lumiErrPerSP] for bx in usedCollidingBunches]
             # SPNumberPerBX=[[self.displacement[j] for j in range(self.nSP)] for i in usedCollidingBunches]
