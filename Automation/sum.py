@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import re
+import matplotlib.pyplot as plot
 
 dirs = os.listdir('Analysed_Data/')
 pattern = re.compile('(.*)_[.^_]*')
@@ -40,3 +41,44 @@ for scan in scans:
     df = df.loc[:,['-5','-4','-3','-2','-1','0','1','2','3','4','5','-5_diff','-4_diff','-3_diff','-2_diff','-1_diff','0_diff','1_diff','2_diff','3_diff','4_diff','5_diff']]
     df.index = curxs.BCID
     df.to_csv(scan + '.csv')
+    plt = plot.figure()
+    fill = '6362 Early scan' if scan =='6362_04Nov17_220358_04Nov17_220637' else '6362 Late scan' if scan == '6362_05Nov17_182035_05Nov17_182308' else scan[:4]
+    title = 'Effect of PLT nonlinearity correction on $\sigma_{vis}$ and $\Sigma$ \n Fill ' + fill
+    plt.suptitle(title,fontsize=24)
+    xsecl = plt.add_subplot(321)
+    xsecl.set_title('Sigvis leading bunches',fontsize=20)
+    xsect = plt.add_subplot(322)
+    xsect.set_title('Sigvis train bunches',fontsize=20)
+    for row in df.iterrows():
+        if row[0]=='sum': continue
+        if str(int(row[0])-1) in df.index:
+            xsect.plot(range(-5,6),row[1][11:])
+        else:
+            xsecl.plot(range(-5,6),row[1][11:])
+    xl = plt.add_subplot(323)
+    xl.set_title('CapSigmaX leading bunches',fontsize=20)
+    xt = plt.add_subplot(324)
+    xt.set_title('CapSigmaX train bunches',fontsize=20)
+    for row in dfx.iterrows():
+        if row[0]=='sum': continue
+        if str(int(row[0])-1) in dfx.index:
+            xt.plot(range(-5,6),row[1][11:])
+        else:
+            xl.plot(range(-5,6),row[1][11:])
+    yl = plt.add_subplot(325)
+    yl.set_title('CapSigmaY leading bunches',fontsize=20)
+    plot.xlabel('Nonlinearity correction [%]',fontsize=18,horizontalalignment='center')
+    yt = plt.add_subplot(326)
+    yt.set_title('CapSigmaY train bunches',fontsize=20)
+    for row in dfy.iterrows():
+        if row[0]=='sum': continue
+        if str(int(row[0])-1) in dfy.index:
+            yt.plot(range(-5,6),row[1][11:])
+        else:
+            yl.plot(range(-5,6),row[1][11:])
+    plot.xlabel('Nonlinearity correction [%]',fontsize=18,horizontalalignment='center')
+    xsecl.set_ylabel('$\Delta \sigma_{vis}$ [%]',fontsize=18)
+    xl.set_ylabel("$\Delta \Sigma_X$ [%]",fontsize=18)
+    yl.set_ylabel("$\Delta \Sigma_Y$ [%]",fontsize=18)
+    plot.savefig(title+'.png')
+    plot.show()

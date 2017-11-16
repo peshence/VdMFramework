@@ -70,6 +70,52 @@ for i in a:
 
 json.dump(end,open('6097_0.json','w'))
 
+### usable function of the above
+def getRates(h5,ratetables=['hfetlumi','hfoclumi']):
+    removestrays = lambda a: np.array([0 if i < 6e9 else 1 for i in a])
+    b = [(i['timestampsec'], removestrays(i['bxintensity1']), removestrays(i['bxintensity1'])) for i in h5.root.beam]
+    bunchlist1 = [r[1] for r in b] 
+    bunchlist2 = [r[2] for r in b] 
+    if bunchlist1 and bunchlist2:
+        collBunches  = np.nonzero(bunchlist1[0]*bunchlist2[0])[0].tolist()
+    results = {}
+    for tablename in ratetables:
+        end = []
+        ratetable = [(i['timestampsec'], i['bxraw']) for i in [j for j in h5.root if j.name==tablename][0]]
+        df = pd.DataFrame(columns=['timestamp','rates'])
+        for i in ratetable:
+            j = [k for k in b if k[0] == i[0]]
+            if j:
+                j = j[0]
+            else:
+                continue
+            data['timestamp'] = i[0]
+            data['rates'] = {}
+            for bcid in collBunches:
+                data['rates'][bcid+1] = float(i[1][bcid])
+            end.append(data)
+        results[tablename] = end
+    return results
+    
+
+def plottable(rateTable,datatable):
+    x=[]
+    y=[]
+    for row in datatable[rateTable]:
+        y.append(row['rates'][41])
+        x.append(row['timestamp'])
+    m = max(y)
+    y = [i/m for i in y]
+    return x,y
+plt.plot(x,y)
+plt.show()
+
+    # b = [(i['timestampsec'], i['bxintensity1'], i['bxintensity1']) for i in h5.root.beam]
+    # bunchlist1 = [r[1] for r in b] 
+    # bunchlist2 = [r[2] for r in b] 
+    # if bunchlist1 and bunchlist2:
+    #     collBunches  = np.nonzero(bunchlist1[0]*bunchlist2[0])[0].tolist()
+
 import os
 ### use those jsons
 names = [i for i in os.listdir('./') if i[-4:]=='json' and i[0] == '6']
