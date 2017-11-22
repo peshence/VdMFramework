@@ -9,7 +9,9 @@ import json
 import os
 import datetime as dt
 
-
+sigvis = {
+          'pltlumizero': 297,
+          'hfetlumi': 2565}
 def getRates(datapath, rateTable, scanpt, fill):
     '''Gets the data in the corresponding folder or hd5 file for the respective ratetable and scan point'''
     # print "beginning of getCurrents", scanpt
@@ -118,7 +120,7 @@ def doMakeRateFile(ConfigInfo):
         for j, sp in enumerate(scanpoints):
             rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"])
             for bx in rates[0].keys():
-                rates[0][bx] = rates[0][bx]*(1 + eff * rates[0][bx] * 11245/297)
+                rates[0][bx] = rates[0][bx]*(1 + eff * rates[0][bx] * 11245/sigvis[RateTable])
             scanpoint = {
                 'ScanNumber':i+1,
                 'ScanName':name,
