@@ -9,6 +9,17 @@ import json
 import os
 import datetime as dt
 
+sigvis = {
+          'pltlumizero': 297,
+          'hfetlumi': 2565}
+
+leadcorr = {
+          'pltlumizero': 0.014,
+          'hfetlumi': 0.006}
+
+traincorr = {
+          'pltlumizero': 0.007,
+          'hfetlumi': 0.002}
 
 def getRates(datapath, rateTable, scanpt, fill):
     '''Gets the data in the corresponding folder or hd5 file for the respective ratetable and scan point'''
@@ -110,6 +121,10 @@ def doMakeRateFile(ConfigInfo):
         table[key]=[]
         for j, sp in enumerate(scanpoints):
             rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"])
+            for bx in rates[0].keys():
+                if bx == 'sum': continue
+                eff = leadcorr[RateTable] if str(int(bx) - 1) not in rates[0].keys() else traincorr[RateTable]
+                rates[0][bx] = rates[0][bx]*(1 + eff * rates[0][bx] * 11245/sigvis[RateTable])
             scanpoint = {
                 'ScanNumber':i+1,
                 'ScanName':name,

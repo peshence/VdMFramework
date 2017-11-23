@@ -15,13 +15,13 @@ corr = 'BeamBeam'
 test = True
 
 for a in os.listdir(central):
-    if str.isdigit(str(a[0])) and (int(a[:4]) in [6377,6381,6382,6384,6385]):#6275,6283,
+    if str.isdigit(str(a[0])) and (int(a[:4]) in [6194,6362] or a == '6016_1707281237_1707281324.hd5'):#6275,6283,
         try:
             t1 = dt.datetime.strptime(a[5:15],'%y%m%d%H%M%S')
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')
             td = t2-t1
             _dg = int(a[:4])==6016#td.total_seconds() > 600
-            AutoAnalysis.Analyse(central + a, corr, test, post=True, dg=_dg,
+            AutoAnalysis.Analyse(central + a, corr, test, post=True, dg = int(a[:4])!=6362,
                                  pdfs = True, logs = False)
             
             #AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=False, pdfs = True, logs = False)
