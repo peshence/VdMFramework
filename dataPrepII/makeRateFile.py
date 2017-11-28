@@ -14,12 +14,12 @@ sigvis = {
           'hfetlumi': 2565}
 
 leadcorr = {
-          'pltlumizero': 0.014,
-          'hfetlumi': 0.006}
+          'pltlumizero': -0.014,
+          'hfetlumi': -0.006}
 
 traincorr = {
-          'pltlumizero': 0.007,
-          'hfetlumi': 0.002}
+          'pltlumizero': -0.007,
+          'hfetlumi': -0.002}
 
 def getRates(datapath, rateTable, scanpt, fill):
     '''Gets the data in the corresponding folder or hd5 file for the respective ratetable and scan point'''

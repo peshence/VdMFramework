@@ -7,20 +7,61 @@ sigmavis = json.loads(jsonData[3:])
 
 df = pd.DataFrame(columns = ['Fill'] + lumis)
 for i in sigmavis:
-det = i['name'][22:]
-for x,f,s in zip(i['x'], i['_other']['fill'],i['y']):
-dfloc[x,det]=s
-dfloc[x,'Fill']=f
+    det = i['name'][22:]
+    for x,f,s in zip(i['x'], i['_other']['fill'],i['y']):
+        dfloc[x,det]=s
+        dfloc[x,'Fill']=f
+
+
+### Delete records in batches
+import requests
+import threading
+
+threads = []
+url = 'http://srv-s2d16-22-01/es'
+scroll_params = {
+    'size':100,
+    'scroll': '1m'
+}
+r = requests.get(url + '/data-vdm/_search', params=scroll_params)
+j = r.json()
+scroll_id = j['_scroll_id']
+
+while True:
+    scroll_params = {
+        'scroll': '1m',
+        'scroll_id': scroll_id
+    }
+    r = requests.get(url + '/_search/scroll', params=scroll_params)
+    if r.status_code != 200:
+        print r.text
+        break
+        # here handle failure
+    j = r.json()
+    print len(j['hits']['hits'])
+    print j['hits']['hits'][0]['_source']['data']['timestamp']
+    if len(j['hits']['hits']) == 0:
+        break
+    scroll_id = j['_scroll_id']
+    def deletescans(j):
+        for hit in [i for i in j['hits']['hits'] if 'data' not in i['_source'] or (i['_source']['data']['fill'] == 6016)]:
+            requests.delete('http://srv-s2d16-22-01/es/' + hit['_index'] + '/logs/' + hit['_id'])
+    t = threading.Thread(target=deletescans,args=(j,))
+    t.start()
+    threads.append(t)
+for th in threads:
+    th.join()
+
 
 
 ### DELETE RECORDS
 import requests
 import json
-r = requests.get('http://srv-s2d16-22-01/es/data-vdm/_search?size=1000')
+r = requests.get('http://srv-s2d16-22-01/es/data-vdm/_search?size=5000')
 j = r.json()
-for hit in [i for i in j['hits']['hits'] if 'data' not in i['_source'] or (i['_source']['data']['fill'] == 6377 and i['_source']['data']['fit']=='SG' and i['_source']['data']['detector']=='bcm1fpcvd')]:
+for hit in [i for i in j['hits']['hits'] if 'data' not in i['_source'] or (i['_source']['data']['fill'] == 6016)]:
         requests.delete('http://srv-s2d16-22-01/es/' + hit['_index'] + '/logs/' + hit['_id'])
-for hit in [i for i in j['hits']['hits'] if 'data' not in i['_source'] or i['_source']['data']['timestamp'] == 1501231474 or i['_source']['data']['timestamp'] == 1501228894]:
+for hit in [i for i in j['hits']['hits'] if 'data' not in i['_source'] or i['_source']['data']['timestamp'] == 1501231474 or i['_source']['data']['timestamp'] == 1501228894]:# and i['_source']['data']['fit']=='SG' and i['_source']['data']['detector']=='bcm1fpcvd')]:
         requests.delete('http://srv-s2d16-22-01/es/' + hit['_index'] + '/logs/' + hit['_id'])
 
 ### ratio between normalized detector peak rates
