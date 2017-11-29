@@ -11,15 +11,18 @@ import datetime as dt
 
 sigvis = {
           'pltlumizero': 297,
-          'hfetlumi': 2565}
+          'hfetlumi': 2565,
+          'hfoclumi': 828}
 
 leadcorr = {
           'pltlumizero': -0.014,
-          'hfetlumi': -0.006}
+          'hfetlumi': -0.006,
+          'hfoclumi': -0.005}
 
 traincorr = {
           'pltlumizero': -0.007,
-          'hfetlumi': -0.002}
+          'hfetlumi': -0.002,
+          'hfoclumi': -0.002}
 
 def getRates(datapath, rateTable, scanpt, fill):
     '''Gets the data in the corresponding folder or hd5 file for the respective ratetable and scan point'''

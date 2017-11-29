@@ -15,9 +15,10 @@ uncorrected = '/brildata/vdmoutput/Automation/Analysed_Data/'
 
 goodnames = ['\sigma_{vis}','\Sigma_X','\Sigma_Y']
 varnames = ['xsec','capx','capy']
-detectors = ['PLT', 'HFET']
-
-def main(dif):
+detectors = ['PLT', 'HFET', 'HFOC']
+def y(y):
+    return [i/np.mean(y) for i in y]
+def main(dif,single):
     if dif and os.getcwd()[-1]=='0': return
     def plotfit(x,y,goodname):
         (la,lb), cov = np.polyfit(x, y, 1,cov=True)
@@ -44,13 +45,15 @@ def main(dif):
         for fol in os.listdir(corrected):
             f1 = fol + '/' + detector + '/results/BeamBeam/LumiCalibration_' + detector + '_S' + fit + '_' + fol[:4] +'.csv'
             f2 = fol + '/' + detector + '/results/BeamBeam/LumiCalibration_' + detector + '_D' + fit + '_' + fol[:4] +'.csv'
-            f = f1 #if os.path.exists('Analysed_Data/' + f1) else f2
+            f = f2 if os.path.exists('Analysed_Data/' + f2) else f1
+            f = f1 if single else f
 
             lumicorr = pd.DataFrame.from_csv(corrected + f)
             lumi = pd.DataFrame.from_csv(uncorrected + f)
             f1 = fol + '/' + detector + '/results/BeamBeam/S' + fit + '_FitResults.csv'
             f2 = fol + '/' + detector + '/results/BeamBeam/D' + fit + '_FitResults.csv'
-            f = f1 if os.path.exists('Analysed_Data/' + f1) else f2
+            f = f2 if os.path.exists('Analysed_Data/' + f2) else f1
+            f = f1 if single else f
             fitparamscorr = pd.DataFrame.from_csv(corrected + f)
             fitparams = pd.DataFrame.from_csv(uncorrected + f)
             def removesum(pds):
@@ -62,9 +65,12 @@ def main(dif):
             lumicorr = removesum(lumicorr)
 
             if not dif:
-                xsec = [j/np.mean(lumicorr.xsec)*100 for i,j in zip(lumi.xsec, lumicorr.xsec)]
-                capx = [j/np.mean(fitparamscorr.CapSigma[:len(lumi.xsec)])*100 for i,j in zip(fitparams.CapSigma[:len(lumi.xsec)], fitparamscorr.CapSigma[:len(lumi.xsec)])]
-                capy = [j/np.mean(fitparamscorr.CapSigma[len(lumi.xsec):])*100 for i,j in zip(fitparams.CapSigma[len(lumi.xsec):], fitparamscorr.CapSigma[len(lumi.xsec):])]
+                xsec = lumicorr.xsec.tolist()
+                capx = fitparamscorr.CapSigma[:len(lumi.xsec)].tolist()
+                capy = fitparamscorr.CapSigma[len(lumi.xsec):].tolist()
+                # xsec = [j/np.mean(lumicorr.xsec)*100 for i,j in zip(lumi.xsec, lumicorr.xsec)]
+                # capx = [j/np.mean(fitparamscorr.CapSigma[:len(lumi.xsec)])*100 for i,j in zip(fitparams.CapSigma[:len(lumi.xsec)], fitparamscorr.CapSigma[:len(lumi.xsec)])]
+                # capy = [j/np.mean(fitparamscorr.CapSigma[len(lumi.xsec):])*100 for i,j in zip(fitparams.CapSigma[len(lumi.xsec):], fitparamscorr.CapSigma[len(lumi.xsec):])]
             else:
                 xsec = [(i-j)/i * 100 for i,j in zip(lumi.xsec, lumicorr.xsec)]
                 capx = [(i-j)/i * 100 for i,j in zip(fitparams.CapSigma[:len(lumi.xsec)], fitparamscorr.CapSigma[:len(lumi.xsec)])]
@@ -76,18 +82,19 @@ def main(dif):
             df = df.loc[:, ['sbil', 'capx', 'capy', 'xsec']]
             df.index = lumicorr.BCID 
 
-            df.to_csv('SG_' + ('diff' if dif else '') + detector + '_' + fol + '.csv')
+            df.to_csv(('SG_' if single else '') + ('diff' if dif else '') + detector + '_' + fol + '.csv')
             fill = 'Fill ' + ('6362 Early scan' if fol =='6362_04Nov17_220358_04Nov17_220637' else '6362 Late scan' if fol == '6362_05Nov17_182035_05Nov17_182308' else fol[:4])
             lead = df.loc[[i for i in df.index if int(i)-1 not in df.index],:]
             train = df.loc[[i for i in df.index if int(i)-1 in df.index],:]
             def plotthishit(varname, goodname, coord):
                 print coord
                 plot.subplot(coord)
-                plot.plot(lead.sbil,lead.loc[:,varname],'o',label='lead')
-                plot.plot(train.sbil,train.loc[:,varname],'o',label='train')
-                plotfit(lead.sbil,lead.loc[:,varname],goodname)
+                
+                plot.plot(train.sbil,y(train.loc[:,varname]),'o',label='train')
+                plot.plot(lead.sbil,y(lead.loc[:,varname]),'o',label='lead')
+                plotfit(lead.sbil,y(lead.loc[:,varname]),goodname)
                 if not train.sbil.empty:
-                    plotfit(train.sbil,train.loc[:,varname],goodname)        
+                    plotfit(train.sbil,y(train.loc[:,varname]),goodname)        
                 plot.legend(prop=fontP)
                 plot.title(detector + ' effect of nonlinearity on ' + ('$\Delta ' if dif else '$') + goodname + '$ \n' + fill)
                 
@@ -102,10 +109,10 @@ def main(dif):
 
         # plotthishit('xsec','\sigma_{vis}',122)
         plot.subplot(122)
-        plot.plot(leadx,leady,'o',label='lead')
-        plot.plot(trainx,trainy,'o',label='train')
-        plotfit(leadx,leady,goodname)
-        plotfit(trainx,trainy,goodname)
+        plot.plot(trainx,y(trainy),'o',label='train')
+        plot.plot(leadx,y(leady),'o',label='lead')
+        plotfit(leadx,y(leady),goodname)
+        plotfit(trainx,y(trainy),goodname)
         plot.ylabel(('$\Delta ' if dif else '$') + goodname + '$ [%]')
         plot.xlabel('SBIL')
         plot.title(detector + ' effect of nonlinearity on ' + ('$\Delta ' if dif else '$') + goodname + '$ \nAll 4 scans')
@@ -113,7 +120,7 @@ def main(dif):
         # plotthishit('capx','\Sigma_X',323)
         # plotthishit('capy','\Sigma_Y',325)
 
-        plot.savefig('SG_' + ('diff_' if dif else '') + detector + '_' + v + '.png')
+        plot.savefig(('SG_' if single else '') + ('diff_' if dif else '') + detector + '_' + v + '.png')
         # plot.show()
         
     for d in detectors:
@@ -121,5 +128,7 @@ def main(dif):
             do(g,d,v)
 
 
-main(False)
-main(True)
+main(False,True)
+main(True,True)
+main(False,False)
+main(True,False)

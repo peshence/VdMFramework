@@ -15,7 +15,7 @@ corr = 'BeamBeam'
 test = True
 
 for a in os.listdir(central):
-    if str.isdigit(str(a[0])) and (a == '6016_1707281237_1707281324.hd5' or a == '6194_1709130911_1709131001.hd5'):#6275,6283,(int(a[:4]) in [6362] or 
+    if str.isdigit(str(a[0])) and (int(a[:4]) in [6362] or a == '6016_1707281237_1707281324.hd5' or a == '6194_1709130911_1709131001.hd5'):#6275,6283,(int(a[:4]) in [6362] or 
         try:
             t1 = dt.datetime.strptime(a[5:15],'%y%m%d%H%M%S')
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')
