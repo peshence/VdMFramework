@@ -131,14 +131,22 @@ for scan in scans:
         if not train.empty:
             sloplot.plot(slopex,tslope,'o',label='Train')
         sloplot.plot(slopex,lslope,'o',label='Leading')
+
         if tslopex and tslope and len(tslope)!=0 and len(tslopex)!=0:
             print fill, varname, ' train', np.polyfit(slopex,tslope,1)
-            a,b = np.polyfit(tslopex + lslopex, tslope + lslope,1)
+            (a,b),cov = np.polyfit(tslopex + lslopex, tslope + lslope,1,cov = True)
         else:
-            a,b = np.polyfit(lslopex, lslope,1)
-        print fill, varname, ' lead', np.polyfit(slopex,lslope,1)
+            (a,b),cov = np.polyfit(lslopex, lslope,1, cov = True)
+            print fill, varname, ' lead', np.polyfit(slopex,lslope,1)
+        
+        def round_to_sign(x):
+            return round(x, -int(np.floor(np.log10(np.abs(x))))+1)
+        ae = round_to_sign(cov[0][0])
+        be = round_to_sign(cov[1][1])
+        a = round(a,len(str(ae)) - str(ae).index('.') - 1)
+        b = round(b,len(str(be)) - str(be).index('.') - 1)
 
-        sloplot.plot(tslopex + lslopex, [i*a + b for i in tslopex + lslopex], label = 'fit all ' + str(a) + 'x + ' + str(b))
+        sloplot.plot(tslopex + lslopex, [i*a + b for i in tslopex + lslopex], label = 'fit all ' + str(a) + '$\pm$' + str(ae) + 'x + ' + str(b) + '$\pm$' + str(be))
 
 
         sloplot.legend()
