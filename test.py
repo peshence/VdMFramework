@@ -20,8 +20,8 @@ for a in os.listdir(central):
             t1 = dt.datetime.strptime(a[5:15],'%y%m%d%H%M%S')
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')
             td = t2-t1
-            _dg = int(a[:4])==6016#td.total_seconds() > 600
-            AutoAnalysis.Analyse(central + a, corr, test, post=True, dg = False,
+            _dg = int(a[:4])!=6362#td.total_seconds() > 600
+            AutoAnalysis.Analyse(central + a, corr, test, post=True, dg = _dg,
                                  pdfs = True, logs = False)
             
             #AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=False, pdfs = True, logs = False)

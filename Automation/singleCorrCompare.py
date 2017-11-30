@@ -18,12 +18,18 @@ varnames = ['xsec','capx','capy']
 detectors = ['PLT', 'HFET', 'HFOC']
 def y(y):
     return [i/np.mean(y) for i in y]
+def funy(y):
+    return [100*i/np.mean(y) for i in y]
 def main(dif,single):
     if dif and os.getcwd()[-1]=='0': return
     def plotfit(x,y,goodname):
         (la,lb), cov = np.polyfit(x, y, 1,cov=True)
         def round_to_sign(x):
             return round(x, -int(floor(log10(abs(x))))+1)
+        # la = la/np.mean(y)
+        # lb = lb/np.mean(y)
+        # cov[0][0]  = cov[0][0]/np.mean(y)
+        # cov[1][1] = cov[1][1]/np.mean(y)
         lae = round_to_sign(cov[0][0])
         lbe = round_to_sign(cov[1][1])
         la = round(la,len(str(lae)) - '{0:f}'.format(lae).index('.') - 1)
@@ -90,11 +96,11 @@ def main(dif,single):
                 print coord
                 plot.subplot(coord)
                 
-                plot.plot(train.sbil,y(train.loc[:,varname]),'o',label='train')
-                plot.plot(lead.sbil,y(lead.loc[:,varname]),'o',label='lead')
-                plotfit(lead.sbil,y(lead.loc[:,varname]),goodname)
+                plot.plot(train.sbil,train.loc[:,varname],'o',label='train')
+                plot.plot(lead.sbil,lead.loc[:,varname],'o',label='lead')
+                plotfit(lead.sbil,lead.loc[:,varname],goodname)
                 if not train.sbil.empty:
-                    plotfit(train.sbil,y(train.loc[:,varname]),goodname)        
+                    plotfit(train.sbil,train.loc[:,varname],goodname)        
                 plot.legend(prop=fontP)
                 plot.title(detector + ' effect of nonlinearity on ' + ('$\Delta ' if dif else '$') + goodname + '$ \n' + fill)
                 
@@ -109,10 +115,10 @@ def main(dif,single):
 
         # plotthishit('xsec','\sigma_{vis}',122)
         plot.subplot(122)
-        plot.plot(trainx,y(trainy),'o',label='train')
-        plot.plot(leadx,y(leady),'o',label='lead')
-        plotfit(leadx,y(leady),goodname)
-        plotfit(trainx,y(trainy),goodname)
+        plot.plot(trainx,trainy,'o',label='train mean ' + str(round(np.mean(trainy),2)))
+        plot.plot(leadx,leady,'o',label='lead mean ' + str(round(np.mean(leady),2)))
+        plotfit(leadx,leady,goodname)
+        plotfit(trainx,trainy,goodname)
         plot.ylabel(('$\Delta ' if dif else '$') + goodname + '$ [%]')
         plot.xlabel('SBIL')
         plot.title(detector + ' effect of nonlinearity on ' + ('$\Delta ' if dif else '$') + goodname + '$ \nAll 4 scans')
@@ -128,7 +134,7 @@ def main(dif,single):
             do(g,d,v)
 
 
-main(False,True)
-main(True,True)
+# main(False,True)
+# main(True,True)
 main(False,False)
-main(True,False)
+# main(True,False)
