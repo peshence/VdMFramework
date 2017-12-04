@@ -114,28 +114,28 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             # assuming it doesn't change DURING a scan; UPDATE: it changes between scans that might be in the same file, so needs to be changed
             # UPDATE: this is probably fixed and I forgot to delete the comment, need to check
             angle = int(data.iloc[data[data.sec==times[0][0][0]].index[0]]['xingHmurad'])
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, True, _bstar=float(
+            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr, first = True, _bstar=float(
                 data.iloc[0]['bstar5']) / 100, _angle=angle, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
         else:
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename,
-                True, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
+            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr,
+                first = True, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
         #fitresults, calibration = runAnalysis.RunAnalysis(name, threads[0][0], threads[0][1], corr, automation_folder=automation_folder)
         proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
-                                '-l', luminometer, '-f', fit, '-c', corr, '-a', automation_folder])
+                                '-l', luminometer, '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a', automation_folder])
         proc.wait()
-
-        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ corr + '/' + fit + '_FitResults.pkl') as fr:
+        _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
+        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/' + fit + '_FitResults.pkl') as fr:
             fitresults = pickle.load(fr)
-        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ corr + '/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
+        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
             calibration = pickle.load(cal)
         fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
         calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
         if str.isdigit(str(luminometer[-1])):
             PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
-                      fit, angle, corr, automation_folder=automation_folder, post=post, perchannel=True)
+                      fit, angle, _corr, automation_folder=automation_folder, post=post, perchannel=True)
         if ratetable in _ratetables:
             PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
-                        fit, angle, corr, automation_folder=automation_folder, post=post)
+                        fit, angle, _corr, automation_folder=automation_folder, post=post)
         for k in xrange(1, len(threads), threadcount):
             procs = []
             for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + threadcount]):
@@ -143,14 +143,14 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                     ratetable = 'hflumi'
                 if int(fill) > 5737:
                     Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name,
-                        filename, False, _bstar=float(data.iloc[0]['bstar5']) / 100, _angle=angle,
+                        filename, corr=corr, first = False, _bstar=float(data.iloc[0]['bstar5']) / 100, _angle=angle,
                         automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
                 else:
-                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename,
-                        False, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
+                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr,
+                        first = False, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
                 
                 proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
-                                         '-l', luminometer, '-f', fit, '-c', corr, '-a', automation_folder])
+                                         '-l', luminometer, '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a', automation_folder])
                 procs.append(proc)
                
             print(len(procs))
@@ -159,18 +159,18 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                 p.wait()
             for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + threadcount]):
                 try:
-                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ corr + '/' + fit + '_FitResults.pkl') as fr:
+                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/' + fit + '_FitResults.pkl') as fr:
                         fitresults = pickle.load(fr)
-                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ corr + '/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
+                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
                         calibration = pickle.load(cal)
                     fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
                     calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
                     if str.isdigit(str(ratetable[-1])):
                         PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
-                                fit, angle, corr, automation_folder=automation_folder, post=post, perchannel=True)
+                                fit, angle, _corr, automation_folder=automation_folder, post=post, perchannel=True)
                     if ratetable in _ratetables:
                         PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
-                                    fit, angle, corr, automation_folder=automation_folder, post=post)
+                                    fit, angle, _corr, automation_folder=automation_folder, post=post)
                     
                 except (KeyboardInterrupt, SystemExit):
                     raise SystemExit
@@ -263,11 +263,15 @@ if __name__ == '__main__':
         '-pdf', '--pdfs', help='Make pdfs with beam beam corrections and fitted functions', action='store_true')
     parser.add_argument(
         '-l', '--logs', help='Make logs for the fitting (no minuit yet)', action='store_true')
+    parser.add_argument(
+        '-ls', '--lscale', help='Add length scale correction', action='store_true')
     args = parser.parse_args()
-    corr = 'noCorr'
+    corr = ['noCorr']
 
     if args.beambeam:
-        corr = 'BeamBeam'
+        corr = ['BeamBeam']
+    if args.lscale:
+        corr.append('LengthScale')
     if args.filename2:
         Analyse(args.filename, corr, args.test, args.filename2,
                 args.post, automation_folder=folder, pdfs=args.pdfs, logs=args.logs)

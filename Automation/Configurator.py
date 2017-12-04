@@ -184,7 +184,7 @@ def FormatTimestamps(times):
     return _scannames, _timewindows, _scanpairs, _offsets, times
 
 
-def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, first=True, automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na'):
+def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, corr = ['noCorr'], first=True, automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na'):
     """Makes a folder with configuration files with given timestamps paired for beginnings and endings of scans
 
         times : should be of the form [ (timestamp, nominal_separation_plane), (timestamp, nominal_separation_plane) ] (like from GetTimestamps)
@@ -217,6 +217,7 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
     _makeRateFile = true
     _makeBeamCurrentFile = json.dumps(first)
     _makeBeamBeamFile = false
+    _makeLengthScaleFile = json.dumps('LengthScale' in corr)
     _makeGraphsFile = true
     _runVdmFitter = true
     _makepdf = json.dumps(makepdf)
@@ -247,7 +248,7 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
                                     dip=_dip, central=_central, luminometer=_luminometer, fit=_fit, offsets=_offsets,
                                     ratetable=_ratetable, corr=_corr, corrs=_corrs, makeScanFile=_makeScanFile,
                                     makeRateFile=_makeRateFile, makeBeamCurrentFile=_makeBeamCurrentFile, 
-                                    makeBeamBeamFile=_makeBeamBeamFile, makeGraphsFile=_makeGraphsFile,
+                                    makeBeamBeamFile=_makeBeamBeamFile, makeLengthScaleFile=_makeLengthScaleFile, makeGraphsFile=_makeGraphsFile,
                                     runVdmFitter=_runVdmFitter, makepdf = _makepdf, makelogs = _makelogs))
         else:
             with open(autoconfigs_folder + 'vdmDriverII_Autoconfigv2.json', 'r') as f:
@@ -260,7 +261,8 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
                                     dip=_dip, central=_central, luminometer=_luminometer, fit=_fit, offsets=_offsets,
                                     ratetable=_ratetable, corr=_corr, corrs=_corrs, makeScanFile=_makeScanFile,
                                     makeRateFile=_makeRateFile, makeBeamCurrentFile=_makeBeamCurrentFile, 
-                                    makeBeamBeamFile=_makeBeamBeamFile, makeGraphsFile=_makeGraphsFile, runVdmFitter=_runVdmFitter,
+                                    makeBeamBeamFile=_makeBeamBeamFile, makeLengthScaleFile=_makeLengthScaleFile,
+                                    makeGraphsFile=_makeGraphsFile, runVdmFitter=_runVdmFitter,
                                     bstar = _bstar, angle = _angle,  makepdf = _makepdf, makelogs = _makelogs))
         # Configure calibration constant calculation
         with open(autoconfigs_folder + 'calculateCalibrationConstant_Autoconfig.json', 'r') as f:
@@ -284,8 +286,10 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
     Config()
 
     # Configure a Beam Beam driver run
-    _corr = 'BeamBeam'
-    _corrs = json.dumps([_corr])
+    
+    print corr
+    _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
+    _corrs = json.dumps(corr)
     _makeScanFile = false
     _makeRateFile = false
     _makeBeamCurrentFile = false
