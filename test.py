@@ -11,17 +11,20 @@ import datetime as dt
 
 import tables
 central = '/brildata/vdmdata17/'
-corr = 'BeamBeam'
+corr = ['BeamBeam']
 test = True
 
 for a in os.listdir(central):
-    if str.isdigit(str(a[0])) and (int(a[:4]) in [6377,6381,6382,6384,6385]):#6275,6283,
+    if str.isdigit(str(a[0])) and (int(a[:4]) == 6016):#in [6377,6381,6382,6384,6385]):#6275,6283,
         try:
             t1 = dt.datetime.strptime(a[5:15],'%y%m%d%H%M%S')
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')
             td = t2-t1
-            _dg = int(a[:4])==6016#td.total_seconds() > 600
-            AutoAnalysis.Analyse(central + a, corr, test, post=True, dg=_dg,
+            _dg = a != '6016_1707280356_1707280409.hd5'
+            print corr
+            AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg,
+                                 pdfs = True, logs = False)
+            AutoAnalysis.Analyse(central + a, ['BeamBeam', 'LengthScale'], test, post=False, dg=_dg,
                                  pdfs = True, logs = False)
             
             #AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=False, pdfs = True, logs = False)
