@@ -182,7 +182,8 @@ def doMakeGraphsFile(ConfigInfo):
 
                 # lumie = array("d",lumie)
                 # lumi = array("d",lumi)
-                name = prefix +str(bx)
+                name = prefix +'{:04d}'.format(bx)
+
                 # graph = r.TGraphErrors(len(coord),coord,lumi,coorde,lumie)
                 # graph.SetName(name)
                 # graph.SetTitle(name)
