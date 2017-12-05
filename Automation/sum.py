@@ -6,7 +6,8 @@ import matplotlib.gridspec as gridspec
 import argparse
 import numpy as np
 
-detectors = ['PLT','HFET','HFOC']
+# detectors = ['PLT','HFET','HFOC']
+detectors = ['BCM1FPCVD']
 for detector in detectors:
     fit = 'G' if detector == 'PLT' else 'GConst'
     if not os.path.exists(detector):

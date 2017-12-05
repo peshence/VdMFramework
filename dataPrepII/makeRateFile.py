@@ -11,7 +11,8 @@ import datetime as dt
 
 sigvis = {
           'pltlumizero': 297,
-          'hfetlumi': 2565}
+          'hfetlumi': 2565,
+          'bcm1fpcvdlumi':210}
 def getRates(datapath, rateTable, scanpt, fill):
     '''Gets the data in the corresponding folder or hd5 file for the respective ratetable and scan point'''
     # print "beginning of getCurrents", scanpt

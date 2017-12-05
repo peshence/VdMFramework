@@ -47,10 +47,11 @@ if os.getcwd()[-4:] == 'Test':
 ts=[]
 pool = Pool(8)
 arguments = []
-for a in os.listdir(central):
-    if str.isdigit(str(a[0])) and (int(a[:4]) in [6362] or a=='6194_1709130911_1709131001.hd5' or a =='6016_1707281237_1707281324.hd5'):
-        for i in range(-5,6):
-            arguments.append((a,i))
+# for a in os.listdir(central):
+#     if str.isdigit(str(a[0])) and (int(a[:4]) in [6362] or a=='6194_1709130911_1709131001.hd5' or a =='6016_1707281237_1707281324.hd5'):
+a= '6252_1709280909_1709280920.hd5'
+for i in range(-5,6):
+    arguments.append((a,i))
 def do2(t):
     a,i=t
     try:
