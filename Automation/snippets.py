@@ -371,4 +371,30 @@ for folder in os.listdir(curfol):
             plot.title('PLT/HF(HFSBIL)')
             #plot.show()
             plot.savefig(folder + '/' + scan + 'bx' + bx + '.png',dpi=150,format='png')
-        
+
+import tables
+import numpy as np
+import matplotlib.pyplot as plot
+h5 = tables.open_file('/cmsnfsbrildata/brildata/17/6016/6016_300027_1707281141_1707281228.hd5')
+plt = [i['avgraw'] / 300 for i in h5.root.pltlumizero]
+tplt = [i['timestampsec'] for i in h5.root.pltlumizero]
+bcm1f = [i['avgraw'] / 227.1 for i in h5.root.bcm1fpcvdlumi]
+tbcm1f = [i['timestampsec'] for i in h5.root.bcm1fpcvdlumi]
+hfet = [i['avgraw'] / 2649 for i in h5.root.hfetlumi]
+thfet = [i['timestampsec']  for i in h5.root.hfetlumi]
+hfoc = [i['avgraw'] / 846 for i in h5.root.hfoclumi]
+thfoc = [i['timestampsec'] for i in h5.root.hfoclumi]
+plt = np.array(plt) 
+bcm1f = np.array(bcm1f)
+hfet = np.array(hfet)
+hfoc = np.array(hfoc)
+
+plot.plot(tplt,plt, 'o', label = 'plt')
+plot.plot(thfoc,hfoc, 'o', label = 'hfoc')
+plot.plot(thfet,hfet, 'o', label = 'hfet')
+plot.plot(tbcm1f,bcm1f, 'o', label = 'bcm1f')
+plot.legend()
+plot.show()
+
+'/cmsnfsbrildata/brildata/17/6016/6016_300019_1707280722_1707281143.hd5'
+'/cmsnfsbrildata/brildata/17/6016/6016_300027_1707281141_1707281228.hd5'

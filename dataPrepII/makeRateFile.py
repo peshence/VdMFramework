@@ -12,7 +12,8 @@ import datetime as dt
 sigvis = {
           'pltlumizero': 297,
           'hfetlumi': 2565,
-          'hfoclumi': 828}
+          'hfoclumi': 828,
+          'bcm1fpcvd': 210}
 
 leadcorr = {
           'pltlumizero': -0.014,

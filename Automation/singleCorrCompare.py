@@ -49,6 +49,7 @@ def main(dif,single):
         plot.rcParams["figure.figsize"] = (32, 18)
 
         for fol in os.listdir(corrected):
+            if fol[:4]=='6016': continue
             f1 = fol + '/' + detector + '/results/BeamBeam/LumiCalibration_' + detector + '_S' + fit + '_' + fol[:4] +'.csv'
             f2 = fol + '/' + detector + '/results/BeamBeam/LumiCalibration_' + detector + '_D' + fit + '_' + fol[:4] +'.csv'
             f = f2 if os.path.exists('Analysed_Data/' + f2) else f1
