@@ -72,8 +72,10 @@ if (__name__ == '__main__'):
     parser.add_argument('-c', '--corr')
     parser.add_argument('-a', '--automation_folder')
     args = parser.parse_args()
-    logging.basicConfig(filename=args.automation_folder +
-                        "Logs/run_" + args.luminometer + '.log', level=logging.DEBUG)
+    if not os.path.exists(args.automation_folder + '/Analysed_Data/' + args.name + '/Logs/'):
+        os.makedirs(args.automation_folder + '/Analysed_Data/' + args.name + '/Logs/')
+    logging.basicConfig(filename=args.automation_folder + '/Analysed_Data/' + args.name +
+                        "/Logs/run_" + args.luminometer + '.log', level=logging.DEBUG)
     logging.info('name' + args.name)
     logging.info('luminometer' + args.luminometer)
     logging.info('fit' + args.fit)
