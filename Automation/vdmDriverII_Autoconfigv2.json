@@ -121,6 +121,7 @@
 	 "InputGraphsFile" : "graphs/graphs_{fill}_{corr}.json",
 	 "FitName" : "{fit}",
 	 "FitConfigFile" : "fits/{fit}_Config.json",
-	 "ScanNames" : {scannames}
+	 "ScanNames" : {scannames},
+	 "MinuitFile" : "{fit}_{corr}_Minuit.log"
 	 }}
 }}

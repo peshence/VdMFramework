@@ -114,9 +114,10 @@ def doMakeBeamBeamFile(ConfigInfo):
             lengthX=len(inDataX.spPerBX[bx])
 #            print "bx=", bx, " lengthX=", lengthX, " sepxList=", len(sepxList), " lengthY=", len(inDataY.spPerBX[bx])
             if(lengthX==len(sepxList)):
-                try:
+                # try:
                     lengthY=len(inDataY.spPerBX[bx])
                     if(lengthY==len(inDataY.displacement)):
+                        print CsigxList.keys()
                         Csigx = CsigxList[str(bx)]
                         Csigy = CsigyList[str(bx)]
                         for i in range(len(sepxList)):
@@ -137,8 +138,9 @@ def doMakeBeamBeamFile(ConfigInfo):
                             orbitCorrX_xcoord[i][str(bx)] = (deltaOrbitXB1+deltaOrbitXB2)*1e-3
                             orbitCorrX_ycoord[i][str(bx)] = 0.0
 
-                except KeyError:
-                    print "From makeBeambeamFile.py: bx = ", bx, "does not exist in CsigyList" 
+                # except KeyError:
+                #     print "From makeBeambeamFile.py: bx = ", bx, "does not exist in CsigyList"
+                    
 
 
         csvtable.append([keyx])

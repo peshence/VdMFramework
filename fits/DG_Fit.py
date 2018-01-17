@@ -20,7 +20,7 @@ class DG_Fit(FitManager.FitProvider):
 
        self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err", \
                       "Frac","FracErr","Mean","MeanErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
-                      "area", "areaErr","fitStatus", "chi2", "ndof"])
+                      "area", "areaErr","fitStatus", "chi2", "ndof", "covStatus"])
 
 
 
@@ -46,8 +46,8 @@ class DG_Fit(FitManager.FitProvider):
         LimitPeak_upper = ExpPeak*config['LimitsPeak'][1]
 
 
-	ff = r.TF1("ff","[2]*([3]*exp(-(x-[4])**2/(2*([0]*[1]/([3]*[1]+1-[3]))**2)) + (1-[3])*exp(-(x-[4])**2/(2*([0]/([3]*[1]+1-[3]))**2)) )")
-	ff.SetParNames("#Sigma","#sigma_{1}/#sigma_{2}","peak","Frac","Mean")
+        ff = r.TF1("ff","[2]*([3]*exp(-(x-[4])**2/(2*([0]*[1]/([3]*[1]+1-[3]))**2)) + (1-[3])*exp(-(x-[4])**2/(2*([0]/([3]*[1]+1-[3]))**2)) )")
+        ff.SetParNames("#Sigma","#sigma_{1}/#sigma_{2}","peak","Frac","Mean")
 
         ff.SetParameters(StartSigma,1.,StartPeak,StartFrac,0.)
 
@@ -60,21 +60,23 @@ class DG_Fit(FitManager.FitProvider):
         if LimitFrac_upper > LimitFrac_lower:
             ff.SetParLimits(3, LimitFrac_lower,LimitFrac_upper)
 
-# Some black ROOT magic to get Minuit output into a log file
-# see http://root.cern.ch/phpBB3/viewtopic.php?f=14&t=14473, http://root.cern.ch/phpBB3/viewtopic.php?f=13&t=16844, https://agenda.infn.it/getFile.py/access?resId=1&materialId=slides&confId=4933 slide 23
+        # Some black ROOT magic to get Minuit output into a log file
+        # see http://root.cern.ch/phpBB3/viewtopic.php?f=14&t=14473, http://root.cern.ch/phpBB3/viewtopic.php?f=13&t=16844, https://agenda.infn.it/getFile.py/access?resId=1&materialId=slides&confId=4933 slide 23
 
 #        r.gROOT.ProcessLine("gSystem->RedirectOutput(\".\/minuitlogtmp\/Minuit.log\", \"a\");")
-        # r.gROOT.ProcessLine("gSystem->RedirectOutput(\"./minuitlogtmp/Minuit.log\", \"a\");")
+        r.gROOT.ProcessLine("gSystem->RedirectOutput(\"" + config['MinuitFile'] + "\", \"a\");")
         # r.gROOT.ProcessLine("gSystem->Info(0,\"Next BCID\");")
 
         for j in range(5):
-            fit = graph.Fit("ff","SQ")
+            fit = graph.Fit("ff","S")
             if fit.CovMatrixStatus()==3 and fit.Chi2()/fit.Ndf() < 2: break
 
         # r.gROOT.ProcessLine("gSystem->RedirectOutput(0);")
 
         fitStatus = -999
         fitStatus = fit.Status()
+        covStatus = -999
+        covStatus = fit.CovMatrixStatus()
 
         CapSigma = ff.GetParameter("#Sigma")
         m = ff.GetParNumber("#Sigma")
@@ -96,7 +98,7 @@ class DG_Fit(FitManager.FitProvider):
         title_comps = title.split('_')
         scan = title_comps[0]
         type = title_comps[1]
-        bcid = title_comps[2]
+        bcid = str(int(title_comps[2]))
         chi2 = ff.GetChisquare()
         ndof = ff.GetNDF()
         
@@ -112,7 +114,12 @@ class DG_Fit(FitManager.FitProvider):
         areaErr = (sqrttwopi*CapSigma*peakErr)*(sqrttwopi*CapSigma*peakErr) + (sqrttwopi*peak*CapSigmaErr)*(sqrttwopi*peak*CapSigmaErr)
         areaErr = math.sqrt(areaErr)
 
-        self.table.append([scan, type, bcid, sigma, sigmaErr, sigRatio, sigRatioErr, frac, fracErr, mean, meanErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof])
+
+        r.gROOT.ProcessLine("gSystem->Info(0,\"BCID " + bcid + " done\");")
+        r.gROOT.ProcessLine("gSystem->RedirectOutput(0);")
+
+
+        self.table.append([scan, type, bcid, sigma, sigmaErr, sigRatio, sigRatioErr, frac, fracErr, mean, meanErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof, covStatus])
 
 
 # Define signal and background pieces of full function separately, for plotting

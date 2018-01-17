@@ -14,7 +14,7 @@ class SG_Fit(FitManager.FitProvider):
 
         self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", \
                       "Mean","MeanErr", "CapSigma", "CapSigmaErr","peak","peakErr",  \
-                      "area", "areaErr","fitStatus", "chi2", "ndof"])
+                      "area", "areaErr","fitStatus", "chi2", "ndof",'covStatus'])
 
 
     def doFit(self,graph,config):
@@ -78,7 +78,7 @@ class SG_Fit(FitManager.FitProvider):
         title_comps = title.split('_')
         scan = title_comps[0]
         type = title_comps[1]
-        bcid = title_comps[2]
+        bcid = str(int(title_comps[2]))
         chi2 = ff.GetChisquare()
         ndof = ff.GetNDF()
         
@@ -92,7 +92,7 @@ class SG_Fit(FitManager.FitProvider):
         areaErr = (sqrttwopi*CapSigma*peakErr)*(sqrttwopi*CapSigma*peakErr) + (sqrttwopi*peak*CapSigmaErr)*(sqrttwopi*peak*CapSigmaErr)
         areaErr = math.sqrt(areaErr)
 
-        self.table.append([scan, type, bcid, sigma, sigmaErr, mean, meanErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof])
+        self.table.append([scan, type, bcid, sigma, sigmaErr, mean, meanErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof, fit.CovMatrixStatus()])
 
         functions = [ff]
 

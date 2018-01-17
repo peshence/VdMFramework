@@ -16,7 +16,7 @@ class SGConst_Fit(FitManager.FitProvider):
 
         self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", \
                       "Mean","MeanErr", "Const", "ConstErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
-                      "area", "areaErr","fitStatus", "chi2", "ndof"])
+                      "area", "areaErr","fitStatus", "chi2", "ndof", 'covStatus'])
 
 
 
@@ -84,7 +84,7 @@ class SGConst_Fit(FitManager.FitProvider):
         title_comps = title.split('_')
         scan = title_comps[0]
         type = title_comps[1]
-        bcid = title_comps[2]
+        bcid = str(int(title_comps[2]))
         chi2 = ff.GetChisquare()
         ndof = ff.GetNDF()
         
@@ -117,7 +117,7 @@ class SGConst_Fit(FitManager.FitProvider):
 
 
 
-        self.table.append([scan, type, bcid, sigma, sigmaErr, mean, meanErr, const, constErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof])
+        self.table.append([scan, type, bcid, sigma, sigmaErr, mean, meanErr, const, constErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof, fit.CovMatrixStatus()])
 
 
 # Define signal and background pieces of full function separately, for plotting
