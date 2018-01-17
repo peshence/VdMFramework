@@ -411,11 +411,13 @@ def DriveVdm(ConfigFile):
         FitConfigInfo = json.load(FitConfig)
         FitConfig.close()
         # needs to be the same name as assumed in the fit function python files, where it is ./minuitlogtmp/Minuit.log
-        # MinuitLogPath = './minuitlogtmp/'
-        # MinuitLogFile = MinuitLogPath + 'Minuit.log'
-        # if not os.path.isdir(MinuitLogPath):
-        #     os.mkdir(MinuitLogPath, 0755)
+        ["./" + AnalysisDir + '/' + Luminometer + '/' + "plotstmp/"]
+        MinuitLogPath = "./" + AnalysisDir + '/' + Luminometer + '/minuitlogtmp/'
+        MinuitLogFile = MinuitLogPath + vdmFitterConfig['MinuitFile']
+        if not os.path.isdir(MinuitLogPath):
+            os.mkdir(MinuitLogPath, 0755)
 
+        FitConfigInfo['MinuitFile'] = MinuitLogFile
         # # need to do this before each fitting loop
         # if os.path.isfile(MinuitLogFile):
         #     os.remove(MinuitLogFile)

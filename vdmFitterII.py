@@ -150,7 +150,7 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
                         graphsX[key], graphsY[key], functions, Fill)
                 else:
                     result = fitter.doFit(graph, FitConfigInfo)
-                    results[key] = result
+                    results[str(int(key))] = result
                     functions = result[0]
                     if makepdf and key in pdfbxs:
                         canvas = fitter.doPlot(
