@@ -402,7 +402,7 @@ def DriveVdm(ConfigFile):
         # minuit logs path resolving
         if makelogs:
             MinuitLogPath = "./" + AnalysisDir + '/' + Luminometer + '/minuitlog/'
-            MinuitLogFile = MinuitLogPath + vdmFitterConfig['MinuitFile'] + datetime.datetime.now().strftime('%y%m$d_%H%M%S') + '.log'
+            MinuitLogFile = MinuitLogPath + vdmFitterConfig['MinuitFile'] + datetime.datetime.now().strftime('%y%m%d_%H%M%S') + '.log'
             if not os.path.isdir(MinuitLogPath):
                 os.mkdir(MinuitLogPath, 0755)
 

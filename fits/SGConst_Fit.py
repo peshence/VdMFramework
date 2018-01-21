@@ -65,7 +65,7 @@ class SGConst_Fit(FitManager.FitProvider):
             r.gROOT.ProcessLine("gSystem->RedirectOutput(\"" + config['MinuitFile'] + "\", \"a\");")
 
         for j in range(5):
-            fit = graph.Fit("ff","QS")
+            fit = graph.Fit("ff","S" if makeLogs else 'SQ')
             if fit.CovMatrixStatus()==3 and fit.Chi2()/fit.Ndf() < 2: break
 
         fitStatus = -999
