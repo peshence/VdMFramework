@@ -3,6 +3,7 @@ import json
 import os
 import pickle
 import sys
+import datetime
 
 import ROOT as r
 from dataPrep_corr.makeBeamBeamFile import doMakeBeamBeamFile
@@ -295,20 +296,6 @@ def DriveVdm(ConfigFile):
         with open(OutputDir + outFileName + '.json', 'wb') as f:
             json.dump(graphs,f)
 
-        # save TGraphs in a ROOT file
-        # rfile = r.TFile(outputDir + outFileName + '.root',"recreate")
-
-        # for key in sorted(graphsListAll.iterkeys()):
-        #     graphsList = graphsListAll[key]
-        #     for key_bx in sorted(graphsList.iterkeys()):
-        #         graphsList[key_bx].Write()
-
-        # rfile.Write()
-        # rfile.Close()
-
-        # with open(outputDir + outFileName + '.pkl', 'wb') as file:
-        #     pickle.dump(graphsListAll, file)
-
         misseddata=open(OutputDir+"makeGraphsFile_MissedData.log",'w')
         misseddata.write(missedDataBuffer)
         misseddata.close()
@@ -410,19 +397,17 @@ def DriveVdm(ConfigFile):
         FitConfig=open(FitConfigFile)
         FitConfigInfo = json.load(FitConfig)
         FitConfig.close()
-        # needs to be the same name as assumed in the fit function python files, where it is ./minuitlogtmp/Minuit.log
-        ["./" + AnalysisDir + '/' + Luminometer + '/' + "plotstmp/"]
-        MinuitLogPath = "./" + AnalysisDir + '/' + Luminometer + '/minuitlogtmp/'
-        MinuitLogFile = MinuitLogPath + vdmFitterConfig['MinuitFile']
-        if not os.path.isdir(MinuitLogPath):
-            os.mkdir(MinuitLogPath, 0755)
 
-        FitConfigInfo['MinuitFile'] = MinuitLogFile
-        # # need to do this before each fitting loop
-        # if os.path.isfile(MinuitLogFile):
-        #     os.remove(MinuitLogFile)
+        FitConfigInfo['MakeLogs'] = makelogs
+        # minuit logs path resolving
+        if makelogs:
+            MinuitLogPath = "./" + AnalysisDir + '/' + Luminometer + '/minuitlog/'
+            MinuitLogFile = MinuitLogPath + vdmFitterConfig['MinuitFile'] + datetime.datetime.now().strftime('%y%m$d_%H%M%S') + '.log'
+            if not os.path.isdir(MinuitLogPath):
+                os.mkdir(MinuitLogPath, 0755)
 
-        # needs to be the same name as assumed in vdmUtilities, where it is ./plotstmp
+            FitConfigInfo['MinuitFile'] = MinuitLogFile
+
         for path in PlotsTempPath:
             if not os.path.isdir(path[0]):
                 os.makedirs(path[0], 0755)
@@ -453,9 +438,8 @@ def DriveVdm(ConfigFile):
             pickle.dump(resultsAll, outFile)
             outFile.close()
 
-        # outFileMinuit = './'+OutputDirs[0] + '/'+FitName+'_Minuit.log'
-        # os.rename(MinuitLogFile, outFileMinuit)
 
+        # PDF shapes output, removing temp plots
         output_FittedGraphs = dict(zip(OutputDirs,PlotsTempPath))
         for OutputDir in output_FittedGraphs:
             outPdf = './'+OutputDir + '/'+FitName+'_FittedGraphs.pdf'

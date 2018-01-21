@@ -28,100 +28,100 @@
 "MakePDF": {makepdf},
 "MakeLogs": {makelogs},
 "makeScanFileConfig":
-	{{
-	"InputCentralPath": "{central}",		
-	"InputDIPFile" : "{dip}",
+    {{
+    "InputCentralPath": "{central}",		
+    "InputDIPFile" : "{dip}",
         "ScanNames" : {scannames},
         "Comment" : "Since X,Y scans are automatically differentiated, a time window can include an X and a Y scan, will still work, timestamp in UTC", 
         "ScanTimeWindows" : {timewindows},
-	"Comment" : "A few parameters that are not in our current DIP file, but should be available eventually",
-	"Comment" : "betaStar in m, angle in microrad",
-	"BetaStar" : 0.40,
-	"Angle" : 0,
-	"Offset" : {offsets},
-	"ParticleTypeB1" : "proton",
-	"ParticleTypeB2" : "proton",
-	"Comment": "Beam energies in MeV", 
-	"EnergyB1" : 6500,
-	"EnergyB2" : 6500,
-	"OutputSubDir" : "cond"
-	}},
+    "Comment" : "A few parameters that are not in our current DIP file, but should be available eventually",
+    "Comment" : "betaStar in m, angle in microrad",
+    "BetaStar" : 0.40,
+    "Angle" : 0,
+    "Offset" : {offsets},
+    "ParticleTypeB1" : "proton",
+    "ParticleTypeB2" : "proton",
+    "Comment": "Beam energies in MeV", 
+    "EnergyB1" : 6500,
+    "EnergyB2" : 6500,
+    "OutputSubDir" : "cond"
+    }},
 "makeRateFileConfig":
-	{{	
-	"Comment": "The following directories are relative to <AnalysisDir>",
-	"InputScanFile": "cond/Scan_{fill}.json",
-	"InputLumiDir" : "{central}",
-	"RateTable": "{ratetable}",
-	"OutputSubDir": "LuminometerData"
-	}},
+    {{	
+    "Comment": "The following directories are relative to <AnalysisDir>",
+    "InputScanFile": "cond/Scan_{fill}.json",
+    "InputLumiDir" : "{central}",
+    "RateTable": "{ratetable}",
+    "OutputSubDir": "LuminometerData"
+    }},
 "makeBeamCurrentFileConfig":
-	{{
-	"InputCentralPath": "{central}",	
-	"Comment": "Input scan file in <AnalysisDir>/<InputScanFile>",
-	"InputScanFile" : "cond/Scan_{fill}.json",
-	"OutputSubDir" : "cond",
-	"CalibrateFBCTtoDCCT" : true
-	}},
+    {{
+    "InputCentralPath": "{central}",	
+    "Comment": "Input scan file in <AnalysisDir>/<InputScanFile>",
+    "InputScanFile" : "cond/Scan_{fill}.json",
+    "OutputSubDir" : "cond",
+    "CalibrateFBCTtoDCCT" : true
+    }},
 "makeBeamBeamFileConfig":
-	{{
-	"Comment": "Input scan info file is <AnalysisDir>/<InputScanFile>",
-	"InputScanFile" : "cond/Scan_{fill}.json",
-	"Comment": "Input beam currents file is <AnalysisDir>/<InputBeamCurrentFile>",
-	"InputBeamCurrentFile" : "cond/BeamCurrents_{fill}.json",
-	"Comment": "Input CapSigmas in <AnalysisDir>/<Luminometer>/results",
-	"InputCapSigmaFile" : "noCorr/{fit}_FitResults.pkl",
-	"Scanpairs" : {scanpairs},
-	"Comment": "This is relative to <AnalysisDir>",
-	"OutputSubDir": "corr"
-	}},
+    {{
+    "Comment": "Input scan info file is <AnalysisDir>/<InputScanFile>",
+    "InputScanFile" : "cond/Scan_{fill}.json",
+    "Comment": "Input beam currents file is <AnalysisDir>/<InputBeamCurrentFile>",
+    "InputBeamCurrentFile" : "cond/BeamCurrents_{fill}.json",
+    "Comment": "Input CapSigmas in <AnalysisDir>/<Luminometer>/results",
+    "InputCapSigmaFile" : "noCorr/{fit}_FitResults.pkl",
+    "Scanpairs" : {scanpairs},
+    "Comment": "This is relative to <AnalysisDir>",
+    "OutputSubDir": "corr"
+    }},
 "makeGhostsFileConfig":
-	{{
-	"Comment" : "Where to find the correction factors in json format",
-	"InputDataDir" : "dataPrep_corr/corrData",
-	"Comment": "This is relative to <AnalysisDir>",
-	"OutputSubDir": "corr"
-	}},
+    {{
+    "Comment" : "Where to find the correction factors in json format",
+    "InputDataDir" : "dataPrep_corr/corrData",
+    "Comment": "This is relative to <AnalysisDir>",
+    "OutputSubDir": "corr"
+    }},
 "makeSatellitesFileConfig":
-	{{
-	"Comment" : "Where to find the correction factors in json format",
-	"InputDataDir" : "dataPrep_corr/corrData",
-	"Comment": "This is relative to <AnalysisDir>",
-	"OutputSubDir": "corr"
-	}},
+    {{
+    "Comment" : "Where to find the correction factors in json format",
+    "InputDataDir" : "dataPrep_corr/corrData",
+    "Comment": "This is relative to <AnalysisDir>",
+    "OutputSubDir": "corr"
+    }},
 "makeLengthScaleFileConfig":
-	{{
-	"Comment": "Length scale scan fill",
-	"FillLS": "{fill}",	
-	"Comment" : "Where to find the correction factors in json format",
-	"InputDataDir" : "dataPrep_corr/corrData",
-	"Comment": "This is relative to <AnalysisDir>",
-	"OutputSubDir": "corr"
-	}},
+    {{
+    "Comment": "Length scale scan fill",
+    "FillLS": "{fill}",	
+    "Comment" : "Where to find the correction factors in json format",
+    "InputDataDir" : "dataPrep_corr/corrData",
+    "Comment": "This is relative to <AnalysisDir>",
+    "OutputSubDir": "corr"
+    }},
 "makeGraphsFileConfig":
-	{{
-	"Comment": "Input scan file in <AnalysisDir>/<InputScanFile>",
-	"InputScanFile" : "cond/Scan_{fill}.json",
-	"Comment": "Input beam currents file in <AnalysisDir>/<InputBeamCurrentFile>",
-	"InputBeamCurrentFile" : "cond/BeamCurrents_{fill}.json",
-	"Comment": "Input luminometer data in <AnalysisDir>/<InputLuminometerData>",
-	"InputLuminometerData" : "LuminometerData/Rates_{luminometer}_{fill}.json",
-	"OutputSubDir" : "graphs",
-	"MakePDF": {makepdf}
-	}},
+    {{
+    "Comment": "Input scan file in <AnalysisDir>/<InputScanFile>",
+    "InputScanFile" : "cond/Scan_{fill}.json",
+    "Comment": "Input beam currents file in <AnalysisDir>/<InputBeamCurrentFile>",
+    "InputBeamCurrentFile" : "cond/BeamCurrents_{fill}.json",
+    "Comment": "Input luminometer data in <AnalysisDir>/<InputLuminometerData>",
+    "InputLuminometerData" : "LuminometerData/Rates_{luminometer}_{fill}.json",
+    "OutputSubDir" : "graphs",
+    "MakePDF": {makepdf}
+    }},
 "makeGraphs2DConfig":
-	{{
-	"Comment": "Defines each X/Y pair for which to make 2D graphs", 
-	"Scanpairs" : {scanpairs},
-	"Comment": "Input/output directory is <AnalysisDir>/<Luminometer>/graphs",
-	"InOutSubDir": "graphs"
-	}},
+    {{
+    "Comment": "Defines each X/Y pair for which to make 2D graphs", 
+    "Scanpairs" : {scanpairs},
+    "Comment": "Input/output directory is <AnalysisDir>/<Luminometer>/graphs",
+    "InOutSubDir": "graphs"
+    }},
 "vdmFitterConfig":
-	 {{
-	 "Comment": "Input graphs file in <AnalysisDir>/<Luminometer>/graphs", 
-	 "InputGraphsFile" : "graphs/graphs_{fill}_{corr}.json",
-	 "FitName" : "{fit}",
-	 "FitConfigFile" : "fits/{fit}_Config.json",
-	 "ScanNames" : {scannames},
-	 "MinuitFile" : "{fit}_{corr}_Minuit.log"
-	 }}
+     {{
+     "Comment": "Input graphs file in <AnalysisDir>/<Luminometer>/graphs", 
+     "InputGraphsFile" : "graphs/graphs_{fill}_{corr}.json",
+     "FitName" : "{fit}",
+     "FitConfigFile" : "fits/{fit}_Config.json",
+     "ScanNames" : {scannames},
+     "MinuitFile" : "{fit}_{corr}_Minuit"
+     }}
 }}

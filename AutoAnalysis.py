@@ -72,14 +72,12 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
     if test:
         ratetables = _ratetables
     for r in ratetables:
-        print(r)
-        # ('PLT' if 'plt' == r[:3] else (r[:4] if r[:5] != 'bcm1f' else 'bcm1f'))
         l = re.match('([a-z1]*)_?lumi(.*)', r).group(1)
         l = l if r != 'hflumi' else 'hfoc'
         if dg or filename2:
-            # f = ('DG' if 'plt' == r[:3] else 'DGConst')
+            f = ('DG' if 'plt' == r[:3] else 'DGConst')
             #f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
-            f= 'DG'
+            # f= 'DG'
         else:
             f = ('SG' if 'plt' == r[:3] else 'SGConst')
             # f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
@@ -111,7 +109,8 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         fit = threads[0][1]
         ratetable = threads[0][2]
         if int(fill) > 5737:
-            # assuming it doesn't change DURING a scan; UPDATE: it changes between scans that might be in the same file, so needs to be changed
+            # assuming it doesn't change DURING a scan;
+            # UPDATE: it changes between scans that might be in the same file, so needs to be changed
             # UPDATE: this is probably fixed and I forgot to delete the comment, need to check
             angle = int(data.iloc[data[data.sec==times[0][0][0]].index[0]]['xingHmurad'])
             Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr, first = True, _bstar=float(
