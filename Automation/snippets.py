@@ -331,3 +331,26 @@ for folder in os.listdir(curfol):
             #plot.show()
             plot.savefig(folder + '/' + scan + 'bx' + bx + '.png',dpi=150,format='png')
         
+
+###simple rateplots
+def get(lumitable):
+    raw = []
+    bx = []
+    for row in lumitable:
+        bx.append(row['bx'])
+        raw.append(row['bxraw'])
+    return bx,raw 
+
+
+def plot(m,n):
+    res = []
+    for i in m:
+        res.append(i[n])
+    plt.plot(res)
+
+
+def pl(m,n):
+    plot(m,n)
+    plt.show()
+
+

@@ -70,8 +70,8 @@ class DGConst_Fit(FitManager.FitProvider):
             ff.SetParLimits(2, LimitPeak_lower,LimitPeak_upper)
         if LimitFrac_upper > LimitFrac_lower:
             ff.SetParLimits(3, LimitFrac_lower,LimitFrac_upper)
-        if LimitConst_upper > LimitConst_lower:
-            ff.SetParLimits(5, LimitConst_lower,LimitConst_upper)
+        if LimitConst_upper == LimitConst_lower:
+            ff.FixParameter(5, StartConst)
 
         # Some black ROOT magic to get Minuit output into a log file
         # see http://root.cern.ch/phpBB3/viewtopic.php?f=14&t=14473,
@@ -82,7 +82,7 @@ class DGConst_Fit(FitManager.FitProvider):
             r.gROOT.ProcessLine("gSystem->RedirectOutput(\"" + config['MinuitFile'] + "\", \"a\");")
 
         for j in range(5):
-            fit = graph.Fit("ff","S" if makeLogs else 'SQ')
+            fit = graph.Fit("ff","SV" if makeLogs else 'SQ')
             if fit.CovMatrixStatus()==3 and fit.Chi2()/fit.Ndf() < 2: break
 
 

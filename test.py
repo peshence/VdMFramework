@@ -24,8 +24,8 @@ for a in os.listdir(central):
             print corr
             AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg,
                                  pdfs = True, logs = True)
-            # AutoAnalysis.Analyse(central + a, ['BeamBeam', 'LengthScale'], test, post=False, dg=_dg,
-            #                      pdfs = True, logs = True)
+            AutoAnalysis.Analyse(central + a, ['BeamBeam', 'LengthScale'], test, post=False, dg=_dg,
+                                 pdfs = True, logs = True)
             
             #AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=False, pdfs = True, logs = False)
         except (KeyboardInterrupt, SystemExit):
