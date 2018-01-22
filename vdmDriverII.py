@@ -85,21 +85,23 @@ def DriveVdm(ConfigFile):
     print ""
 
     fit = ConfigInfo['vdmFitterConfig']['FitName']
-    if makeScanFile == True:
 
-        makeScanFileConfig = ConfigInfo['makeScanFileConfig']
 
-        print "Running makeScanFile with config info:"
-        for key in makeScanFileConfig:
-            print key, makeScanFileConfig[key]
-        print ""
+    ### Scan file
+    makeScanFileConfig = ConfigInfo['makeScanFileConfig']
 
-        makeScanFileConfig['Fill'] = Fill
-        makeScanFileConfig['Date'] = Date
+    print "Running makeScanFile with config info:"
+    for key in makeScanFileConfig:
+        print key, makeScanFileConfig[key]
+    print ""
 
-        OutputSubDir = str(makeScanFileConfig['OutputSubDir'])    
-        outpath = './' + AnalysisDir + '/'+ OutputSubDir 
+    makeScanFileConfig['Fill'] = Fill
+    makeScanFileConfig['Date'] = Date
 
+    OutputSubDir = str(makeScanFileConfig['OutputSubDir'])    
+    outpath = './' + AnalysisDir + '/'+ OutputSubDir 
+
+    if makeScanFile or not os.path.exists(outpath+'/Scan_'+str(Fill)+'.csv'):
         table = {}
         csvtable = []
 
@@ -114,19 +116,19 @@ def DriveVdm(ConfigFile):
             json.dump(table, f)
 
 
-    if makeRateFile == True:
+    ### Rate file
+    makeRateFileConfig = ConfigInfo['makeRateFileConfig']
+    makeRateFileConfig['Fill'] = Fill
+    makeRateFileConfig['AnalysisDir'] = AnalysisDir
 
-        makeRateFileConfig = ConfigInfo['makeRateFileConfig']
-        makeRateFileConfig['Fill'] = Fill
-        makeRateFileConfig['AnalysisDir'] = AnalysisDir
+    print "Running makeRateFile with config info:"
+    for key in makeRateFileConfig:
+        print key, makeRateFileConfig[key]
+    print ""
 
-        print "Running makeRateFile with config info:"
-        for key in makeRateFileConfig:
-            print key, makeRateFileConfig[key]
-        print ""
+    OutputSubDir = AnalysisDir + "/" + str(makeRateFileConfig['OutputSubDir'])
 
-        OutputSubDir = AnalysisDir + "/" + str(makeRateFileConfig['OutputSubDir'])
-
+    if makeRateFile or not os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json'):
         table = {}
 
         if Luminometer=='PCC':
@@ -137,20 +139,18 @@ def DriveVdm(ConfigFile):
         with open(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json', 'wb') as f:
             json.dump(table, f)
 
+    ### Beam current files
+    makeBeamCurrentFileConfig = ConfigInfo['makeBeamCurrentFileConfig']
+    makeBeamCurrentFileConfig['AnalysisDir'] = AnalysisDir
 
-    if makeBeamCurrentFile == True:
+    print "Running makeBeamCurrentFile with config info:"
+    for key in makeBeamCurrentFileConfig:
+        print key, makeBeamCurrentFileConfig[key]
+    print ""
 
-        makeBeamCurrentFileConfig = ConfigInfo['makeBeamCurrentFileConfig']
-        makeBeamCurrentFileConfig['AnalysisDir'] = AnalysisDir
-
-        print "Running makeBeamCurrentFile with config info:"
-        for key in makeBeamCurrentFileConfig:
-            print key, makeBeamCurrentFileConfig[key]
-        print ""
-
-        OutputSubDir = str(makeBeamCurrentFileConfig['OutputSubDir'])
-        outpath = './' + AnalysisDir + '/' + OutputSubDir 
-
+    OutputSubDir = str(makeBeamCurrentFileConfig['OutputSubDir'])
+    outpath = './' + AnalysisDir + '/' + OutputSubDir 
+    if makeBeamCurrentFile or not os.path.exists(outpath+'/BeamCurrents_'+str(Fill)+'.json'):
         table = {}
 
         table = doMakeBeamCurrentFile(makeBeamCurrentFileConfig)
