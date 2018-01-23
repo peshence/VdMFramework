@@ -10,7 +10,7 @@ import os
 import datetime as dt
 
 
-def getRates(datapath, rateTable, scanpt, fill):
+def getRates(datapath, rateTable, scanpt, fill, bg):
     '''Gets the data in the corresponding folder or hd5 file for the respective ratetable and scan point'''
     # print "beginning of getCurrents", scanpt
 
@@ -80,7 +80,7 @@ def getRates(datapath, rateTable, scanpt, fill):
     else:
         for idx, bcid in enumerate(collBunches):
             i = bcid if int(fill)>=5838 or rateTable != 'hfetlumi' else (bcid-1 if bcid!=0 else 3563)
-            rates[str(bcid+1)] = bxdf[i].mean()
+            rates[str(bcid+1)] = bxdf[i].mean() - bg
             ratesErr[str(bcid+1)] = stats.sem(bxdf[i])
 
     if avgdf.empty:
@@ -90,6 +90,26 @@ def getRates(datapath, rateTable, scanpt, fill):
         ratesErr['sum'] = stats.sem(avgdf[0])
 
     return (rates, ratesErr)
+
+
+def GetBackground(filename, rateTable):
+    with t.open_file(filename) as hd5:
+        for r in hd5.root.beam:
+            bunchlist1 = removestrays(r['bxintensity1'])
+            bunchlist2 = removestrays(r['bxintensity2'])
+
+            fillednoncolliding = (bunchlist1 | bunchlist2) & ~(bunchlist1 & bunchlist2)
+            break
+
+        for table in hd5.root:
+                if table.name == rateTable:
+                    beamtable = table
+                    break
+        
+        backgrounds = []
+        for r in beamtable:
+            backgrounds.append(np.mean(r['bxraw'][fillednoncolliding]))
+        background = np.mean(backgrounds)
 
 
 def doMakeRateFile(ConfigInfo):
@@ -102,14 +122,15 @@ def doMakeRateFile(ConfigInfo):
     with open(InputScanFile, 'rb') as f:
         scanInfo = json.load(f)
 
+    bg = GetBackground(InputLumiDir, RateTable)
     table = {}
-
+    table['backgroundApplied'] = bg
     for i, name in enumerate(scanInfo["ScanNames"]):
         key = "Scan_" + str(i+1)        
         scanpoints = scanInfo[key]
         table[key]=[]
         for j, sp in enumerate(scanpoints):
-            rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"])
+            rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"],bg)
             scanpoint = {
                 'ScanNumber':i+1,
                 'ScanName':name,

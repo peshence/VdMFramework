@@ -264,11 +264,15 @@ if __name__ == '__main__':
         '-l', '--logs', help='Make logs for the fitting (no minuit yet)', action='store_true')
     parser.add_argument(
         '-ls', '--lscale', help='Add length scale correction', action='store_true')
+    parser.add_argument(
+        '-bg', '--background', help='Add background correction', action='store_true')
     args = parser.parse_args()
     corr = ['noCorr']
 
     if args.beambeam:
         corr = ['BeamBeam']
+    if args.background:
+        corr.append('Background')
     if args.lscale:
         corr.append('LengthScale')
     if args.filename2:
