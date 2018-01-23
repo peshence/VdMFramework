@@ -213,9 +213,9 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
     true = json.dumps(True)
     false = json.dumps(False)
 
-    _makeScanFile = json.dumps(first)
-    _makeRateFile = true
-    _makeBeamCurrentFile = json.dumps(first)
+    _makeScanFile = false
+    _makeRateFile = false
+    _makeBeamCurrentFile = false
     _makeBeamBeamFile = false
     _makeLengthScaleFile = json.dumps('LengthScale' in corr)
     _makeGraphsFile = true

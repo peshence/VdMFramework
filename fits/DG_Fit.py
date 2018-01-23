@@ -2,6 +2,7 @@ import FitManager
 import ROOT as r
 import sys
 from vdmUtilities import *
+import math
 
 class DG_Fit(FitManager.FitProvider):
 
@@ -16,22 +17,33 @@ class DG_Fit(FitManager.FitProvider):
     [1] -> [0]/([3]*[1]+1-[3])"""
 
     def __init__(self):
-       self.table = []
+        self.table = []
 
-       self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio","sigmaRatio_Err", \
-                      "Frac","FracErr","Mean","MeanErr", "CapSigma", "CapSigmaErr", "peak", "peakErr", \
-                      "area", "areaErr","fitStatus", "chi2", "ndof", "covStatus"])
+        self.table.append(["Scan", "Type", "BCID", "sigma","sigmaErr", "sigmaRatio",
+                           "sigmaRatio_Err", "Frac", "FracErr", "Mean", "MeanErr", "CapSigma",
+                           "CapSigmaErr", "peak", "peakErr", "area", "areaErr","fitStatus",
+                           "chi2", "ndof", "covStatus"])
 
 
 
-    def doFit( self,graph,config):
+    def doFit(self, graph, config):
 
-        ExpSigma = graph.GetRMS()*0.5
-        ExpPeak = graph.GetHistogram().GetMaximum()
+        makeLogs = config['MakeLogs']
+
+        # Making these presettable - to make any parameter a constant just
+        # set the two limits the same value as the starting parameter
+        ExpSigma = graph.GetRMS()*0.5 if config['LimitsSigma'][0] != config['StartSigma']\
+                                        or config['LimitsSigma'][1] != config['StartSigma'] else 1
+        ExpPeak = graph.GetHistogram().GetMaximum() if config['LimitsPeak'][0] != config['StartPeak']\
+                                        or config['LimitsPeak'][1] != config['StartPeak'] else 1
 
         StartSigma = ExpSigma * config['StartSigma']
         LimitSigma_lower = config['LimitsSigma'][0]
         LimitSigma_upper = config['LimitsSigma'][1]
+
+        StartPeak = ExpPeak*config['StartPeak']
+        LimitPeak_lower = ExpPeak*config['LimitsPeak'][0]
+        LimitPeak_upper = ExpPeak*config['LimitsPeak'][1]
 
         StartRatio = config['StartRatio']
         LimitRatio_lower = config['LimitsRatio'][0]
@@ -41,42 +53,37 @@ class DG_Fit(FitManager.FitProvider):
         LimitFrac_lower = config['LimitsFrac'][0]
         LimitFrac_upper = config['LimitsFrac'][1]
 
-        StartPeak = ExpPeak*config['StartPeak']
-        LimitPeak_lower = ExpPeak*config['LimitsPeak'][0]
-        LimitPeak_upper = ExpPeak*config['LimitsPeak'][1]
 
+        ff = r.TF1("ff", "[2]*([3]*exp(-(x-[4])**2/(2*([0]*[1]/([3]*[1]+1-[3]))**2)) \
+                        + (1-[3])*exp(-(x-[4])**2/(2*([0]/([3]*[1]+1-[3]))**2)) )")
+        ff.SetParNames("#Sigma", "#sigma_{1}/#sigma_{2}", "peak", "Frac", "Mean")
 
-        ff = r.TF1("ff","[2]*([3]*exp(-(x-[4])**2/(2*([0]*[1]/([3]*[1]+1-[3]))**2)) + (1-[3])*exp(-(x-[4])**2/(2*([0]/([3]*[1]+1-[3]))**2)) )")
-        ff.SetParNames("#Sigma","#sigma_{1}/#sigma_{2}","peak","Frac","Mean")
-
-        ff.SetParameters(StartSigma,1.,StartPeak,StartFrac,0.)
+        ff.SetParameters(StartSigma, StartRatio, StartPeak, StartFrac, 0.)
 
         if LimitSigma_upper > LimitSigma_lower:
-            ff.SetParLimits(0, LimitSigma_lower,LimitSigma_upper)
+            ff.SetParLimits(0, LimitSigma_lower, LimitSigma_upper)
         if LimitRatio_upper > LimitRatio_lower:
-            ff.SetParLimits(1, LimitRatio_lower,LimitRatio_upper)
+            ff.SetParLimits(1, LimitRatio_lower, LimitRatio_upper)
         if LimitPeak_upper > LimitPeak_lower:
-            ff.SetParLimits(2, LimitPeak_lower,LimitPeak_upper)
+            ff.SetParLimits(2, LimitPeak_lower, LimitPeak_upper)
         if LimitFrac_upper > LimitFrac_lower:
-            ff.SetParLimits(3, LimitFrac_lower,LimitFrac_upper)
+            ff.SetParLimits(3, LimitFrac_lower, LimitFrac_upper)
 
         # Some black ROOT magic to get Minuit output into a log file
-        # see http://root.cern.ch/phpBB3/viewtopic.php?f=14&t=14473, http://root.cern.ch/phpBB3/viewtopic.php?f=13&t=16844, https://agenda.infn.it/getFile.py/access?resId=1&materialId=slides&confId=4933 slide 23
+        # see http://root.cern.ch/phpBB3/viewtopic.php?f=14&t=14473,
+        # http://root.cern.ch/phpBB3/viewtopic.php?f=13&t=16844,
+        # https://agenda.infn.it/getFile.py/access?resId=1&materialId=slides&confId=4933 slide 23
 
-#        r.gROOT.ProcessLine("gSystem->RedirectOutput(\".\/minuitlogtmp\/Minuit.log\", \"a\");")
-        r.gROOT.ProcessLine("gSystem->RedirectOutput(\"" + config['MinuitFile'] + "\", \"a\");")
-        # r.gROOT.ProcessLine("gSystem->Info(0,\"Next BCID\");")
+        if makeLogs:
+            r.gROOT.ProcessLine("gSystem->RedirectOutput(\"" + config['MinuitFile'] + "\", \"a\");")
 
         for j in range(5):
-            fit = graph.Fit("ff","S")
-            if fit.CovMatrixStatus()==3 and fit.Chi2()/fit.Ndf() < 2: break
-
-        # r.gROOT.ProcessLine("gSystem->RedirectOutput(0);")
+            fit = graph.Fit("ff", "S" if makeLogs else 'SQ')
+            if fit.CovMatrixStatus() == 3 and fit.Chi2() / fit.Ndf() < 2:
+                break
 
         fitStatus = -999
         fitStatus = fit.Status()
-        covStatus = -999
-        covStatus = fit.CovMatrixStatus()
 
         CapSigma = ff.GetParameter("#Sigma")
         m = ff.GetParNumber("#Sigma")
@@ -105,24 +112,25 @@ class DG_Fit(FitManager.FitProvider):
 
         xmax = r.TMath.MaxElement(graph.GetN(),graph.GetX())
 
-
-        import math
         sqrttwopi = math.sqrt(2*math.pi)
         sigma = CapSigma / math.sqrt(2)
         sigmaErr = CapSigmaErr / math.sqrt(2)
         area  = sqrttwopi*peak*CapSigma
-        areaErr = (sqrttwopi*CapSigma*peakErr)*(sqrttwopi*CapSigma*peakErr) + (sqrttwopi*peak*CapSigmaErr)*(sqrttwopi*peak*CapSigmaErr)
+        areaErr = (sqrttwopi*CapSigma*peakErr)*(sqrttwopi*CapSigma*peakErr) +\
+                  (sqrttwopi*peak*CapSigmaErr)*(sqrttwopi*peak*CapSigmaErr)
         areaErr = math.sqrt(areaErr)
 
-
-        r.gROOT.ProcessLine("gSystem->Info(0,\"BCID " + bcid + " done\");")
-        r.gROOT.ProcessLine("gSystem->RedirectOutput(0);")
-
-
-        self.table.append([scan, type, bcid, sigma, sigmaErr, sigRatio, sigRatioErr, frac, fracErr, mean, meanErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof, covStatus])
+        if makeLogs:
+            r.gROOT.ProcessLine("gSystem->Info(0,\"BCID " + bcid + " done\");")
+            r.gROOT.ProcessLine("gSystem->RedirectOutput(0);")
 
 
-# Define signal and background pieces of full function separately, for plotting
+        self.table.append([scan, type, bcid, sigma, sigmaErr, sigRatio, sigRatioErr, frac, fracErr,\
+                           mean, meanErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr,\
+                           fitStatus, chi2, ndof, fit.CovMatrixStatus()])
+
+
+        # Define signal and background pieces of full function separately, for plotting
 
         h = frac
         s2 = CapSigma/(h*sigRatio+1-h)
@@ -138,7 +146,7 @@ class DG_Fit(FitManager.FitProvider):
         fSignal2.SetParNames("#Sigma","Mean","peak")
         fSignal2.SetParameters(s2, mean, a2)
 
-# Set background to zero for plotting
+        # Set background to zero for plotting
 
         fBckgrd =r.TF1("fBckgrd","[0]")
         fBckgrd.SetParNames("Const")
@@ -151,9 +159,6 @@ class DG_Fit(FitManager.FitProvider):
 
 
     def doPlot(self, graph, functions, fill, tempPath):
-        
         canvas =  r.TCanvas()
         canvas = doPlot1D(graph, functions, fill, tempPath)
         return canvas
-
-

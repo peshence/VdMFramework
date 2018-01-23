@@ -40,12 +40,6 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
         sysstderr = sys.stderr
         sys.stderr = fitlogfile
 
-    # temporarily: move graphs files over from forTmpStorage directory
-    #list = os.listdir('./forTmpStorage/')
-    #import shutil
-    # for element in list:
-    #    shutil.copy('./forTmpStorage/'+element, InputDataDir)
-
     # for 2D fits
     if '_2D' in FitName:
 
@@ -80,8 +74,7 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
             graphsAll_dict = json.load(infile)        
         graphsAll_list.append(graphsAll_dict)
 
-    # if input file is 2D graphs file, also open the corresponding 1D graph
-    # file
+    # if input file is 2D graphs file, also open the corresponding 1D graph file
     if '_2D' in FitName:
         fileName1D = InputGraphsFile.replace("graphs2D", "graphs")
         infile1D = open(fileName1D, 'rb')
@@ -104,9 +97,12 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
                 graphsX = graphs1D[keyX]
                 graphsY = graphs1D[keyY]
 
+
+            #NOTE: this hasn't been well documented and might not work with PCC (comments are old)
             # order keys in natural order, i.e. from smallest BCID to largest
 
-            # determine which of the bcid among those with collisions are indeed represented with a TGraphErrors() in the input graphs file
+            # determine which of the bcid among those with collisions are indeed represented
+            # with a TGraphErrors() in the input graphs file
             # need to do this because PCC uses only subset of 5 bcids of all
             # possible bcids with collisions
 
@@ -115,17 +111,7 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
             pdfbxs = pdfbxs + ([key for key in orderedkeys if type(i) == int and key
                 not in pdfbxs and key - 1 not in orderedkeys and key + 1 not in orderedkeys])
             pdfbxs = orderedIntKeysFirst(pdfbxs)
-            #pdfbxs = []
-            # train = True
-            # for key in orderedkeys:
-            #     if type(key) != int:
-            #         continue
-            #     if key - 1 not in orderedkeys and key + 1 not in orderedkeys:
-            #         pdfbxs.append(key)
-            #     elif train:
-            #         pdfbxs.append(key)
-            #         if key + 1 not in orderedkeys:
-            #             train = False
+            
             for key in orderedkeys:
                 if type(key) == int and key%100 == 0:
                     print "Now fitting BCID ", key

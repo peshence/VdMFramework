@@ -1,6 +1,7 @@
 import FitManager
 import ROOT as r
 import sys
+import math
 from vdmUtilities import *
 
 class SG_Fit(FitManager.FitProvider):
@@ -19,8 +20,14 @@ class SG_Fit(FitManager.FitProvider):
 
     def doFit(self,graph,config):
 
-        ExpSigma = graph.GetRMS()*0.5
-        ExpPeak = graph.GetHistogram().GetMaximum()
+        makeLogs = config['MakeLogs']
+
+        # Making these presettable - to make any parameter a constant just
+        # set the two limits the same value as the starting parameter
+        ExpSigma = graph.GetRMS()*0.5 if config['LimitsSigma'][0] != config['StartSigma']\
+                                        or config['LimitsSigma'][1] != config['StartSigma'] else 1
+        ExpPeak = graph.GetHistogram().GetMaximum() if config['LimitsPeak'][0] != config['StartPeak']\
+                                        or config['LimitsPeak'][1] != config['StartPeak'] else 1
 
         StartSigma = ExpSigma * config['StartSigma']
         LimitSigma_lower = config['LimitsSigma'][0]
@@ -36,29 +43,24 @@ class SG_Fit(FitManager.FitProvider):
 
         ff.SetParNames("#Sigma","Mean","peak")
 
-# if one does not want to set limits, set lower bound larger than upper bound in config file
+        # if one does not want to set limits, set lower bound larger than upper bound in config file
         if LimitSigma_upper > LimitSigma_lower:
             ff.SetParLimits(0, LimitSigma_lower,LimitSigma_upper)
         if LimitPeak_upper >= LimitPeak_lower:
             ff.SetParLimits(2, LimitPeak_lower,LimitPeak_upper)
 
 
-# Some black ROOT magic to get Minuit output into a log file
-# see http://root.cern.ch/phpBB3/viewtopic.php?f=14&t=14473, http://root.cern.ch/phpBB3/viewtopic.php?f=13&t=16844, https://agenda.infn.it/getFile.py/access?resId=1&materialId=slides&confId=4933 slide 23
+        # Some black ROOT magic to get Minuit output into a log file
+        # see http://root.cern.ch/phpBB3/viewtopic.php?f=14&t=14473,
+        # http://root.cern.ch/phpBB3/viewtopic.php?f=13&t=16844,
+        # https://agenda.infn.it/getFile.py/access?resId=1&materialId=slides&confId=4933 slide 23
 
-#        r.gROOT.ProcessLine("gSystem->RedirectOutput(\".\/minuitlogtmp\/Minuit.log\", \"a\");")
-        # r.gROOT.ProcessLine("gSystem->RedirectOutput(\"./minuitlogtmp/Minuit.log\", \"a\");")
-        # r.gROOT.ProcessLine("gSystem->Info(0,\"Next BCID\");")
-
+        if makeLogs:
+            r.gROOT.ProcessLine("gSystem->RedirectOutput(\"" + config['MinuitFile'] + "\", \"a\");")
 
         for j in range(5):
-            fit = graph.Fit("ff","SQ")
+            fit = graph.Fit("ff","S" if makeLogs else 'SQ')
             if fit.CovMatrixStatus()==3 and fit.Chi2()/fit.Ndf() < 2: break
-
-        # r.gROOT.ProcessLine("gSystem->RedirectOutput(0);")
-
-
-#        fit.Print()
 
         fitStatus = -999
         fitStatus = fit.Status()
@@ -84,15 +86,21 @@ class SG_Fit(FitManager.FitProvider):
         
         xmax = r.TMath.MaxElement(graph.GetN(),graph.GetX())
 
-        import math
         sqrttwopi = math.sqrt(2*math.pi)
+        
+        if makeLogs:
+            r.gROOT.ProcessLine("gSystem->Info(0,\"BCID " + bcid + " done\");")
+            r.gROOT.ProcessLine("gSystem->RedirectOutput(0);")
+
         sigma = CapSigma/math.sqrt(2)
         sigmaErr = CapSigmaErr/math.sqrt(2)
         area  = sqrttwopi*peak*CapSigma
-        areaErr = (sqrttwopi*CapSigma*peakErr)*(sqrttwopi*CapSigma*peakErr) + (sqrttwopi*peak*CapSigmaErr)*(sqrttwopi*peak*CapSigmaErr)
+        areaErr = (sqrttwopi*CapSigma*peakErr)*(sqrttwopi*CapSigma*peakErr) +\
+                  (sqrttwopi*peak*CapSigmaErr)*(sqrttwopi*peak*CapSigmaErr)
         areaErr = math.sqrt(areaErr)
 
-        self.table.append([scan, type, bcid, sigma, sigmaErr, mean, meanErr, CapSigma, CapSigmaErr, peak, peakErr, area, areaErr, fitStatus, chi2, ndof, fit.CovMatrixStatus()])
+        self.table.append([scan, type, bcid, sigma, sigmaErr, mean, meanErr, CapSigma, CapSigmaErr,\
+                           peak, peakErr, area, areaErr, fitStatus, chi2, ndof, fit.CovMatrixStatus()])
 
         functions = [ff]
 
@@ -100,7 +108,6 @@ class SG_Fit(FitManager.FitProvider):
 
 
     def doPlot(self, graph, functions, fill, tempPath):
-        
         canvas =  r.TCanvas()
         canvas = doPlot1D(graph, functions, fill, tempPath)
         return canvas
