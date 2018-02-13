@@ -93,7 +93,8 @@ def getRates(datapath, rateTable, scanpt, fill, bg):
 
 
 def GetBackground(filename, rateTable):
-    with t.open_file(filename) as hd5:
+    removestrays = lambda a: np.array([False if i < 6e9 else True for i in a])
+    with tables.open_file(filename) as hd5:
         for r in hd5.root.beam:
             bunchlist1 = removestrays(r['bxintensity1'])
             bunchlist2 = removestrays(r['bxintensity2'])
@@ -107,9 +108,15 @@ def GetBackground(filename, rateTable):
                     break
         
         backgrounds = []
+        noises = []
         for r in beamtable:
             backgrounds.append(np.mean(r['bxraw'][fillednoncolliding]))
+            noises.append(np.mean(r['bxraw'][-120:]))
         background = np.mean(backgrounds)
+        noise = np.mean(noises)
+
+        return 2*background - noise
+
 
 
 def doMakeRateFile(ConfigInfo):
@@ -124,7 +131,7 @@ def doMakeRateFile(ConfigInfo):
 
     bg = GetBackground(InputLumiDir, RateTable)
     table = {}
-    table['backgroundApplied'] = bg
+    table['backgroundApplied'] = np.float(bg)
     for i, name in enumerate(scanInfo["ScanNames"]):
         key = "Scan_" + str(i+1)        
         scanpoints = scanInfo[key]
