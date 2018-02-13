@@ -4,11 +4,11 @@ import os
 import numpy as np
 from math import floor as floor, log10 as log10
 
-fill = '6385'
+fill = '6362'
 folder = '/brildata/vdmoutput/Automation/Analysed_Data/'
 scan=0
 
-def ylim(axes,up=0.2,down=0.2):
+def ylim(axes,up=0.3,down=0.2):
     mx = 0
     mn=min(axes[0])
     for a in axes:
@@ -29,38 +29,40 @@ for f in os.listdir(folder):
     train = df[[not i for i in leadbool]]
     
     ylim([train.xsec,lead.xsec])
-
+    plt.title('$Fill\ ' + fill + ',\ \sqrt{s} = 13 TeV$')
     plt.errorbar(train.BCID,train.xsec,yerr=train.xsecErr,fmt='o',label='Train')
     plt.errorbar(lead.BCID,lead.xsec,yerr=lead.xsecErr,fmt='o',label='Leading', color='red')
     plt.legend(loc=4)
     plt.ylabel('$\sigma_{vis} [\mu b]$', fontsize=20)
     plt.xlabel('BCID', fontsize=14)
     plt.figtext(0.2,0.8,'CMS',fontsize=18,fontweight='bold',backgroundcolor='white')
-    plt.figtext(0.29,0.8,'Preliminary',fontsize=18,style='italic',backgroundcolor='white')
+    plt.figtext(0.29,0.8,'Preliminary 2017',fontsize=18,style='italic',backgroundcolor='white')
     plt.savefig('sigvis_' + fill + '_' + str(scan) + '.png')
     # plt.close()
     plt.show()
 
 
     ylim([df.SBIL])
+    plt.title('$Fill\ ' + fill + ',\ \sqrt{s} = 13 TeV$')
     plt.errorbar(df.BCID,df.SBIL,fmt='o',yerr=df.SBILErr)
     # plt.legend()
     plt.ylabel('$SBIL [Hz/{\mu b}]$', fontsize=16)
     plt.xlabel('BCID', fontsize=14)
     plt.figtext(0.2,0.8,'CMS',fontsize=18,fontweight='bold',backgroundcolor='white')
-    plt.figtext(0.29,0.8,'Preliminary',fontsize=18,style='italic',backgroundcolor='white')
+    plt.figtext(0.29,0.8,'Preliminary 2017',fontsize=18,style='italic',backgroundcolor='white')
     plt.savefig('sbil_' + fill + '_' + str(scan) + '.png')
     # plt.close()
     plt.show()
 
     ylim([train.xsec,lead.xsec])
+    plt.title('$Fill\ ' + fill + ',\ \sqrt{s} = 13 TeV$')
     plt.errorbar(train.SBIL,train.xsec,yerr=train.xsecErr,xerr=train.SBILErr,fmt='o',label='Train')
     plt.errorbar(lead.SBIL,lead.xsec,yerr=lead.xsecErr,xerr=lead.SBILErr,fmt='o',label='Leading', color='red')
     plt.legend(loc=4)
     plt.ylabel('$\sigma_{vis} [\mu b]$', fontsize=20)
     plt.xlabel('$SBIL [Hz/{\mu b}]$', fontsize=14)
     plt.figtext(0.2,0.8,'CMS',fontsize=18,fontweight='bold',backgroundcolor='white')
-    plt.figtext(0.29,0.8,'Preliminary',fontsize=18,style='italic',backgroundcolor='white')
+    plt.figtext(0.29,0.8,'Preliminary 2017',fontsize=18,style='italic',backgroundcolor='white')
     plt.savefig('sigvis(SBIL)_' + fill + '_' + str(scan) + '.png')
     # plt.close()
     plt.show()
@@ -73,6 +75,7 @@ for f in os.listdir(folder):
     scan = scan+1
 
 ylim([pd.concat([earlytrain.xsec,latetrain.xsec]),pd.concat([earlylead.xsec,latelead.xsec])],down=0.25)
+plt.title('$Fill\ ' + fill + ',\ \sqrt{s} = 13 TeV$')
 plt.errorbar(pd.concat([earlytrain.SBIL,latetrain.SBIL]),pd.concat([earlytrain.xsec,latetrain.xsec]),fmt='o',yerr=pd.concat([earlytrain.xsecErr,latetrain.xsecErr]),xerr=pd.concat([earlytrain.SBILErr,latetrain.SBILErr]), label='Train')
 plt.errorbar(pd.concat([earlylead.SBIL,latelead.SBIL]),pd.concat([earlylead.xsec,latelead.xsec]),fmt='o',yerr=pd.concat([earlylead.xsecErr,latelead.xsecErr]),xerr=pd.concat([earlylead.SBILErr,latelead.SBILErr]), label='Lead',color='red')
 # plt.errorbar(latetrain.SBIL,latetrain.xsec,fmt='o',yerr=latetrain.xsecErr,xerr=latetrain.SBILErr, label='Late Scan Train')
@@ -104,7 +107,7 @@ plt.legend(loc=4,fontsize=12)
 plt.ylabel('$\sigma_{vis} [\mu b]$', fontsize=20)
 plt.xlabel('$SBIL [Hz/{\mu b}]$', fontsize=14)
 plt.figtext(0.2,0.8,'CMS',fontsize=18,fontweight='bold',backgroundcolor='white')
-plt.figtext(0.29,0.8,'Preliminary',fontsize=18,style='italic',backgroundcolor='white')
+plt.figtext(0.29,0.8,'Preliminary 2017',fontsize=18,style='italic',backgroundcolor='white')
 plt.savefig('sigvis(SBIL)_' + fill + '_bothscans.png')
 # plt.close()
 plt.show()
