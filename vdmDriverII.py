@@ -101,7 +101,7 @@ def DriveVdm(ConfigFile):
     OutputSubDir = str(makeScanFileConfig['OutputSubDir'])    
     outpath = './' + AnalysisDir + '/'+ OutputSubDir 
 
-    if makeScanFile or not os.path.exists(outpath+'/Scan_'+str(Fill)+'.csv'):
+    if makeScanFile or not (os.path.exists(outpath+'/Scan_'+str(Fill)+'.json') or os.path.exists(outpath+'/Scan_'+str(Fill)+'.pkl')):
         table = {}
         csvtable = []
 
@@ -128,7 +128,7 @@ def DriveVdm(ConfigFile):
 
     OutputSubDir = AnalysisDir + "/" + str(makeRateFileConfig['OutputSubDir'])
 
-    if makeRateFile or not os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json'):
+    if makeRateFile or not (os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json') or os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.pkl')):
         table = {}
 
         if Luminometer=='PCC':
@@ -150,7 +150,7 @@ def DriveVdm(ConfigFile):
 
     OutputSubDir = str(makeBeamCurrentFileConfig['OutputSubDir'])
     outpath = './' + AnalysisDir + '/' + OutputSubDir 
-    if makeBeamCurrentFile or not os.path.exists(outpath+'/BeamCurrents_'+str(Fill)+'.json'):
+    if makeBeamCurrentFile or not (os.path.exists(outpath+'/BeamCurrents_'+str(Fill)+'.json') or os.path.exists(outpath + 'BeamCurrents_' +str(Fill)+'.pkl')):
         table = {}
 
         table = doMakeBeamCurrentFile(makeBeamCurrentFileConfig)
