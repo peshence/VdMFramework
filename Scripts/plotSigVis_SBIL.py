@@ -29,10 +29,10 @@ for f in os.listdir(folder):
     train = df[[not i for i in leadbool]]
     
     ylim([train.xsec,lead.xsec])
-    plt.title('$Fill\ ' + fill + ',\ \sqrt{s} = 13 TeV$')
+    plt.title('$Fill\ ' + fill + ',\ ' + ('Late' if scan else 'Early') + '\ emittance\ scan,\ \sqrt{s} = 13 TeV$')
     plt.errorbar(train.BCID,train.xsec,yerr=train.xsecErr,fmt='o',label='Train')
     plt.errorbar(lead.BCID,lead.xsec,yerr=lead.xsecErr,fmt='o',label='Leading', color='red')
-    plt.legend(loc=4)
+    plt.legend(numpoints=1)
     plt.ylabel('$\sigma_{vis} [\mu b]$', fontsize=20)
     plt.xlabel('BCID', fontsize=14)
     plt.figtext(0.2,0.8,'CMS',fontsize=18,fontweight='bold',backgroundcolor='white')
@@ -43,7 +43,7 @@ for f in os.listdir(folder):
 
 
     ylim([df.SBIL])
-    plt.title('$Fill\ ' + fill + ',\ \sqrt{s} = 13 TeV$')
+    plt.title('$Fill\ ' + fill + ',\ ' + ('Late' if scan else 'Early') + '\ emittance\ scan,\ \sqrt{s} = 13 TeV$')
     plt.errorbar(df.BCID,df.SBIL,fmt='o',yerr=df.SBILErr)
     # plt.legend()
     plt.ylabel('$SBIL [Hz/{\mu b}]$', fontsize=16)
@@ -55,10 +55,10 @@ for f in os.listdir(folder):
     plt.show()
 
     ylim([train.xsec,lead.xsec])
-    plt.title('$Fill\ ' + fill + ',\ \sqrt{s} = 13 TeV$')
+    plt.title('$Fill\ ' + fill + ',\ ' + ('Late' if scan else 'Early') + '\ emittance\ scan,\ \sqrt{s} = 13 TeV$')
     plt.errorbar(train.SBIL,train.xsec,yerr=train.xsecErr,xerr=train.SBILErr,fmt='o',label='Train')
     plt.errorbar(lead.SBIL,lead.xsec,yerr=lead.xsecErr,xerr=lead.SBILErr,fmt='o',label='Leading', color='red')
-    plt.legend(loc=4)
+    plt.legend(loc=4, numpoints=1)
     plt.ylabel('$\sigma_{vis} [\mu b]$', fontsize=20)
     plt.xlabel('$SBIL [Hz/{\mu b}]$', fontsize=14)
     plt.figtext(0.2,0.8,'CMS',fontsize=18,fontweight='bold',backgroundcolor='white')
@@ -102,7 +102,7 @@ def plotfit(x,y,name,color=None):
 plotfit(pd.concat([earlytrain.SBIL,latetrain.SBIL]),pd.concat([earlytrain.xsec,latetrain.xsec]),'Train')
 plotfit(pd.concat([earlylead.SBIL,latelead.SBIL]),pd.concat([earlylead.xsec,latelead.xsec]),'Lead',color='cyan')
 
-plt.legend(loc=4,fontsize=12)
+plt.legend(loc=4,fontsize=12,numpoints=1)
 
 plt.ylabel('$\sigma_{vis} [\mu b]$', fontsize=20)
 plt.xlabel('$SBIL [Hz/{\mu b}]$', fontsize=14)
