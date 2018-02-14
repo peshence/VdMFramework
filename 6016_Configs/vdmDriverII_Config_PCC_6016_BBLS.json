@@ -3,7 +3,7 @@
 	"Date": "Jul282017",
 	"Luminometer": "PCC",
 	"AnalysisDir": "Fill6016_Jul282017",
-	"Corr" : ["noCorr"],
+	"Corr" : ["BeamBeam","LengthScale"],
 	"Comment": "Output of following step goes to <AnalysisDir>/cond", 
 	"makeScanFile": false,
 	"Comment": "Output of following step goes to <AnalysisDir>/LuminometerData",
@@ -11,15 +11,15 @@
 	"Comment": "Output of following step goes to <AnalysisDir>/cond", 
 	"makeBeamCurrentFile": false,
 	"Comment": "Output of following step goes to <AnalysisDir>/corr",
-	"makeBeamBeamFile": false,
+	"makeBeamBeamFile": true,
 	"Comment": "Output of following step goes to <AnalysisDir>/corr",
 	"makeGhostsFile": false,
 	"Comment": "Output of following step goes to <AnalysisDir>/corr",
 	"makeSatellitesFile": false,
 	"Comment": "Output of following step goes to <AnalysisDir>/<Luminometer>/graphs", 
-	"makeLengthScaleFile": false,
+	"makeLengthScaleFile": true,
 	"Comment": "Output of following step goes to <AnalysisDir>/corr",
-	"makeGraphsFile": false,
+	"makeGraphsFile": true,
 	"Comment": "Output of following step goes to <AnalysisDir>/corr",
 	"makeGraphs2D": false,
 	"Comment": "Output of following step goes to <AnalysisDir>/<Luminometer>/results/<Corr>", 
@@ -80,11 +80,12 @@
 	"makeBeamBeamFileConfig":
 		{
 		"Comment": "Input scan info file is <AnalysisDir>/<InputScanFile>",
-		"InputScanFile" : "cond/Scan_6016_Rest.pkl",
+		"InputScanFile" : "cond/Scan_6016.pkl",
 		"Comment": "Input beam currents file is <AnalysisDir>/<InputBeamCurrentFile>",
-		"InputBeamCurrentFile" : "cond/BeamCurrents_6016_NoGhostCorrections.pkl",
+		"InputBeamCurrentFile" : "cond/BeamCurrents_6016.pkl",
+		"InputLuminometerData" : "LuminometerData/Rates_PCC_6016.pkl",
 		"Comment": "Input CapSigmas in <AnalysisDir>/<Luminometer>/results",
-		"InputCapSigmaFile" : "noCorr/DGConst_1_FitResults.pkl",
+		"InputCapSigmaFile" : "noCorr/DG_FitResults.pkl",
 		"Scanpairs" : [[1,2],[4,3],[5,6],[7,8],[9,10],[11,12]],
 		"Comment": "This is relative to <AnalysisDir>",
 		"OutputSubDir": "corr"
@@ -106,7 +107,7 @@
 	"makeLengthScaleFileConfig":
 		{
 		"Comment": "Length scale scan fill",
-		"FillLS": "3563",	
+		"FillLS": "6016",	
 		"Comment" : "Where to find the correction factors in json format",
 		"InputDataDir" : "dataPrep_corr/corrData",
 		"Comment": "This is relative to <AnalysisDir>",
@@ -135,13 +136,13 @@
 		 {
 		 "Comment": "Input graphs file in <AnalysisDir>/<Luminometer>/graphs", 
 		 "Comment": "If InputGraphsFile parameter empty, the graphs/graphs_Fill_Corr.pkl will be chosen",
-		 "InputGraphsFile" : "graphs/graphs_6016_noCorr.json",
+		 "InputGraphsFile" : "graphs/graphs_6016_BeamBeam_LengthScale.json",
 		 "FitName" : "DG",
 		 "Comment": "Use SimCapSigma_PCCAndVtx, for simultaneous fit with vtx. counting",
 			 "FitConfigFile" : "fits/DG_Config.json",
 		 "Comment": "Use SimCapSigma_PCCAndVtx_Config_LargerConstRange.json, for simultaneous fit with vtx. counting",
 		 "PlotsTempPath": [["./plotstmp/1/"], ["./plotstmp/2/"]],
-		 "MinuitFile" : "DG_noCorr_Minuit"
+		 "MinuitFile" : "DG_BeamBeam_LengthScale_Minuit"
 		 }
 	}
 	

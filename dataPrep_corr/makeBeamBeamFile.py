@@ -18,12 +18,14 @@ def doMakeBeamBeamFile(ConfigInfo):
     Luminometer = ConfigInfo['Luminometer']
     InputScanFile = ConfigInfo['InputScanFile']
     InputBeamCurrentFile = ConfigInfo['InputBeamCurrentFile']
+    inputLuminometerData = str(ConfigInfo['InputLuminometerData'])
     InputCapSigmaFile = AnalysisDir + '/' + Luminometer + '/results/' + ConfigInfo['InputCapSigmaFile']
     Scanpairs = ConfigInfo['Scanpairs']
 
     inData1 = vdmInputData(1)
     inData1.GetScanInfo(AnalysisDir + '/'+ InputScanFile)
     inData1.GetBeamCurrentsInfo(AnalysisDir + '/' + InputBeamCurrentFile)
+    inData1.GetLuminometerData(AnalysisDir + '/' + inputLuminometerData)
 
     Fill = inData1.fill
     
@@ -36,6 +38,7 @@ def doMakeBeamBeamFile(ConfigInfo):
         inDataNext = vdmInputData(i+1)
         inDataNext.GetScanInfo(AnalysisDir + '/' + InputScanFile)
         inDataNext.GetBeamCurrentsInfo(AnalysisDir + '/' + InputBeamCurrentFile)
+        inDataNext.GetLuminometerData(AnalysisDir + '/' + inputLuminometerData)
         inData.append(inDataNext)
 
     from collections import defaultdict
@@ -110,7 +113,7 @@ def doMakeBeamBeamFile(ConfigInfo):
         NpList1 = inDataX.avrgFbctB2PerSP
         NpList2 = inDataX.avrgFbctB1PerSP
         
-        for bx in inDataX.collidingBunches:
+        for bx in inDataX.usedCollidingBunches:
             lengthX=len(inDataX.spPerBX[bx])
 #            print "bx=", bx, " lengthX=", lengthX, " sepxList=", len(sepxList), " lengthY=", len(inDataY.spPerBX[bx])
             if(lengthX==len(sepxList)):
@@ -169,7 +172,7 @@ def doMakeBeamBeamFile(ConfigInfo):
         NpList1 = inDataY.avrgFbctB2PerSP
         NpList2 = inDataY.avrgFbctB1PerSP
 
-        for bx in inDataY.collidingBunches:
+        for bx in inDataY.usedCollidingBunches:
             lengthY=len(inDataY.spPerBX[bx])
             if(lengthY==len(sepyList)):
                 try:

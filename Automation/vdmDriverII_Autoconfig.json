@@ -68,6 +68,8 @@
     "InputScanFile" : "cond/Scan_{fill}.json",
     "Comment": "Input beam currents file is <AnalysisDir>/<InputBeamCurrentFile>",
     "InputBeamCurrentFile" : "cond/BeamCurrents_{fill}.json",
+    "Comment": "Input luminometer data in <AnalysisDir>/<InputLuminometerData>",
+    "InputLuminometerData" : "LuminometerData/Rates_{luminometer}_{fill}.json",
     "Comment": "Input CapSigmas in <AnalysisDir>/<Luminometer>/results",
     "InputCapSigmaFile" : "noCorr/{fit}_FitResults.pkl",
     "Scanpairs" : {scanpairs},

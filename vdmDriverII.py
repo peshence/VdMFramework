@@ -149,8 +149,8 @@ def DriveVdm(ConfigFile):
     print ""
 
     OutputSubDir = str(makeBeamCurrentFileConfig['OutputSubDir'])
-    outpath = './' + AnalysisDir + '/' + OutputSubDir 
-    if makeBeamCurrentFile or not (os.path.exists(outpath+'/BeamCurrents_'+str(Fill)+'.json') or os.path.exists(outpath + 'BeamCurrents_' +str(Fill)+'.pkl')):
+    outpath = './' + AnalysisDir + '/' + OutputSubDir
+    if makeBeamCurrentFile or not (os.path.exists(outpath+'/BeamCurrents_'+str(Fill)+'.json') or os.path.exists(outpath + '/BeamCurrents_' +str(Fill)+'.pkl')):
         table = {}
 
         table = doMakeBeamCurrentFile(makeBeamCurrentFileConfig)

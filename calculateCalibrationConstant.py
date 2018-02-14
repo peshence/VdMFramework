@@ -14,6 +14,7 @@ import luminometers
 from fitResultReader import fitResultReader
 from luminometers import *
 from vdmUtilities import makeCorrString
+import os
 
 # [in Hz]
 LHC_revolution_frequency =  11245
@@ -136,8 +137,12 @@ def CalculateCalibrationConstant(configFile):
         
     table =[]
     csvtable = []
-    csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])#, "normChange", "normChangeErr"] )
-    table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])#, "normChange", "normChangeErr"] )
+    if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
+        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])#, "normChange", "normChangeErr"] )
+        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])#, "normChange", "normChangeErr"] )
+    else:
+        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", 'inmean'])#, "normChange", "normChangeErr"] )
+        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", 'inmean'])#, "normChange", "normChangeErr"] )
 
     logbuffer="CalculateCalibrationConstant - excluded BCIDs\n"
 
@@ -147,23 +152,24 @@ def CalculateCalibrationConstant(configFile):
         YscanNumber = entry[1]
         XYbxlist=[]
         
-        with open('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json') as f:
-            beamdata = json.load(f)
+        if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
+            with open('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json') as f:
+                beamdata = json.load(f)
 
-        s1 = beamdata['Scan_' + str(XscanNumber)]
-        b1 = [0 for i in range(3654)]
-        b2 = [0 for i in range(3654)]
-        bcx1 = {i[0]:i[1] for i in s1[len(s1)/2]['fbctB1'].items()}
-        bcx2 = {i[0]:i[1] for i in s1[len(s1)/2]['fbctB2'].items()}
+            s1 = beamdata['Scan_' + str(XscanNumber)]
+            b1 = [0 for i in range(3654)]
+            b2 = [0 for i in range(3654)]
+            bcx1 = {i[0]:i[1] for i in s1[len(s1)/2]['fbctB1'].items()}
+            bcx2 = {i[0]:i[1] for i in s1[len(s1)/2]['fbctB2'].items()}
 
 
 
-        s2 = beamdata['Scan_' + str(YscanNumber)]
-        b1 = [0 for i in range(3654)]
-        b2 = [0 for i in range(3654)]
-        bcy1 = {i[0]:i[1] for i in s2[len(s2)/2]['fbctB1'].items()}
-        bcy2 = {i[0]:i[1] for i in s2[len(s2)/2]['fbctB2'].items()}
-        
+            s2 = beamdata['Scan_' + str(YscanNumber)]
+            b1 = [0 for i in range(3654)]
+            b2 = [0 for i in range(3654)]
+            bcy1 = {i[0]:i[1] for i in s2[len(s2)/2]['fbctB1'].items()}
+            bcy2 = {i[0]:i[1] for i in s2[len(s2)/2]['fbctB2'].items()}
+            
 
         xsec = defaultdict(float)
         xsecErr = defaultdict(float)
@@ -235,10 +241,11 @@ def CalculateCalibrationConstant(configFile):
 
                 #printall(bx, CapSigmaX, CapSigmaY, peakX, peakY, xsec[bx], xsecErr[bx])
             
-            sbil = (LHC_revolution_frequency*(peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx]))/(1e22*2*xsec[bx])
-            sbilerr = (LHC_revolution_frequency/(1e22*2*xsec[bx])) * math.sqrt(
-                (peakX[1] * bcx1[bx]*bcx2[bx])**2 + (peakY[1] * bcy1[bx]*bcy2[bx])**2 +
-                (xsecErr[bx] * (peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx])/xsec[bx])**2)
+            if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
+                sbil = (LHC_revolution_frequency*(peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx]))/(1e22*2*xsec[bx])
+                sbilerr = (LHC_revolution_frequency/(1e22*2*xsec[bx])) * math.sqrt(
+                    (peakX[1] * bcx1[bx]*bcx2[bx])**2 + (peakY[1] * bcy1[bx]*bcy2[bx])**2 +
+                    (xsecErr[bx] * (peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx])/xsec[bx])**2)
             # normChange = -999. 
             # normChangeErr = -999.
 
@@ -249,12 +256,16 @@ def CalculateCalibrationConstant(configFile):
             #     normChange = LHC_revolution_frequency/xsec[bx] * 1/oldNormalization
             #     normChangeErr = normChange*xsecErr[bx]/xsec[bx]
             # print normChange
-            row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], sbil, sbilerr, considerInMean]#, normChange, normChangeErr]
+            if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
+                row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], sbil, sbilerr, considerInMean]#, normChange, normChangeErr]
+            else:
+                row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], considerInMean]
             if considerInMean:
                 mean.append(xsec[bx])
                 meanweights.append(xsecErr[bx]**(-2))
-                sbilmean.append(sbil)
-                sbilmeanweights.append(sbilerr**(-2))
+                if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
+                    sbilmean.append(sbil)
+                    sbilmeanweights.append(sbilerr**(-2))
             else:
                 print "bcid ", bx, " excluded because chi2 value too high: ", chi2Dict[XscanID][bx]/ndofDict[XscanID][bx], chi2Dict[YscanID][bx]/ndofDict[YscanID][bx]
                 chi2exclBX.append(bx)
