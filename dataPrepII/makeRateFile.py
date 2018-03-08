@@ -93,6 +93,8 @@ def getRates(datapath, rateTable, scanpt, fill, bg):
 
 
 def GetBackground(filename, rateTable):
+    if rateTable=='hfetlumi':
+        return 0
     removestrays = lambda a: np.array([False if i < 6e9 else True for i in a])
     with tables.open_file(filename) as hd5:
         for r in hd5.root.beam:
