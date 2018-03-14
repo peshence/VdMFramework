@@ -22,6 +22,8 @@ for a in os.listdir(central):
             td = t2-t1
             _dg = a != '6016_1707280356_1707280409.hd5'
             print corr
+            # AutoAnalysis.Analyse(central + a, ['noCorr'], test, post=False, dg=_dg,
+            #                      pdfs = False, logs = False)
             AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg,
                                  pdfs = True, logs = True)
             AutoAnalysis.Analyse(central + a, ['BeamBeam', 'LengthScale'], test, post=False, dg=_dg,
