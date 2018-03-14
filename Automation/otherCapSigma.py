@@ -5,9 +5,10 @@ import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plot
 
-detectors = ['PLT','BCM1FPCVD','HFOC']
+detectors=['PLT']
+# detectors = ['PLT','BCM1FPCVD','HFOC', 'HFET']
 corrs = ['noCorr','BeamBeam','BeamBeam_LengthScale']
-maindet = 'BCM1FPCVD'
+maindet = 'PLT'
 # weighted = True
 def fit(det, name, const):
     return ('S' if name == '6016_28Jul17_055855_28Jul17_060210' else 'D') + ('G' if (not const or det == 'PLT') else 'GConst')
@@ -220,9 +221,14 @@ def do(const, analysisdir, end, finaldir):
 # analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBGUnconstrainedTest/Analysed_Data/'
 # do(False,analysisdir,end,finaldir)
 
-end = 'b2' + '.csv'
-finaldir = 'B2std/'
-analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBGBetterTest/Analysed_Data/'
+# end = 'b2semacc' + '.csv'
+# finaldir = 'B2semacc/'
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundErrSemAccounted/Analysed_Data/'
+# do(False,analysisdir,end,finaldir)
+
+end = 'b2stdacc' + '.csv'
+finaldir = 'B2stdacc/'
+analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundErrStdAccounted/Analysed_Data/'
 do(False,analysisdir,end,finaldir)
 
 
