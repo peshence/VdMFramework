@@ -287,17 +287,18 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
 
     # Configure a Beam Beam driver run
     
-    print corr
-    _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
-    _corrs = json.dumps(corr)
-    _makeScanFile = false
-    _makeRateFile = false
-    _makeBeamCurrentFile = false
-    _makeBeamBeamFile = true
-    _makeGraphsFile = true
-    _runVdmFitter = true
+    if corr != ['noCorr']:
+        print corr
+        _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
+        _corrs = json.dumps(corr)
+        _makeScanFile = false
+        _makeRateFile = false
+        _makeBeamCurrentFile = false
+        _makeBeamBeamFile = true
+        _makeGraphsFile = true
+        _runVdmFitter = true
 
-    Config()
+        Config()
 
     
 
