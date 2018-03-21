@@ -120,7 +120,6 @@ def doMakeBeamBeamFile(ConfigInfo):
                 # try:
                     lengthY=len(inDataY.spPerBX[bx])
                     if(lengthY==len(inDataY.displacement)):
-                        print CsigxList.keys()
                         Csigx = CsigxList[str(bx)]
                         Csigy = CsigyList[str(bx)]
                         for i in range(len(sepxList)):

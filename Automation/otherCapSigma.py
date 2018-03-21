@@ -226,13 +226,19 @@ def do(const, analysisdir, end, finaldir):
 # analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundErrSemAccounted/Analysed_Data/'
 # do(False,analysisdir,end,finaldir)
 
-end = 'b2stdacc' + '.csv'
-finaldir = 'B2stdacc/'
-analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundErrStdAccounted/Analysed_Data/'
-do(False,analysisdir,end,finaldir)
+# end = 'b2stdacc' + '.csv'
+# finaldir = 'B2stdacc/'
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundErrStdAccounted/Analysed_Data/'
+# do(False,analysisdir,end,finaldir)
 
 
 # analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationMinuit/Analysed_Data/'
 # end = '.csv'
 # finaldir = 'B2std/'
 # do(False,analysisdir,end,finaldir)
+
+
+end = 'bgcorrection' + '.csv'
+finaldir = 'bgcorrection/'
+analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundCorrection/Analysed_Data/'
+do(False,analysisdir,end,finaldir)

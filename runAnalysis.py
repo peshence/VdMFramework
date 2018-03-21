@@ -30,23 +30,31 @@ def RunAnalysis(name, luminometer, fit, corr='noCorr', automation_folder='Automa
         logging.info('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') +
                      '\n\tFile ' + name + '\n\t' + message)
     try:
-        LogInfo('NO CORR ' + luminometer + fit + ' START')
-        fitresults = vdmDriverII.DriveVdm(automation_folder + 'autoconfigs/' + name + '/' +
-                                          luminometer + 'noCorr_' + fit + '_driver.json')
-        if corr != 'noCorr':
-            LogInfo(corr + ' ' + luminometer + fit + ' START')
+        beambeamsource = 'noCorr_' if 'Background' not in corr else 'Background_'
+        if 'BeamBeam' in corr:
+            LogInfo(beambeamsource + ' ' + luminometer + fit + ' START')
             fitresults = vdmDriverII.DriveVdm(automation_folder + 'autoconfigs/' + name + '/' +
-                                              luminometer + corr + '_' + fit + '_driver.json')
+                                            luminometer + beambeamsource + fit + '_driver.json')
+
+            LogInfo('CALIBRATION CONST ' + luminometer + fit + ' START')
+            calibration = calculateCalibrationConstant.CalculateCalibrationConstant(
+                automation_folder + 'autoconfigs/' + name + '/' + luminometer + beambeamsource + fit + '_calibrationConst.json')
+        
+        LogInfo(corr + ' ' + luminometer + fit + ' START')
+        fitresults = vdmDriverII.DriveVdm(automation_folder + 'autoconfigs/' + name + '/' +
+                                            luminometer + corr + '_' + fit + '_driver.json')
 
         LogInfo('CALIBRATION CONST ' + luminometer + fit + ' START')
         calibration = calculateCalibrationConstant.CalculateCalibrationConstant(
             automation_folder + 'autoconfigs/' + name + '/' + luminometer + corr + '_' + fit + '_calibrationConst.json')
 
-        LogInfo('PLOT FIT ' + luminometer + fit + ' START')
-        plotFitResults.PlotFit(automation_folder + 'autoconfigs/' + name + '/' +
-                               luminometer + corr + '_' + fit + '_plotFit.json')
+        # these just take up space in emittance scans. If you need them the configurations are still made
+        # LogInfo('PLOT FIT ' + luminometer + fit + ' START')
+        # plotFitResults.PlotFit(automation_folder + 'autoconfigs/' + name + '/' +
+        #                        luminometer + corr + '_' + fit + '_plotFit.json')
+
         config = json.load(open(automation_folder + 'autoconfigs/' + name + '/' +
-                                luminometer + 'noCorr_' + fit + '_driver.json'))
+                                luminometer + beambeamsource + fit + '_driver.json'))
         fill = config['Fill']
         time = config['makeScanFileConfig']['ScanTimeWindows'][0][0]
         fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])

@@ -39,14 +39,14 @@ class BeamBeam_Corr(CorrectionManager.CorrectionProvider):
         
         self.PrintCorr()
 
-#put pdf in file with same location and name as correction file, just with ending pdf instead of pkl
+        #put pdf in file with same location and name as correction file, just with ending pdf instead of pkl
         pdfName = configFile[:configFile.index(".pkl")] + ".pdf"
         canvas = r.TCanvas()
         canvas.SetGrid()
-# buffer for log file                    
+        # buffer for log file                    
         logbuffer="The list of bunches with incomplete scanpoint lists. These BCIDs are excluded when BeamBeam is applied.\n"
 
-# apply correction here to coordinate, then write back into entry, check if this really changes value in calling function
+        # apply correction here to coordinate, then write back into entry, check if this really changes value in calling function
 
         for entry in inData:
             scanNumber = entry.scanNumber

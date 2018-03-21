@@ -10,7 +10,7 @@ import os
 import datetime as dt
 
 
-def getRates(datapath, rateTable, scanpt, fill, bg, bgerr):
+def getRates(datapath, rateTable, scanpt, fill):
     '''Gets the data in the corresponding folder or hd5 file for the respective ratetable and scan point'''
     # print "beginning of getCurrents", scanpt
 
@@ -80,8 +80,8 @@ def getRates(datapath, rateTable, scanpt, fill, bg, bgerr):
     else:
         for idx, bcid in enumerate(collBunches):
             i = bcid if int(fill)>=5838 or rateTable != 'hfetlumi' else (bcid-1 if bcid!=0 else 3563)
-            rates[str(bcid+1)] = bxdf[i].mean() - bg
-            ratesErr[str(bcid+1)] = np.sqrt(stats.sem(bxdf[i])**2 + bgerr**2)
+            rates[str(bcid+1)] = bxdf[i].mean()
+            ratesErr[str(bcid+1)] = stats.sem(bxdf[i])
 
     if avgdf.empty:
         print "Attention, rates avgdf empty because timestamp window not contained in file"
@@ -90,36 +90,6 @@ def getRates(datapath, rateTable, scanpt, fill, bg, bgerr):
         ratesErr['sum'] = stats.sem(avgdf[0])
 
     return (rates, ratesErr)
-
-
-def GetBackground(filename, rateTable):
-    if rateTable=='hfetlumi':
-        return (0,0)
-    removestrays = lambda a: np.array([False if i < 6e9 else True for i in a])
-    with tables.open_file(filename) as hd5:
-        for r in hd5.root.beam:
-            bunchlist1 = removestrays(r['bxintensity1'])
-            bunchlist2 = removestrays(r['bxintensity2'])
-
-            fillednoncolliding = (bunchlist1 | bunchlist2) & ~(bunchlist1 & bunchlist2)
-            break
-
-        for table in hd5.root:
-                if table.name == rateTable:
-                    beamtable = table
-                    break
-        
-        backgrounds = []
-        noises = []
-        for r in beamtable:
-            backgrounds.append(np.mean(r['bxraw'][fillednoncolliding]))
-            noises.append(np.mean(r['bxraw'][-120:]))
-        background = np.mean(backgrounds)
-        noise = np.mean(noises)
-        return ((2*background - noise), np.sqrt(4*np.std(backgrounds)**2 + np.std(noises)**2))
-        # return ((2*background - noise), np.sqrt(4*stats.sem(backgrounds)**2 + stats.sem(noises)**2))
-
-
 
 def doMakeRateFile(ConfigInfo):
     
@@ -131,16 +101,13 @@ def doMakeRateFile(ConfigInfo):
     with open(InputScanFile, 'rb') as f:
         scanInfo = json.load(f)
 
-    bg = GetBackground(InputLumiDir, RateTable)
     table = {}
-    table['backgroundApplied'] = np.float(bg[0])
-    table['backgroundError'] = np.float(bg[1])
     for i, name in enumerate(scanInfo["ScanNames"]):
         key = "Scan_" + str(i+1)
         scanpoints = scanInfo[key]
         table[key]=[]
         for j, sp in enumerate(scanpoints):
-            rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"],bg[0],bg[1])
+            rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"])
             scanpoint = {
                 'ScanNumber':i+1,
                 'ScanName':name,

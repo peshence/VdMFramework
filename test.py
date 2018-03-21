@@ -24,9 +24,9 @@ for a in os.listdir(central):
             print corr
             # AutoAnalysis.Analyse(central + a, ['noCorr'], test, post=False, dg=_dg,
             #                      pdfs = False, logs = False)
-            AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg,
-                                 pdfs = True, logs = True)
-            AutoAnalysis.Analyse(central + a, ['BeamBeam', 'LengthScale'], test, post=False, dg=_dg,
+            # AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg,
+            #                      pdfs = True, logs = True)
+            AutoAnalysis.Analyse(central + a, ['Background', 'BeamBeam', 'LengthScale'], test, post=False, dg=_dg,
                                  pdfs = True, logs = True)
             
             #AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=False, pdfs = True, logs = False)

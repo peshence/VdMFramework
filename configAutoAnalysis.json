@@ -1,6 +1,6 @@
 {
     "Comment": "Folder path has to be relative",
-    "automation_folder": "../../../../../brildata/vdmoutput/AutomationBackgroundErrStdAccounted/",
-    "ratetables": ["pltlumizero", "hfetlumi", "hfoclumi", "bcm1fsilumi", "bcm1fpcvdlumi", "bcm1fscvdlumi"],
+    "automation_folder": "../../../../../brildata/vdmoutput/AutomationBackgroundCorrection2/",
+    "ratetables": ["pltlumizero", "hfetlumi", "hfoclumi", "bcm1fpcvdlumi"],
     "exampleratetables": ["pltlumizero", "hfetlumi", "hfoclumi", "bcm1fsilumi", "bcm1fpcvdlumi", "bcm1fscvdlumi"]
 }
