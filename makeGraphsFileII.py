@@ -3,6 +3,7 @@ import BeamBeam_Corr
 import LengthScale_Corr
 import Ghosts_Corr
 import Satellites_Corr
+import Background_Corr
 import ROOT as r
 import sys
 import json
@@ -124,8 +125,11 @@ def doMakeGraphsFile(ConfigInfo):
         corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + Fill +'.pkl' 
         if entry == "BeamBeam":
             corrValueFile = AnalysisDir + '/corr/'+ entry + '_' +Luminometer + '_' + Fill +'.pkl'
-        if 'inputlumi' in ConfigInfo:
-            corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + ConfigInfo['inputlumi'] + '_' + Fill +'.pkl'
+            if 'inputlumi' in ConfigInfo:
+                corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + ConfigInfo['inputlumi'] + '_' + Fill +'.pkl'
+        
+        if entry == "Background":
+            corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + Fill + '.json'
             
         if entry == "BeamBeam":
             corrector.doCorr(inData, corrValueFile, makepdf)
@@ -179,16 +183,9 @@ def doMakeGraphsFile(ConfigInfo):
                lumi = [a/b for a,b in zip(entry.lumi[i],currProduct)]
                lumie = [a/b for a,b in zip(entry.lumiErr[i],currProduct)]
 
-               # lumie = array("d",lumie)
-               # lumi = array("d",lumi)
                print bx
                name = prefix +'{:04d}'.format(int(bx))
 
-               # graph = r.TGraphErrors(len(coord),coord,lumi,coorde,lumie)
-               # graph.SetName(name)
-               # graph.SetTitle(name)
-               # #graph.SetMinimum(0.000001)
-               # graphsList[int(bx)] = graph
                graphsList.update({bx:{
                    'name':name,
                    'sep':coord,
@@ -207,13 +204,7 @@ def doMakeGraphsFile(ConfigInfo):
             currProduct = [ a*b/1e22 for a,b in zip(entry.sumCollAvrgFbctB1,entry.sumCollAvrgFbctB2)]
             lumi = [a/b for a,b in zip(entry.sumLumi,currProduct)]
             lumie = [a/b for a,b in zip(entry.sumLumiErr,currProduct)]
-            # lumie = array("d",lumie)
-            # lumi = array("d",lumi)
             name = prefix + 'sum'
-            # graph = r.TGraphErrors(len(coord),coord,lumi,coorde,lumie)
-            # graph.SetName(name)
-            # graph.SetTitle(name)
-            # graphsList['sum'] = graph
             graphsList.update({'sum':{
                 'name':name,
                 'sep':coord,

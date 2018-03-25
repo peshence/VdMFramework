@@ -31,11 +31,8 @@ for dir in dirs:
     row = {}
     for j in jsons:
         j = json.load(open(folder + dir + '/' +j,'r'))
-        a = False
-        for lumi in lumis:
-            if lumi in j:
-                a = true
-        if not a:
+        
+        if not any([lumi in j for lumi in lumis]:
             continue
         fitr = 'output\d+' + lumi + '(.*).json'
         fit = re.match(fitr,j).group(1)

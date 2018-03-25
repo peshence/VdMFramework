@@ -79,7 +79,8 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             #f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
             # f= 'DG'
         else:
-            f = ('SG' if 'plt' == r[:3] else 'SGConst')
+            f = 'SG'
+            # f = ('SG' if 'plt' == r[:3] else 'SGConst')
             # f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
         if str.isdigit(str(r[-1])):
             if str.isdigit(str(r[-2])):
@@ -264,11 +265,15 @@ if __name__ == '__main__':
         '-l', '--logs', help='Make logs for the fitting (no minuit yet)', action='store_true')
     parser.add_argument(
         '-ls', '--lscale', help='Add length scale correction', action='store_true')
+    parser.add_argument(
+        '-bg', '--background', help='Add background correction', action='store_true')
     args = parser.parse_args()
     corr = ['noCorr']
 
     if args.beambeam:
         corr = ['BeamBeam']
+    if args.background:
+        corr.append('Background')
     if args.lscale:
         corr.append('LengthScale')
     if args.filename2:

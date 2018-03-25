@@ -91,7 +91,6 @@ def getRates(datapath, rateTable, scanpt, fill):
 
     return (rates, ratesErr)
 
-
 def doMakeRateFile(ConfigInfo):
     
     AnalysisDir = str(ConfigInfo['AnalysisDir'])
@@ -103,9 +102,8 @@ def doMakeRateFile(ConfigInfo):
         scanInfo = json.load(f)
 
     table = {}
-
     for i, name in enumerate(scanInfo["ScanNames"]):
-        key = "Scan_" + str(i+1)        
+        key = "Scan_" + str(i+1)
         scanpoints = scanInfo[key]
         table[key]=[]
         for j, sp in enumerate(scanpoints):

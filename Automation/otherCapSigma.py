@@ -7,16 +7,16 @@ import matplotlib.pyplot as plot
 
 detectors = ['PLT','BCM1FPCVD', 'HFET','HFOC']
 corrs = ['noCorr','BeamBeam','BeamBeam_LengthScale']
-maindet = 'BCM1FPCVD'
+maindet = 'PLT'
 # weighted = True
 def fit(det, name, const):
     return ('S' if name == '6016_28Jul17_055855_28Jul17_060210' else 'D') + ('G' if (not const or det == 'PLT') else 'GConst')
 
 
-def do(const,analysisdir):
+def do(const, analysisdir, end, finaldir):
     scans = os.listdir(analysisdir)
-    end = ('cc' if 'Const' in analysisdir else 'c' if const else '') + '.csv'
-    finaldir = ('ConstConst/' if 'Const' in analysisdir else 'Const/' if const else '/')
+    if not os.path.isdir('DG' + finaldir):
+        os.mkdir('DG' + finaldir)
     for corr in corrs:
         allscans = {}
         allscansfull = {}
@@ -37,7 +37,6 @@ def do(const,analysisdir):
                 except:
                     curdf = pd.DataFrame.from_csv(analysisdir + scan + '/' + det + '/results/' + corr + '/' + fit(det,scan,const) + 'Const' + '_FitResults.csv')
                 boo = curdf.Type.tolist()[0] == 'Y'
-
                 columns = ['CapSigma','CapSigmaErr','peak','peakErr'] + (['Const','ConstErr'] if const else []) + ['covStatus']
                 curdfx = curdf.loc[2 if boo else 1, ['BCID'] + columns]
                 curdfy = curdf.loc[1 if boo else 2, columns]
@@ -116,7 +115,7 @@ def do(const,analysisdir):
             detb = d[scan][maindet]
             for detn in d[scan]:
                 det = d[scan][detn]
-
+                print detn,scan
                 capxwav[scan][detn], sumw = np.average(det.X_CapSigma,weights=[1/i**2 for i in det.X_CapSigmaErr], returned=True)
                 capxwav[scan + 'Err'][detn] = 1/np.sqrt(sumw)
                 capxwav[scan + 'n'][detn] = len(np.isfinite(det.X_CapSigma))
@@ -160,7 +159,7 @@ def do(const,analysisdir):
                 bdav[scan + 'n'][detn] = len(np.isfinite(det.BCM1Fxsec))
 
                 wdav[scan][detn], sumw = np.average(det['xsec'],weights=[1/i**2 for i in det['xsecErr']], returned=True)
-                wdav[scan + 'Err'][detn] = 1/np.sqrt(sumw)
+                wdav[scan + 'Err'][detn] = np.std(det.xsec)
                 wdav[scan + 'n'][detn] = len(np.isfinite(det.xsec))
 
                 dav[scan][detn] = np.mean(det['xsec'])
@@ -195,11 +194,49 @@ def do(const,analysisdir):
             #     plot.legend()
             #     plot.show()
 
-            
 
-analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationMinuit/Analysed_Data/'
-do(True,analysisdir)
-do(False,analysisdir)
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationMinuit/Analysed_Data/'
 
-analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationConstTest/Analysed_Data/'
-do(True,analysisdir)
+# end = 'c' + '.csv'
+# finaldir = 'Const/'
+# do(True,analysisdir)
+# end = '.csv'
+# finaldir = '/'
+# do(False,analysisdir)
+
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationConstTest/Analysed_Data/'
+# end = 'cc' + '.csv'
+# finaldir = 'ConstConst/'
+# do(True,analysisdir)
+
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBGTest/Analysed_Data/'
+# end = 'bc' + '.csv'
+# finaldir = 'BG/'
+# do(False,analysisdir)
+
+# end = 'bu' + '.csv'
+# finaldir = 'BU/'
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBGUnconstrainedTest/Analysed_Data/'
+# do(False,analysisdir,end,finaldir)
+
+# end = 'b2semacc' + '.csv'
+# finaldir = 'B2semacc/'
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundErrSemAccounted/Analysed_Data/'
+# do(False,analysisdir,end,finaldir)
+
+# end = 'b2stdacc' + '.csv'
+# finaldir = 'B2stdacc/'
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundErrStdAccounted/Analysed_Data/'
+# do(False,analysisdir,end,finaldir)
+
+
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationMinuit/Analysed_Data/'
+# end = '.csv'
+# finaldir = 'B2std/'
+# do(False,analysisdir,end,finaldir)
+
+
+end = 'bgcorrection' + '.csv'
+finaldir = 'bgcorrection/'
+analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundCorrection/Analysed_Data/'
+do(False,analysisdir,end,finaldir)

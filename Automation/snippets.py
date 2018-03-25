@@ -13,6 +13,46 @@ dfloc[x,det]=s
 dfloc[x,'Fill']=f
 
 
+### Delete records in batches
+import requests
+import threading
+
+threads = []
+url = 'http://srv-s2d16-22-01/es'
+scroll_params = {
+    'size':100,
+    'scroll': '1m'
+}
+r = requests.get(url + '/data-vdm/_search', params=scroll_params)
+j = r.json()
+scroll_id = j['_scroll_id']
+
+while True:
+    scroll_params = {
+        'scroll': '1m',
+        'scroll_id': scroll_id
+    }
+    r = requests.get(url + '/_search/scroll', params=scroll_params)
+    if r.status_code != 200:
+        print r.text
+        break
+        # here handle failure
+    j = r.json()
+    print len(j['hits']['hits'])
+    print j['hits']['hits'][0]['_source']['data']['timestamp']
+    if len(j['hits']['hits']) == 0:
+        break
+    scroll_id = j['_scroll_id']
+    def deletescans(j):
+        for hit in [i for i in j['hits']['hits'] if 'data' not in i['_source'] or (i['_source']['data']['fill'] == 6016)]:
+            requests.delete('http://srv-s2d16-22-01/es/' + hit['_index'] + '/logs/' + hit['_id'])
+    t = threading.Thread(target=deletescans,args=(j,))
+    t.start()
+    threads.append(t)
+for th in threads:
+    th.join()
+
+
 ### DELETE RECORDS
 import requests
 import json

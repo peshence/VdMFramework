@@ -239,6 +239,7 @@ def doPlot1D(graph,fList, fill, tempPath):
             yval.remove(minval)
             minval =  min(yval)
 
+    # minval = minval/100
     new_graph.SetTitle("Scan " + scan + ": " + type + "-plane BCID " + bcid)
     new_graph.GetYaxis().SetTitle("L / (N1*N2) [a.u.]")
     new_graph.GetYaxis().SetRangeUser(minval,10*peak)
@@ -315,6 +316,9 @@ def doPlot1D(graph,fList, fill, tempPath):
     res.GetXaxis().SetTitle("#Delta [mm]")
     res.GetYaxis().SetTitle("Residuals [#sigma]")
     res.Draw("AP")
+    l = r.TLine(xmin, 0, xmax, 0)
+    l.SetLineStyle(2)
+    l.Draw('same')
     try:
         c.SaveAs(tempPath[0]+new_graph.GetName()+".ps")
     except ValueError:

@@ -368,7 +368,8 @@ class vdmInputData:
                     self.sumLumi[j] = self.lumiPerSP[j]['sum'] 
                     self.sumLumiErr[j] = self.lumiErrPerSP[j]['sum'] 
                 except:
-                    print "in GetLuminometerData: BCID ", bx, "is not filled at the scanpoint ", j
+                    pass
+                    # print "in GetLuminometerData: BCID ", bx, "is not filled at the scanpoint ", j
 
         return
         

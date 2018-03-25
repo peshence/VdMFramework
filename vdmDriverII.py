@@ -11,6 +11,7 @@ from dataPrep_corr.makeGhostsFile import doMakeGhostsFile
 from dataPrep_corr.makeLengthScaleFile import doMakeLengthScaleFile
 from dataPrep_corr.makeSatellitesFile import doMakeSatellitesFile
 from dataPrepII.makeRateFile import doMakeRateFile
+from dataPrep_corr.makeBackgroundFile import MakeBackgroundFile
 from dataPrepII_PCC.makePCCRateFile import doMakePCCRateFile
 from makeBeamCurrentFileII import doMakeBeamCurrentFile
 from makeGraphs2D import doMakeGraphs2D
@@ -55,6 +56,9 @@ def DriveVdm(ConfigFile):
 
     makeLengthScaleFile = False
     makeLengthScaleFile = ConfigInfo['makeLengthScaleFile']
+
+    makeBackgroundFile = False
+    makeBackgroundFile = ConfigInfo['makeBackgroundFile']
 
     makeGraphsFile = False
     makeGraphsFile = ConfigInfo['makeGraphsFile']
@@ -101,7 +105,7 @@ def DriveVdm(ConfigFile):
     OutputSubDir = str(makeScanFileConfig['OutputSubDir'])    
     outpath = './' + AnalysisDir + '/'+ OutputSubDir 
 
-    if makeScanFile or not os.path.exists(outpath+'/Scan_'+str(Fill)+'.csv'):
+    if makeScanFile or not (os.path.exists(outpath+'/Scan_'+str(Fill)+'.json') or os.path.exists(outpath+'/Scan_'+str(Fill)+'.pkl')):
         table = {}
         csvtable = []
 
@@ -128,7 +132,7 @@ def DriveVdm(ConfigFile):
 
     OutputSubDir = AnalysisDir + "/" + str(makeRateFileConfig['OutputSubDir'])
 
-    if makeRateFile or not os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json'):
+    if makeRateFile or not (os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json') or os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.pkl')):
         table = {}
 
         if Luminometer=='PCC':
@@ -149,8 +153,8 @@ def DriveVdm(ConfigFile):
     print ""
 
     OutputSubDir = str(makeBeamCurrentFileConfig['OutputSubDir'])
-    outpath = './' + AnalysisDir + '/' + OutputSubDir 
-    if makeBeamCurrentFile or not os.path.exists(outpath+'/BeamCurrents_'+str(Fill)+'.json'):
+    outpath = './' + AnalysisDir + '/' + OutputSubDir
+    if makeBeamCurrentFile or not (os.path.exists(outpath+'/BeamCurrents_'+str(Fill)+'.json') or os.path.exists(outpath + '/BeamCurrents_' +str(Fill)+'.pkl')):
         table = {}
 
         table = doMakeBeamCurrentFile(makeBeamCurrentFileConfig)
@@ -268,6 +272,18 @@ def DriveVdm(ConfigFile):
         with open(OutputDir+'/LengthScale_'+str(Fill)+'.pkl', 'wb') as f:
             pickle.dump(table, f)
 
+    if makeBackgroundFile == True:
+        makeBackgroundFileConfig = {}
+        makeBackgroundFileConfig['RateTable'] = ConfigInfo['makeRateFileConfig']['RateTable']
+        makeBackgroundFileConfig['Filename'] = ConfigInfo['makeRateFileConfig']['InputLumiDir']
+        print "Running makeBackgroundFile with config info:"
+        for key in makeBackgroundFileConfig:
+            print key, makeBackgroundFileConfig[key]
+        print ""
+        background = MakeBackgroundFile(makeBackgroundFileConfig)
+
+        with open(AnalysisDir + '/corr/Background_'+str(Fill)+'.json', 'wb') as f:
+            json.dump(background, f)
 
     if makeGraphsFile == True:
 
@@ -300,6 +316,7 @@ def DriveVdm(ConfigFile):
         misseddata.write(missedDataBuffer)
         misseddata.close()
 
+    ## PT: Have no idea if this works, haven't needed it and so haven't updated
     if makeGraphs2D == True:
 
         makeGraphs2DConfig = ConfigInfo['makeGraphs2DConfig']
@@ -370,6 +387,7 @@ def DriveVdm(ConfigFile):
         OutputDir = './' + AnalysisDir + '/' + Luminometer + '/results/' + corrFull + '/'
         OutputDirs.append(OutputDir)
 
+        ## PT: Have no idea if this works, haven't needed it and so haven't updated
         if 'Sim' in FitConfigFile:
             PlotsTempPath = vdmFitterConfig['PlotsTempPath']
             if 'InputSimGraphsFile' in vdmFitterConfig:
@@ -407,18 +425,16 @@ def DriveVdm(ConfigFile):
                 os.mkdir(MinuitLogPath, 0755)
 
             FitConfigInfo['MinuitFile'] = MinuitLogFile
-
-        ### Fixing constant parameters for fit, probably not going to be used
-        # if Fill=='6016':
-        #     if Luminometer=='HFET':
-        #         FitConfigInfo['StartConst'] = 1.20E-05
-        #         FitConfigInfo['LimitsConst'] = [1.20E-05, 1.20E-05]
-        #     elif Luminometer=='HFOC':
-        #         FitConfigInfo['StartConst'] = 2.00E-05
-        #         FitConfigInfo['LimitsConst'] = [2.00E-05, 2.00E-05]
-        #     elif Luminometer=='BCM1FPCVD':
-        #         FitConfigInfo['StartConst'] = 4.01E-06
-        #         FitConfigInfo['LimitsConst'] = [4.01E-06, 4.01E-06]
+        if Fill=='6016':
+            if Luminometer=='HFET':
+                FitConfigInfo['StartConst'] = 1.20E-05
+                FitConfigInfo['LimitsConst'] = [1.20E-05, 1.20E-05]
+            elif Luminometer=='HFOC':
+                FitConfigInfo['StartConst'] = 2.00E-05
+                FitConfigInfo['LimitsConst'] = [2.00E-05, 2.00E-05]
+            elif Luminometer=='BCM1FPCVD':
+                FitConfigInfo['StartConst'] = 4.01E-06
+                FitConfigInfo['LimitsConst'] = [4.01E-06, 4.01E-06]
 
         for path in PlotsTempPath:
             if not os.path.isdir(path[0]):

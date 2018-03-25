@@ -217,14 +217,15 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
     _makeRateFile = false
     _makeBeamCurrentFile = false
     _makeBeamBeamFile = false
-    _makeLengthScaleFile = json.dumps('LengthScale' in corr)
+    _makeLengthScaleFile = false
+    _makeBackgroundFile = false if 'Background' not in corr else true
     _makeGraphsFile = true
     _runVdmFitter = true
     _makepdf = json.dumps(makepdf)
     _makelogs = json.dumps(makelogs)
 
     # Start without correction
-    _corr = 'noCorr'
+    _corr = 'noCorr' if 'Background' not in corr else 'Background'
     _corrs = json.dumps([_corr])
 
     path = automation_folder + 'autoconfigs/'
@@ -248,7 +249,9 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
                                     dip=_dip, central=_central, luminometer=_luminometer, fit=_fit, offsets=_offsets,
                                     ratetable=_ratetable, corr=_corr, corrs=_corrs, makeScanFile=_makeScanFile,
                                     makeRateFile=_makeRateFile, makeBeamCurrentFile=_makeBeamCurrentFile, 
-                                    makeBeamBeamFile=_makeBeamBeamFile, makeLengthScaleFile=_makeLengthScaleFile, makeGraphsFile=_makeGraphsFile,
+                                    makeBeamBeamFile=_makeBeamBeamFile, bbsource='noCorr' if 'Background' not\
+                                     in corr else 'Background', makeLengthScaleFile=_makeLengthScaleFile, 
+                                    makeBackgroundFile=_makeBackgroundFile, makeGraphsFile=_makeGraphsFile,
                                     runVdmFitter=_runVdmFitter, makepdf = _makepdf, makelogs = _makelogs))
         else:
             with open(autoconfigs_folder + 'vdmDriverII_Autoconfigv2.json', 'r') as f:
@@ -261,9 +264,11 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
                                     dip=_dip, central=_central, luminometer=_luminometer, fit=_fit, offsets=_offsets,
                                     ratetable=_ratetable, corr=_corr, corrs=_corrs, makeScanFile=_makeScanFile,
                                     makeRateFile=_makeRateFile, makeBeamCurrentFile=_makeBeamCurrentFile, 
-                                    makeBeamBeamFile=_makeBeamBeamFile, makeLengthScaleFile=_makeLengthScaleFile,
-                                    makeGraphsFile=_makeGraphsFile, runVdmFitter=_runVdmFitter,
-                                    bstar = _bstar, angle = _angle,  makepdf = _makepdf, makelogs = _makelogs))
+                                    makeBeamBeamFile=_makeBeamBeamFile, bbsource='noCorr' if 'Background' not\
+                                     in corr else 'Background', makeLengthScaleFile=_makeLengthScaleFile, 
+                                    makeBackgroundFile=_makeBackgroundFile,makeGraphsFile=_makeGraphsFile,
+                                    runVdmFitter=_runVdmFitter, bstar = _bstar, angle = _angle,
+                                    makepdf = _makepdf, makelogs = _makelogs))
         # Configure calibration constant calculation
         with open(autoconfigs_folder + 'calculateCalibrationConstant_Autoconfig.json', 'r') as f:
             config = f.read()
@@ -282,22 +287,23 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
             f.write(config.format(fill=_fill, date=_date,
                                 luminometer=_luminometer, fit=_fit, corrs=_corrs,analysisdir=automation_folder + 'Analysed_Data/' + name))
 
-    # Configure a noCorr driver run
+    # Configure a noCorr or BackgroundCorr driver run, to use as source for a run with the same correction plus a BeamBeam correction
     Config()
 
-    # Configure a Beam Beam driver run
+    # Configure a full corrected driver run
+    # BeamBeam needs an input of capsigma measurements to have run before running, potentially some other corrections might too
     
-    print corr
-    _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
-    _corrs = json.dumps(corr)
-    _makeScanFile = false
-    _makeRateFile = false
-    _makeBeamCurrentFile = false
-    _makeBeamBeamFile = true
-    _makeGraphsFile = true
-    _runVdmFitter = true
+    if corr != ['noCorr']:
+        print corr
+        _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
+        _corrs = json.dumps(corr)
+        _makeBeamBeamFile = json.dumps('BeamBeam' in corr)
+        _makeLengthScaleFile = json.dumps('LengthScale' in corr)
+        _makeBackgroundFile = json.dumps('Background' in corr)
+        _makeGraphsFile = true
+        _runVdmFitter = true
 
-    Config()
+        Config()
 
     
 

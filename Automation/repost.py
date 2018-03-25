@@ -76,17 +76,17 @@ def repostnormal(folder):
             jd['detector'] = 'HFOC' if jd['detector']=='HFLumi' else ('HFET' if jd['detector']=='HFLumiET' else jd['detector'])
             #jd.update({'fit': re.match(fitr, j).group(1)})
             print requests.post(
-                'http://srv-s2d16-22-01.cms:11001/vdm', json.dumps(jd))
+                'http://srv-s2d16-22-01.cms:11001/vdmtest', json.dumps(jd))
 
 
 
 if args.file:
     repost(args.file, args.perchannel)
 else:
-    for f in os.listdir('Analysed_Data/'):
-        if f[0] != 'F' and int(f[:4])<6052:# and int(f[:4])<5980) : #f == '6016_28Jul17_100004_28Jul17_112346':
+    for f in os.listdir('/brildata/vdmoutput/Automation/Analysed_Data/'):
+        if f[0] != 'F' and int(f[:4])<6052 and int(f[:4])<5980 : #f == '6016_28Jul17_100004_28Jul17_112346':
             print 'yes'
-            repost('Analysed_Data/' + f + '/', args.perchannel)# or int(f[:4])>=5980):
+            repost('/brildata/vdmoutput/Automation/Analysed_Data/' + f + '/', args.perchannel)# or int(f[:4])>=5980):
             #if f[0] != 'F': #and int(f[:4])>5750:
             #if f == '6016_28Jul17_055855_28Jul17_060431':
 
