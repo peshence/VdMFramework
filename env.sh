@@ -6,6 +6,7 @@ export PYTHONPATH=$ROOTSYS/lib:$PYTHONPATH
 export PYTHONPATH=${PWD}:$PYTHONPATH
 export PYTHONPATH=${PWD}/fits:$PYTHONPATH
 export PYTHONPATH=${PWD}/corrections:$PYTHONPATH
+export PYTHONPATH=${PWD}/Automation:$PYTHONPATH
 export VDMPATH=${PWD}
 export PATH=/afs/cern.ch/cms/lumi/brilconda-1.1.7/bin:/nfshome0/lumipro/brilconda/bin:$PATH
 #source /afs/cern.ch/cms/lumi/brilconda-1.1.7/root/bin/thisroot.sh
