@@ -461,10 +461,10 @@ def DriveVdm(ConfigFile):
             writer.writerows(table[i])
             csvfile.close()
         
-            outResults ='./'+ OutputDir + '/'+FitName+'_Functions.pkl'
-            outFile = open(outResults, 'wb')
-            pickle.dump(resultsAll, outFile)
-            outFile.close()
+            # outResults ='./'+ OutputDir + '/'+FitName+'_Functions.pkl'
+            # outFile = open(outResults, 'wb')
+            # pickle.dump(resultsAll, outFile)
+            # outFile.close()
 
 
         # PDF shapes output, removing temp plots
