@@ -75,9 +75,9 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         l = re.match('([a-z1]*)_?lumi(.*)', r).group(1)
         l = l if r != 'hflumi' else 'hfoc'
         if dg or filename2:
-            f = ('DG' if 'plt' == r[:3] else 'DGConst')
+            # f = ('DG' if 'plt' == r[:3] else 'DGConst')
             #f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
-            # f= 'DG'
+            f= 'DG'
         else:
             f = 'SG'
             # f = ('SG' if 'plt' == r[:3] else 'SGConst')
@@ -93,11 +93,12 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
     def timestamp(i): return dt.datetime.fromtimestamp(data.iloc[i]['sec']).strftime('%d%b%y_%H%M%S')
     name = str(fill) + '_' + timestamp(0) + '_' + timestamp(-1)
 
-    times = Configurator.GetTimestamps(data, fill, name, automation_folder=automation_folder)
-    if not times or len(times) < 2:
+    alltimes = Configurator.GetTimestamps(data, fill, name, automation_folder=automation_folder)
+    if not alltimes or len(alltimes) < 2:
         raise Exception('No times')
 
-    def AnalyseScanPair(times, scanpair):
+    for scanpair in xrange(0, len(alltimes), 2):
+        times = alltimes[scanpair:scanpair + 2]
         def ts(i): return dt.datetime.fromtimestamp(i).strftime('%d%b%y_%H%M%S')
         name = str(fill) + '_' + ts(times[0][0][0]) + '_' + ts(times[1][0][0])
 
@@ -106,20 +107,20 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         threads = zip(luminometers, fits, ratetables)
         threadcount = 10
         angle = 0
-        luminometer = threads[0][0]
-        fit = threads[0][1]
-        ratetable = threads[0][2]
-        if int(fill) > 5737:
-            # assuming it doesn't change DURING a scan;
-            # UPDATE: it changes between scans that might be in the same file, so needs to be changed
-            # UPDATE: this is probably fixed and I forgot to delete the comment, need to check
-            angle = int(data.iloc[data[data.sec==times[0][0][0]].index[0]]['xingHmurad'])
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr, first = True, _bstar=float(
-                data.iloc[0]['bstar5']) / 100, _angle=angle, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
-        else:
-            Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr,
-                first = True, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
-        #fitresults, calibration = runAnalysis.RunAnalysis(name, threads[0][0], threads[0][1], corr, automation_folder=automation_folder)
+        for i, (luminometer, fit, ratetable) in enumerate(threads):
+                if ratetable == 'hfoclumi' and fill < 5737:
+                    ratetable = 'hflumi'
+                if int(fill) > 5737:
+                    angle = int(data.iloc[data[data.sec==times[0][0][0]].index[0]]['xingHmurad'])
+                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name,
+                        filename, corr=corr, _bstar=float(data.iloc[0]['bstar5']) / 100, _angle=angle,
+                        automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
+                else:
+                    if ratetable == 'hfoclumi': ratetable = 'hflumi'
+                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr,
+                        automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
+        
+        # run one luminometer to get common files made (otherwise all processes will try to make them at the same time)
         proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
                                 '-l', luminometer, '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a', automation_folder])
         proc.wait()
@@ -139,24 +140,16 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         for k in xrange(1, len(threads), threadcount):
             procs = []
             for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + threadcount]):
-                if ratetable == 'hfoclumi' and fill < 5737:
-                    ratetable = 'hflumi'
-                if int(fill) > 5737:
-                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name,
-                        filename, corr=corr, first = False, _bstar=float(data.iloc[0]['bstar5']) / 100, _angle=angle,
-                        automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
-                else:
-                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr,
-                        first = False, automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
-                
                 proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
                                          '-l', luminometer, '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a', automation_folder])
                 procs.append(proc)
                
-            print(len(procs))
+            print('\nRunning ', len(procs), ' processes')
             for j, p in enumerate(procs):
-                print(j)
                 p.wait()
+                print('Process ', j, ' finished')
+            
+            print('\nStarting to create post-ready jsons (and posting them to web services if option was chosen)')
             for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + threadcount]):
                 try:
                     with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/' + fit + '_FitResults.pkl') as fr:
@@ -181,9 +174,6 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                                     + '\n' + message)
         os.system('chmod -R 777 ' + os.getcwd() + '/' +
                   automation_folder + 'Analysed_Data/' + name)
-
-    for i in xrange(0, len(times), 2):
-        AnalyseScanPair(times[i:i + 2], i)
 
 
 def RunWatcher(corr, test, central=central_default):

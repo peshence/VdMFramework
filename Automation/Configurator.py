@@ -184,13 +184,12 @@ def FormatTimestamps(times):
     return _scannames, _timewindows, _scanpairs, _offsets, times
 
 
-def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, corr = ['noCorr'], first=True, automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na'):
+def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, corr = ['noCorr'], automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na'):
     """Makes a folder with configuration files with given timestamps paired for beginnings and endings of scans
 
         times : should be of the form [ (timestamp, nominal_separation_plane), (timestamp, nominal_separation_plane) ] (like from GetTimestamps)
         name : the name of the analysis folder (fill number and datetimes from the beginning and ending of the scan pair)
         central : the path to the data file or folder. give hd5 file path for emittance scans and folder (currently /brildata/vdmdata17/)
-        first : tells whether this configuration should also have scan and beamcurrents files made
         automation_folder : the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders (default is 'Automation/')
         _bstar and _angle : should be values of those variables if you have them (otherwise default is False)
         makepdf : tells whether to make pdfs with beam beam corrections and fitted functions
