@@ -144,10 +144,10 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                                          '-l', luminometer, '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a', automation_folder])
                 procs.append(proc)
                
-            print('\nRunning ', len(procs), ' processes')
+            print('\nRunning ' + str(len(procs)) + ' processes')
             for j, p in enumerate(procs):
                 p.wait()
-                print('Process ', j, ' finished')
+                print('Process ' + str(j) + ' finished')
             
             print('\nStarting to create post-ready jsons (and posting them to web services if option was chosen)')
             for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + threadcount]):
@@ -190,11 +190,11 @@ def RunWatcher(corr, test, central=central_default):
     while True:
         try:
             after = os.listdir(central)
-            print(after[-10:])
+            # print(after[-10:])
             added = [f for f in after if not f in before]
 
             for a in added:
-                print(a)
+                print('New file: ' + a)
                 if a[-4:] == '.hd5':
                     try:
                         Analyse(central + a, corr, test)
@@ -229,7 +229,7 @@ def RunWatcher(corr, test, central=central_default):
             logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S')
                           + '\n' + message)
 
-        print('step' + str(dt.datetime.now()))
+        print('step ' + str(dt.datetime.now()))
         time.sleep(60)
 
 

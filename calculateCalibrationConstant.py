@@ -87,7 +87,7 @@ def CalculateCalibrationConstant(configFile):
     predefinedTypes = XsecCalculationOptions.LuminometerOptions.LuminometerTypes
     
     
-
+    
     oldNormAvailable = False
 
     WhatIsMeasured = ConfigInfo['LuminometerSettings']['WhatIsMeasured']
@@ -105,15 +105,6 @@ def CalculateCalibrationConstant(configFile):
         print "defaults ", WhatIsMeasured, NormalizationGraphs, OldNormAvailable
 
     Total_inel_Xsec = ConfigInfo['Total_inel_Xsec']
-
-    if OldNormAvailable:
-        oldNormalization = ConfigInfo['OldNormalization']
-
-        if oldNormalization < 0:
-            print "Value of old normalization from json makes no sense, is negative, hence assume no old normalization available"
-            OldNormAvailable = False
-
-            #print "OldNormAvailable, oldNormalization", OldNormAvailable, oldNormalization
 
     FormulaToUse = ConfigInfo['FormulaToUse']
     Scanpairs = ConfigInfo['Scanpairs']
@@ -138,11 +129,11 @@ def CalculateCalibrationConstant(configFile):
     table =[]
     csvtable = []
     if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
-        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])#, "normChange", "normChangeErr"] )
-        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])#, "normChange", "normChangeErr"] )
+        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])
+        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])
     else:
-        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", 'inmean'])#, "normChange", "normChangeErr"] )
-        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", 'inmean'])#, "normChange", "normChangeErr"] )
+        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", 'inmean'])
+        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", 'inmean'])
 
     logbuffer="CalculateCalibrationConstant - excluded BCIDs\n"
 
@@ -206,13 +197,7 @@ def CalculateCalibrationConstant(configFile):
         chi2exclBX=[]
         logbuffer=logbuffer+"BCIDs excluded because chi2 is too high\n"    
         
-        mean = []
-        meanweights = []
-        sbilmean = []
-        sbilmeanweights = []
         for bx in XYbxlist:
-            considerInMean = True
-            #print "now at bx", bx
             CapSigmaX = [CapSigmaDict[XscanID][bx], CapSigmaErrDict[XscanID][bx]]
             CapSigmaY = [CapSigmaDict[YscanID][bx], CapSigmaErrDict[YscanID][bx]]
             peakX = [peakDict[XscanID][bx], peakErrDict[XscanID][bx]]
@@ -231,63 +216,21 @@ def CalculateCalibrationConstant(configFile):
                     print "fitstatus Xscan for bx", bx, fitstatusDict[XscanID][bx]
                 if fitstatusDict[YscanID][bx] >0:
                     print "fitstatus Yscan for bx", bx, fitstatusDict[YscanID][bx]
-                 
-                if bx =='sum' or chi2Dict[XscanID][bx]/ndofDict[XscanID][bx] >200:
-                   print "chi2 Xscan for bx", bx, chi2Dict[XscanID][bx]
-                   considerInMean = False
-                if chi2Dict[YscanID][bx]/ndofDict[YscanID][bx] >200:
-                   print "chi2 Yscan for bx", bx, chi2Dict[YscanID][bx]
-                   considerInMean = False
 
-                #printall(bx, CapSigmaX, CapSigmaY, peakX, peakY, xsec[bx], xsecErr[bx])
             
             if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
                 sbil = (LHC_revolution_frequency*(peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx]))/(1e22*2*xsec[bx])
                 sbilerr = (LHC_revolution_frequency/(1e22*2*xsec[bx])) * math.sqrt(
                     (peakX[1] * bcx1[bx]*bcx2[bx])**2 + (peakY[1] * bcy1[bx]*bcy2[bx])**2 +
                     (xsecErr[bx] * (peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx])/xsec[bx])**2)
-            # normChange = -999. 
-            # normChangeErr = -999.
-
-            # print OldNormAvailable
-            # print normChange
-            # if OldNormAvailable:
-            #     print 'wtf'
-            #     normChange = LHC_revolution_frequency/xsec[bx] * 1/oldNormalization
-            #     normChangeErr = normChange*xsecErr[bx]/xsec[bx]
-            # print normChange
+            
             if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
                 row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], sbil, sbilerr, considerInMean]#, normChange, normChangeErr]
             else:
                 row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], considerInMean]
-            if considerInMean:
-                mean.append(xsec[bx])
-                meanweights.append(xsecErr[bx]**(-2))
-                if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
-                    sbilmean.append(sbil)
-                    sbilmeanweights.append(sbilerr**(-2))
-            else:
-                print "bcid ", bx, " excluded because chi2 value too high: ", chi2Dict[XscanID][bx]/ndofDict[XscanID][bx], chi2Dict[YscanID][bx]/ndofDict[YscanID][bx]
-                chi2exclBX.append(bx)
-            
+
             table.append(row)
             csvtable.append(row)
-        # try:           
-        #     if mean:
-        #         av = np.average(mean, weights=meanweights)
-        #         averr = np.sqrt(1/sum(meanweights))
-        #         sbilav = np.average(sbilmean, weights=sbilmeanweights)
-                
-        #         sbilaverr = np.sqrt(1/sum(sbilmeanerr))
-        #         avrow = [str(XscanNumber)+"_"+str(YscanNumber), "XY",'wav', av, averr, sbilav, sbilaverr, False]
-        #         table.append(avrow)
-        #         csvtable.append(avrow)
-        # except ZeroDivisionError:
-        #     message = 'Weights sum to zero (what?)' + '\n' + traceback.format_exc()
-        #     print message
-        #     logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
-        #                         + '\n' + message)
-            
         
         logbuffer=logbuffer+str(chi2exclBX)+"\n"
     # need to name output file such that fit function name in file name

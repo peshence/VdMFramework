@@ -66,7 +66,7 @@ def RunAnalysis(name, luminometer, fit, corr='noCorr', automation_folder='Automa
         raise
     except:
         message = 'Error analysing data!\n' + traceback.format_exc()
-        print message
+        print(message)
         logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') +
                       '\n\tFile ' + name + '\n' + message)
 

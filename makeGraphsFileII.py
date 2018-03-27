@@ -8,6 +8,7 @@ import ROOT as r
 import sys
 import json
 import math
+import os
 
 from inputDataReaderII import * 
 from vdmUtilities import showAvailableCorrs
@@ -110,7 +111,7 @@ def doMakeGraphsFile(ConfigInfo):
 
         print "Now applying correction: ", entry
 
-    # Check whether correction requested in config json actually exists
+        # Check whether correction requested in config json actually exists
 
         key = entry+'_Corr'
         if key in availableCorr:
@@ -120,13 +121,13 @@ def doMakeGraphsFile(ConfigInfo):
                 print "Correction " + entry + " requested via json file does not exist, ignore."
             continue
 
-    # Read Corr config in here
+        # Read Corr config in here
 
         corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + Fill +'.pkl' 
         if entry == "BeamBeam":
-            corrValueFile = AnalysisDir + '/corr/'+ entry + '_' +Luminometer + '_' + Fill +'.pkl'
+            corrValueFile = AnalysisDir + '/corr/'+ entry + '_' +Luminometer + '_' + Fill +'.json'
             if 'inputlumi' in ConfigInfo:
-                corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + ConfigInfo['inputlumi'] + '_' + Fill +'.pkl'
+                corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + ConfigInfo['inputlumi'] + '_' + Fill +'.json'
         
         if entry == "Background":
             corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + Fill + '.json'
@@ -140,8 +141,6 @@ def doMakeGraphsFile(ConfigInfo):
 
     # check if any corrections are to be applied at all, if yes, define corr description string accordingly
     # if no use "noCorr"
-
-    import os
 
     # empty strings are false, so if no corrections are to be applied, use noCorr as corr descriptor
     if  not corrFull:
@@ -166,7 +165,6 @@ def doMakeGraphsFile(ConfigInfo):
 
         omittedBXList=[]
         # convert for TGraph
-        from array import array
 
         graphsList = {}
         for i, bx in enumerate(entry.usedCollidingBunches):

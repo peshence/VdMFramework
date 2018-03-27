@@ -180,16 +180,10 @@ def DriveVdm(ConfigFile):
         OutputDir = AnalysisDir +'/'+makeBeamBeamFileConfig['OutputSubDir']
 
         table = {}
-        csvtable = []
-        table, csvtable = doMakeBeamBeamFile(makeBeamBeamFileConfig)
+        table = doMakeBeamBeamFile(makeBeamBeamFileConfig)
 
-        csvfile = open(OutputDir+'/BeamBeam_' + Luminometer + '_' + str(Fill)+'.csv', 'wb')
-        writer = csv.writer(csvfile)
-        writer.writerows(csvtable)
-        csvfile.close()
-
-        with open(OutputDir+'/BeamBeam_'+ Luminometer + '_' +str(Fill)+'.pkl', 'wb') as f:
-            pickle.dump(table, f)
+        with open(OutputDir+'/BeamBeam_'+ Luminometer + '_' +str(Fill)+'.json', 'wb') as f:
+            json.dump(table, f)
 
 
     if makeGhostsFile == True:

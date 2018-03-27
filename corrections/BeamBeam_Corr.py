@@ -2,7 +2,7 @@ import CorrectionManager
 import ROOT as r
 import sys
 import os
-import pickle
+import json
 from vdmUtilities import *
 
 class BeamBeam_Corr(CorrectionManager.CorrectionProvider):
@@ -13,7 +13,7 @@ class BeamBeam_Corr(CorrectionManager.CorrectionProvider):
 
         table = {}
         with open(fileName, 'rb') as f:
-            table = pickle.load(f)
+            table = json.load(f)
 
         self.BBcorr = table 
 
@@ -40,7 +40,7 @@ class BeamBeam_Corr(CorrectionManager.CorrectionProvider):
         self.PrintCorr()
 
         #put pdf in file with same location and name as correction file, just with ending pdf instead of pkl
-        pdfName = configFile[:configFile.index(".pkl")] + ".pdf"
+        pdfName = configFile[:configFile.index(".json")] + ".pdf"
         canvas = r.TCanvas()
         canvas.SetGrid()
         # buffer for log file                    
@@ -57,8 +57,8 @@ class BeamBeam_Corr(CorrectionManager.CorrectionProvider):
             corrXPerSP = [{} for value in corrPerSP]
             corrYPerSP = [{} for value in corrPerSP]
             for value in corrPerSP:
-                corrXPerSP[value[2]-1] = value[3]
-                corrYPerSP[value[2]-1] = value[4]
+                corrXPerSP[value['ScanPointNumber']-1] = value['corr_Xcoord']
+                corrYPerSP[value['ScanPointNumber']-1] = value['corr_Ycoord']
             
             logbuffer=logbuffer+key+"\n"
             exclBXList=[]
@@ -120,7 +120,7 @@ class BeamBeam_Corr(CorrectionManager.CorrectionProvider):
         if makepdf:
             canvas.SaveAs(pdfName + ']')
         
-        logName = configFile[:configFile.index(".pkl")] + ".log"                
+        logName = configFile[:configFile.index(".json")] + ".log"                
         excldata=open(logName,'w')
         excldata.write(logbuffer)
         excldata.close()
