@@ -10,7 +10,6 @@ import re
 
 import numpy as np
 import pandas as pd
-#import runAnalysis
 import tables
 import pickle
 import json
@@ -25,7 +24,8 @@ folder = 'Automation/'
 config = json.load(open('configAutoAnalysis.json'))
 
 _ratetables = config['ratetables']
-folder = config['automation_folder']
+folder = os.path.relpath(config['automation_folder']) + '/'
+central_default =  os.path.relpath(config['central_default']) + '/'
 if not os.path.exists('./' + folder):
     os.mkdir('./' + folder)
 subfolders = ['Analysed_Data/', 'Logs/', 'dipfiles/', 'autoconfigs/']

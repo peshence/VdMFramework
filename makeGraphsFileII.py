@@ -183,7 +183,6 @@ def doMakeGraphsFile(ConfigInfo):
                lumi = [a/b for a,b in zip(entry.lumi[i],currProduct)]
                lumie = [a/b for a,b in zip(entry.lumiErr[i],currProduct)]
 
-               print bx
                name = prefix +'{:04d}'.format(int(bx))
 
                graphsList.update({bx:{
