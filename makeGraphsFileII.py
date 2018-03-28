@@ -130,7 +130,7 @@ def doMakeGraphsFile(ConfigInfo):
                 corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + ConfigInfo['inputlumi'] + '_' + Fill +'.json'
         
         if entry == "Background":
-            corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + Fill + '.json'
+            corrValueFile = AnalysisDir + '/corr/'+ entry + '_' + Luminometer + '_' + Fill + '.json'
             
         if entry == "BeamBeam":
             corrector.doCorr(inData, corrValueFile, makepdf)

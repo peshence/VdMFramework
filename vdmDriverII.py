@@ -276,7 +276,7 @@ def DriveVdm(ConfigFile):
         print ""
         background = MakeBackgroundFile(makeBackgroundFileConfig)
 
-        with open(AnalysisDir + '/corr/Background_'+str(Fill)+'.json', 'wb') as f:
+        with open(AnalysisDir + '/corr/Background_' + Luminometer + '_' + str(Fill) + '.json', 'wb') as f:
             json.dump(background, f)
 
     if makeGraphsFile == True:
