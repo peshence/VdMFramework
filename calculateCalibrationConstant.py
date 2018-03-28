@@ -87,7 +87,7 @@ def CalculateCalibrationConstant(configFile):
     predefinedTypes = XsecCalculationOptions.LuminometerOptions.LuminometerTypes
     
     
-    
+
     oldNormAvailable = False
 
     WhatIsMeasured = ConfigInfo['LuminometerSettings']['WhatIsMeasured']
@@ -129,11 +129,11 @@ def CalculateCalibrationConstant(configFile):
     table =[]
     csvtable = []
     if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
-        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])
-        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr', 'inmean'])
+        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr'])
+        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr'])
     else:
-        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", 'inmean'])
-        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", 'inmean'])
+        csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr"])
+        table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr"])
 
     logbuffer="CalculateCalibrationConstant - excluded BCIDs\n"
 
@@ -225,9 +225,9 @@ def CalculateCalibrationConstant(configFile):
                     (xsecErr[bx] * (peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx])/xsec[bx])**2)
             
             if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
-                row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], sbil, sbilerr, considerInMean]#, normChange, normChangeErr]
+                row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], sbil, sbilerr]#, normChange, normChangeErr]
             else:
-                row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], considerInMean]
+                row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx]]
 
             table.append(row)
             csvtable.append(row)
