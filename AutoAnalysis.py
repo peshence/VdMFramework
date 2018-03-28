@@ -53,8 +53,6 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         data = Configurator.RemapVdMDIPData(pd.DataFrame.from_records(h5.root.vdmscan[:]))
 
         ratetables = [i.name for i in h5.root if 'lumi' in i.name and i.name != 'pltslinklumi' and i.name != 'luminousregion']
-        # ratetables = [i.name for i in h5.root if 'lumi' in i.name and
-        #     i.name != 'pltslinklumi' and 'utca' not in i.name]# and not str.isdigit(i.name[-1])]
 
         fill = int(data.loc[0, 'fill'])
         run = int(data.loc[0, 'run'])
@@ -66,6 +64,16 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             data2 = Configurator.RemapVdMDIPData(pd.DataFrame.from_records(h5.root.vdmscan[:]))
             filename = os.path.dirname(filename)
         data = data.append(data2, ignore_index=True)
+
+    def timestamp(i): return dt.datetime.fromtimestamp(data.iloc[i]['sec']).strftime('%d%b%y_%H%M%S')
+    dip = automation_folder + 'dipfiles/dip_' + str(fill) + '_' + timestamp(0) + '_' + timestamp(-1) + '.csv'
+    data.to_csv(dip)
+
+    alltimes, allsteps = Configurator.GetTimestamps(data, fill, automation_folder=automation_folder)
+    if not alltimes:
+        raise Exception('No times')
+    if len(alltimes) < 2:
+        raise Exception('Not a scan pair')
 
     luminometers = []
     fits = []
@@ -90,19 +98,11 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         luminometers.append(l.upper())
         fits.append(f)
 
-    def timestamp(i): return dt.datetime.fromtimestamp(data.iloc[i]['sec']).strftime('%d%b%y_%H%M%S')
-    name = str(fill) + '_' + timestamp(0) + '_' + timestamp(-1)
-
-    alltimes = Configurator.GetTimestamps(data, fill, name, automation_folder=automation_folder)
-    if not alltimes or len(alltimes) < 2:
-        raise Exception('No times')
 
     for scanpair in xrange(0, len(alltimes), 2):
         times = alltimes[scanpair:scanpair + 2]
         def ts(i): return dt.datetime.fromtimestamp(i).strftime('%d%b%y_%H%M%S')
         name = str(fill) + '_' + ts(times[0][0][0]) + '_' + ts(times[1][0][0])
-
-        Configurator.GetTimestamps(data, fill, name, automation_folder=automation_folder)
 
         threads = zip(luminometers, fits, ratetables)
         threadcount = 10
@@ -113,11 +113,11 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                 if int(fill) > 5737:
                     angle = int(data.iloc[data[data.sec==times[0][0][0]].index[0]]['xingHmurad'])
                     Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name,
-                        filename, corr=corr, _bstar=float(data.iloc[0]['bstar5']) / 100, _angle=angle,
+                        filename, corr=corr, _bstar=float(data.iloc[0]['bstar5']) / 100, _angle=angle, dip=dip,
                         automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
                 else:
                     if ratetable == 'hfoclumi': ratetable = 'hflumi'
-                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr,
+                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr, dip=dip,
                         automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
         
         # run one luminometer to get common files made (otherwise all processes will try to make them at the same time)

@@ -13,19 +13,22 @@ fits = ['SG', 'SGConst', 'SGConst', 'SGConst']
 ratetables = ['pltlumizero', 'hflumi', 'bcm1flumi', 'hfetlumi']
 
 
-def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
+def GetTimestamps(data, fillnum, automation_folder='Automation/'):
     """Gets the VdM scan start and end rows from a DIP 
-        VdM dataframe and returns them in pairs like 
-        [ (timestamp, nominal_separation_plane), (timestamp, nominal_separation_plane) ] 
-        (beginning end end of scan respectively)
-        Saves a new reduced vdm file as automation_folder + 'dipfiles/vdm_' + name + '.csv'
+        VdM dataframe. Saves a new reduced vdm file as automation_folder + 'dipfiles/vdm_'
+        + name + '.csv'. 
 
         data : the data from a vdm dip csv file or vdmscan table of hd5 files remapped by RemapVdMDIPData
         name : the name of the analysed data folder (fill_datestart_timestart_dateend_timend usually)
         automation_folder : the relative path to folder with your dipfiles, autoconfigs and Analysed_Data folders
+
+        Returns:
+        timestamp_data : An array of pairs like 
+            [ (timestamp, nominal_separation_plane), (timestamp, nominal_separation_plane) ] 
+            (beginning end end of scan respectively)
+        step_data : the number of steps in each scan (ordered)
      """
     # Get cms data for fill
-    _dip = automation_folder + 'dipfiles/vdm_' + name + '.csv'
     data = data[(data.ip == 32) & (data.fill == fillnum) & (data.scanstatus == 'ACQUIRING')]
     if 'nominal_separation_plane' in data:
         data = data[(data.nominal_separation_plane != 'NONE')]
@@ -34,11 +37,7 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
         print(message)
         logging.warning('\n\t' + dt.datetime.now().strftime(
             '%d %b %Y %H:%M:%S\n') + message)
-        return False
-
-    # Save new dip file for analysis
-    data.to_csv(_dip, index=False)
-    data = pd.read_csv(_dip) # I realize this is ridiculous, but it doesn't work otherwise, I don't get it either
+        raise Exception('No times')
 
     # Get start and end rows
                         # (data.nominal_separation_plane != data.shift(1).nominal_separation_plane) |
@@ -49,9 +48,11 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
                         (data.nominal_separation_plane != data.shift(-1).nominal_separation_plane) |
                         (data.step - data.shift(1).step < 0) | (data.shift(-1).step - data.step < 0))]  # .loc[:,['fill','sec','plane','nominal_separation_plane']]
                            
-    print timestamp_data.loc[:, ['fill', 'sec', 'plane', 'nominal_separation_plane']]
+    # print(timestamp_data.loc[:, ['fill', 'sec', 'plane', 'nominal_separation_plane']])
     logging.info('Timestamps (that look like beginnings and endings of scans):\n' + 
                  str(timestamp_data.loc[:, ['fill', 'sec', 'plane', 'nominal_separation_plane']]))
+
+    step_data = []
     # Remove rows with timestamps which don't look like scans and sort the
     # rest into pairs (each pair is a scan)
     for t1, t2 in zip(timestamp_data.index[::2], timestamp_data.index[1::2]):
@@ -61,7 +62,7 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
                 timestamp_data.index != t1) & (timestamp_data.index != t2)]
             message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
                 t2, 'sec')) + ' removed due to scan under 30 seconds'
-            print message
+            print(message)
             logging.warning('\n\t' + dt.datetime.now().strftime(
                 '%d %b %Y %H:%M:%S\n') + message)
             continue
@@ -73,7 +74,7 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
                 timestamp_data.index != t1) & (timestamp_data.index != t2)]
             message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
                 t2, 'sec')) + ' removed due to unfinished scan'
-            print message
+            print(message)
             logging.warning('\n\t' + dt.datetime.now().strftime(
                 '%d %b %Y %H:%M:%S\n') + message)
             continue
@@ -82,19 +83,19 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
                 timestamp_data.index != t1) & (timestamp_data.index != t2)]
             message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
                 t2, 'sec')) + ' removed due to steps less then 13'
-            print message
+            print(message)
             logging.warning('\n\t' + dt.datetime.now().strftime(
                 '%d %b %Y %H:%M:%S\n') + message)
             continue
         nom_seps = data.loc[t1:t2, ['nominal_separation', 'sec']]
         nom_seps = nom_seps[nom_seps.nominal_separation !=
                             nom_seps.shift(-1).nominal_separation].copy()
-        print nom_seps
+        print(nom_seps)
         # Constant nominal separation is not a scan
         if nom_seps.empty:
             message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
                 t2, 'sec')) + ' removed due to constant nominal separation'
-            print message
+            print(message)
             logging.warning('\n\t' + dt.datetime.now().strftime(
                 '%d %b %Y %H:%M:%S\n') + message)
             timestamp_data = timestamp_data[(
@@ -113,20 +114,21 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
                     # which should be the same but I need to keep the index
                     # up to this point, so no reason to cut the other
                     # columns
-                    print int(nom_seps.iloc[i - 1].sec)
-                    print int(timestamp_data.get_value(
-                        t2, 'sec'))
-                    timestamp_data.set_value(
-                        t2, 'sec', nom_seps.iloc[i - 1].sec)
+                    print(int(nom_seps.iloc[i - 1].sec))
+                    print(int(timestamp_data.get_value(t2, 'sec')))
+                    timestamp_data.set_value(t2, 'sec', nom_seps.iloc[i - 1].sec)
                     continue
                 message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
                     t2, 'sec')) + ' removed due to non monotonous nominal separation in time'
-                print message
+                print(message)
                 logging.warning('\n\t' + dt.datetime.now().strftime(
                     '%d %b %Y %H:%M:%S\n') + message)
                 timestamp_data = timestamp_data[(
                     timestamp_data.index != t1) & (timestamp_data.index != t2)]
                 break
+        step_data.append(data.get_value(t2, 'step'))
+    
+    
     if 'nominal_separation_plane' in timestamp_data:
         timestamp_data = map(lambda c, d: (c, d),
                          timestamp_data.sec, timestamp_data.nominal_separation_plane)
@@ -144,8 +146,9 @@ def GetTimestamps(data, fillnum, name, automation_folder='Automation/'):
     #     print message
     #     logging.warning('\n\t' + dt.datetime.now().strftime(
     #         '%d %b %Y %H:%M:%S\n') + message)
-    print timestamp_data
-    return timestamp_data
+    print('Timestamps for start and end of scans:')
+    print(timestamp_data)
+    return timestamp_data, step_data
 
 
 def FormatTimestamps(times):
@@ -184,7 +187,7 @@ def FormatTimestamps(times):
     return _scannames, _timewindows, _scanpairs, _offsets, times
 
 
-def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, corr = ['noCorr'], automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na'):
+def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, corr = ['noCorr'], automation_folder='Automation/', _bstar = False, _angle = False, makepdf = True, makelogs = True, autoconfigs_folder = 'na', dip=False):
     """Makes a folder with configuration files with given timestamps paired for beginnings and endings of scans
 
         times : should be of the form [ (timestamp, nominal_separation_plane), (timestamp, nominal_separation_plane) ] (like from GetTimestamps)
@@ -205,7 +208,7 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
     _fill = str(fillnum)
     _date = dt.datetime.fromtimestamp(times[0][0]).strftime('%d%b%Y')
     _central = central  # + _fill
-    _dip = automation_folder + '/dipfiles/vdm_' + name + '.csv'
+    _dip = dip if dip else automation_folder + '/dipfiles/dip_' + name + '.csv'
 
     
     # json-compatible true-false`
@@ -293,7 +296,6 @@ def ConfigDriver(times, fillnum, _luminometer, _fit, _ratetable, name, central, 
     # BeamBeam needs an input of capsigma measurements to have run before running, potentially some other corrections might too
     
     if corr != ['noCorr']:
-        print corr
         _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
         _corrs = json.dumps(corr)
         _makeBeamBeamFile = json.dumps('BeamBeam' in corr)
@@ -402,10 +404,10 @@ if __name__ == '__main__':
                         name = str(fill) + '_' + timestamp(0) + \
                             '_' + timestamp(-1)
                         try:
-                            times = GetTimestamps(group, fill, name)
+                            times, steps = GetTimestamps(group, fill, name)
                         except:
                             message = '\n\t' + 'Error getting timestamps!\n' + traceback.format_exc()
-                            print message
+                            print(message)
                             logging.error('\n\t' + dt.datetime.now().strftime(
                                 '%d %b %Y %H:%M:%S\n') + '\nFill ' + str(fill) + '\nVdM file: ' + dip + message)
                         if times:
@@ -421,6 +423,6 @@ if __name__ == '__main__':
                                             times, fill, luminometers[i], fits[i], ratetables[i], name, central, not i)
                                 except:
                                     message = 'Error making config files\n' + traceback.format_exc()
-                                    print message
+                                    print(message)
                                     logging.error('\n\t' + dt.datetime.now().strftime(
                                         '%d %b %Y %H:%M:%S\n') + '\nFill ' + str(fill) + '\nVdM file: ' + dip + message)
