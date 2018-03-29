@@ -26,6 +26,9 @@ config = json.load(open('configAutoAnalysis.json'))
 _ratetables = config['ratetables']
 folder = os.path.relpath(config['automation_folder']) + '/'
 central_default =  os.path.relpath(config['central_default']) + '/'
+max_threads = config['max_threads']
+dg_steps = config['dg_steps']
+
 if not os.path.exists('./' + folder):
     os.mkdir('./' + folder)
 subfolders = ['Analysed_Data/', 'Logs/', 'dipfiles/', 'autoconfigs/']
@@ -75,36 +78,40 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
     if len(alltimes) < 2:
         raise Exception('Not a scan pair')
 
-    luminometers = []
-    fits = []
-    if test:
-        ratetables = _ratetables
-    for r in ratetables:
-        l = re.match('([a-z1]*)_?lumi(.*)', r).group(1)
-        l = l if r != 'hflumi' else 'hfoc'
-        if dg or filename2:
-            # f = ('DG' if 'plt' == r[:3] else 'DGConst')
-            #f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
-            f= 'DG'
-        else:
-            f = 'SG'
-            # f = ('SG' if 'plt' == r[:3] else 'SGConst')
-            # f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
-        if str.isdigit(str(r[-1])):
-            if str.isdigit(str(r[-2])):
-                l = l + r[-2:]
-            else:
-                l = l + r[-1]
-        luminometers.append(l.upper())
-        fits.append(f)
-
     for scanpair in xrange(0, len(alltimes), 2):
+        # get timestamps and number of steps for each scan        
         times = alltimes[scanpair:scanpair + 2]
+        steps = allsteps[scanpair:scanpair + 2]
+
+        # make ratetable-luminometername-fit tuples
+        luminometers = []
+        fits = []
+        if test:
+            ratetables = _ratetables
+        for r in ratetables:
+            l = re.match('([a-z1]*)_?lumi(.*)', r).group(1)
+            l = l if r != 'hflumi' else 'hfoc'
+            if dg or filename2 or steps[0]>dg_steps:
+                # f = ('DG' if 'plt' == r[:3] else 'DGConst')
+                #f = ('DG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'DGConst')
+                f= 'DG'
+            else:
+                f = 'SG'
+                # f = ('SG' if 'plt' == r[:3] else 'SGConst')
+                # f = ('SG' if 'plt' == r[:3] or 'bcm1f'==r[:5] else 'SGConst')
+            if str.isdigit(str(r[-1])):
+                if str.isdigit(str(r[-2])):
+                    l = l + r[-2:]
+                else:
+                    l = l + r[-1]
+            luminometers.append(l.upper())
+            fits.append(f)
+        
+        # Create a time-based name for this scan
         def ts(i): return dt.datetime.fromtimestamp(i).strftime('%d%b%y_%H%M%S')
         name = str(fill) + '_' + ts(times[0][0][0]) + '_' + ts(times[1][0][0])
 
         threads = zip(luminometers, fits, ratetables)
-        threadcount = 10
         angle = 0
         for i, (luminometer, fit, ratetable) in enumerate(threads):
                 if ratetable == 'hfoclumi' and fill < 5737:
@@ -138,9 +145,9 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         if ratetable in _ratetables:
             PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                         fit, angle, _corr, automation_folder=automation_folder, post=post)
-        for k in xrange(1, len(threads), threadcount):
+        for k in xrange(1, len(threads), max_threads):
             procs = []
-            for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + threadcount]):
+            for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + max_threads]):
                 proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
                                          '-l', luminometer, '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a', automation_folder])
                 procs.append(proc)
@@ -151,7 +158,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                 print('Process ' + str(j) + ' finished')
             
             print('\nStarting to create post-ready jsons (and posting them to web services if option was chosen)')
-            for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + threadcount]):
+            for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + max_threads]):
                 try:
                     with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/' + fit + '_FitResults.pkl') as fr:
                         fitresults = pickle.load(fr)

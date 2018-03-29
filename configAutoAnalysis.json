@@ -1,7 +1,9 @@
 {
-    "Comment": "Folder path has to be relative",
-    "automation_folder": "/brildata/vdmoutput/AutomationBackgroundCorrection",
+    "Comment": "Results folder, watch folder, max threads to use, steps needed for double gaussian, ratetables to analyse",
+    "automation_folder": "/brildata/vdmoutput/AutomationBackgroundCorrection2",
     "central_default": "/brildata/vdmdata18/",
+    "max_threads": 10,
+    "dg_steps":10,
     "ratetables": ["pltlumizero", "hfetlumi", "hfoclumi", "bcm1fpcvdlumi"],
     "exampleratetables": ["pltlumizero", "hfetlumi", "hfoclumi", "bcm1fsilumi", "bcm1fpcvdlumi", "bcm1fscvdlumi"]
 }
