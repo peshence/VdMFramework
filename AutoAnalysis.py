@@ -98,7 +98,6 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         luminometers.append(l.upper())
         fits.append(f)
 
-
     for scanpair in xrange(0, len(alltimes), 2):
         times = alltimes[scanpair:scanpair + 2]
         def ts(i): return dt.datetime.fromtimestamp(i).strftime('%d%b%y_%H%M%S')
@@ -121,6 +120,8 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                         automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
         
         # run one luminometer to get common files made (otherwise all processes will try to make them at the same time)
+        luminometer = luminometers[0]
+        fit = fits[0]
         proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
                                 '-l', luminometer, '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a', automation_folder])
         proc.wait()
