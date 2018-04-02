@@ -419,16 +419,6 @@ def DriveVdm(ConfigFile):
                 os.mkdir(MinuitLogPath, 0755)
 
             FitConfigInfo['MinuitFile'] = MinuitLogFile
-        if Fill=='6016':
-            if Luminometer=='HFET':
-                FitConfigInfo['StartConst'] = 1.20E-05
-                FitConfigInfo['LimitsConst'] = [1.20E-05, 1.20E-05]
-            elif Luminometer=='HFOC':
-                FitConfigInfo['StartConst'] = 2.00E-05
-                FitConfigInfo['LimitsConst'] = [2.00E-05, 2.00E-05]
-            elif Luminometer=='BCM1FPCVD':
-                FitConfigInfo['StartConst'] = 4.01E-06
-                FitConfigInfo['LimitsConst'] = [4.01E-06, 4.01E-06]
 
         for path in PlotsTempPath:
             if not os.path.isdir(path[0]):
