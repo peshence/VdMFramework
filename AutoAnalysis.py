@@ -16,8 +16,6 @@ import json
 import Configurator
 from postvdm import PostOutput
 
-logging.basicConfig(filename="Automation/Logs/watcher_" +
-                    dt.datetime.now().strftime('%y%m%d%H%M%S') + '.log', level=logging.DEBUG)
 
 central_default = '/brildata/vdmdata17/'
 folder = 'Automation/'
@@ -26,12 +24,16 @@ config = json.load(open('configAutoAnalysis.json'))
 _ratetables = config['ratetables']
 folder = os.path.relpath(config['automation_folder']) + '/'
 central_default =  os.path.relpath(config['central_default']) + '/'
+log_folder = config['log_folder'] + '/'
 max_threads = config['max_threads']
 dg_steps = config['dg_steps']
 
+logging.basicConfig(filename= log_folder + 'watcher_' +
+                    dt.datetime.now().strftime('%y%m%d%H%M%S') + '.log', level=logging.DEBUG)
+
 if not os.path.exists('./' + folder):
     os.mkdir('./' + folder)
-subfolders = ['Analysed_Data/', 'Logs/', 'dipfiles/', 'autoconfigs/']
+subfolders = ['Analysed_Data/', 'dipfiles/', 'autoconfigs/']
 for subfolder in subfolders:
     if not os.path.exists('./' + folder + subfolder):
         os.mkdir('./' + folder + subfolder)
@@ -55,7 +57,8 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             raise Exception('no vdmscan table')
         data = Configurator.RemapVdMDIPData(pd.DataFrame.from_records(h5.root.vdmscan[:]))
 
-        ratetables = [i.name for i in h5.root if 'lumi' in i.name and i.name != 'pltslinklumi' and i.name != 'luminousregion']
+        ratetables = [i.name for i in h5.root if 'lumi' in i.name and i.name != 'pltslinklumi'
+                                                                and i.name != 'luminousregion']
 
         fill = int(data.loc[0, 'fill'])
         run = int(data.loc[0, 'run'])
@@ -69,7 +72,8 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         data = data.append(data2, ignore_index=True)
 
     def timestamp(i): return dt.datetime.fromtimestamp(data.iloc[i]['sec']).strftime('%d%b%y_%H%M%S')
-    dip = automation_folder + 'dipfiles/dip_' + str(fill) + '_' + timestamp(0) + '_' + timestamp(-1) + '.csv'
+    dip = automation_folder + 'dipfiles/dip_' + str(fill) + '_' + timestamp(0)\
+          + '_' + timestamp(-1) + '.csv'
     data.to_csv(dip)
 
     alltimes, allsteps = Configurator.GetTimestamps(data, fill, automation_folder=automation_folder)
@@ -119,50 +123,73 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                 if int(fill) > 5737:
                     angle = int(data.iloc[data[data.sec==times[0][0][0]].index[0]]['xingHmurad'])
                     Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name,
-                        filename, corr=corr, _bstar=float(data.iloc[0]['bstar5']) / 100, _angle=angle, dip=dip,
-                        automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
+                        filename, corr=corr, _bstar=float(data.iloc[0]['bstar5']) / 100,
+                        _angle=angle, dip=dip, automation_folder=automation_folder,
+                        autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
                 else:
                     if ratetable == 'hfoclumi': ratetable = 'hflumi'
-                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name, filename, corr=corr, dip=dip,
-                        automation_folder=automation_folder, autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
+                    Configurator.ConfigDriver(times, fill, luminometer, fit, ratetable, name,
+                                filename, corr=corr, dip=dip, automation_folder=automation_folder,
+                                autoconfigs_folder='Automation/', makepdf = pdfs, makelogs=logs)
         
-        # run one luminometer to get common files made (otherwise all processes will try to make them at the same time)
+        # run one luminometer to get common files made
+        # (otherwise all processes will try to make them at the same time)
+        _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
         luminometer = luminometers[0]
         fit = fits[0]
-        proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
-                                '-l', luminometer, '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a', automation_folder])
+        proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name, '-l', luminometer, '-f',
+                                fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a',
+                                automation_folder], stderr=subprocess.PIPE)
         proc.wait()
-        _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
-        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/' + fit + '_FitResults.pkl') as fr:
-            fitresults = pickle.load(fr)
-        with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
-            calibration = pickle.load(cal)
-        fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
-        calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
-        if str.isdigit(str(luminometer[-1])):
-            PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
-                      fit, angle, _corr, automation_folder=automation_folder, post=post, perchannel=True)
-        if ratetable in _ratetables:
-            PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
-                        fit, angle, _corr, automation_folder=automation_folder, post=post)
+        if proc.returncode: # this is 0 if the process didn't have any errors
+            logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
+                          luminometer + ' ' fit + '\n' + proc.stderr.read())
+            # even if it fails, it should have done the common parts (scan file,beam currents file)
+            # TODO implement per script errors to have a better grip on what happened
+            
+        else:
+            with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + 
+                      '/results/'+ _corr + '/' + fit + '_FitResults.pkl') as fr:
+                      fitresults = pickle.load(fr)
+            with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer +
+                      '/results/'+ _corr + '/LumiCalibration_' + luminometer + '_' + fit
+                      + '_' + str(fill) + '.pkl') as cal: calibration = pickle.load(cal)
+
+            fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
+            calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
+            if str.isdigit(str(luminometer[-1])):
+                PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
+                        fit, angle, _corr, automation_folder=automation_folder, post=post, perchannel=True)
+            if ratetable in _ratetables:
+                PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
+                            fit, angle, _corr, automation_folder=automation_folder, post=post)
         for k in xrange(1, len(threads), max_threads):
             procs = []
             for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + max_threads]):
-                proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name,
-                                         '-l', luminometer, '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a', automation_folder])
+                proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name, '-l', luminometer,
+                                        '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b),
+                                        corr), '-a', automation_folder],stderr=subprocess.PIPE)
                 procs.append(proc)
                
             print('\nRunning ' + str(len(procs)) + ' processes')
             for j, p in enumerate(procs):
                 p.wait()
                 print('Process ' + str(j) + ' finished')
+                if proc.returncode: # this is 0 if the process didn't have any errors
+                    logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
+                                  luminometer + ' ' fit + '\n' + proc.stderr.read())
+                
             
-            print('\nStarting to create post-ready jsons (and posting them to web services if option was chosen)')
+            print('\nStarting to create post-ready jsons')
+            if post: print('and posting them')
             for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + max_threads]):
                 try:
-                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/' + fit + '_FitResults.pkl') as fr:
+                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer +
+                              '/results/'+ _corr + '/' + fit + '_FitResults.pkl') as fr:
                         fitresults = pickle.load(fr)
-                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + '/results/'+ _corr + '/LumiCalibration_' + luminometer + '_' + fit + '_' + str(fill) + '.pkl') as cal:
+                    with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer +
+                              '/results/'+ _corr + '/LumiCalibration_' + luminometer + '_' + fit
+                              + '_' + str(fill) + '.pkl') as cal:
                         calibration = pickle.load(cal)
                     fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
                     calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
@@ -180,8 +207,11 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                     print(message)
                     logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S')
                                     + '\n' + message)
+            print('\nJSONs created')
+            if post: print('and posted.')
         os.system('chmod -R 777 ' + os.getcwd() + '/' +
                   automation_folder + 'Analysed_Data/' + name)
+        print('Finished analysing!')
 
 
 def RunWatcher(corr, test, central=central_default):
@@ -251,14 +281,14 @@ if __name__ == '__main__':
         '-b', '--beambeam', help='If you want beam beam correction', action='store_true')
     parser.add_argument(
         '-t', '--test', help='Only use the luminometers from the config file', action='store_true')
-    parser.add_argument(
-        '-p', '--post', help='if you want your one time analysis posted (watcher automatically posts)', action='store_true')
+    parser.add_argument('-p', '--post', help='if you want your one time analysis \
+                                        posted (watcher automatically posts)', action='store_true')
     parser.add_argument('-f2', '--filename2',
                         help='Second scan of your scan pair')
     parser.add_argument(
         '-d', '--double', help='Use double gaussians instead of single', action='store_true')
-    parser.add_argument(
-        '-pdf', '--pdfs', help='Make pdfs with beam beam corrections and fitted functions', action='store_true')
+    parser.add_argument('-pdf', '--pdfs',
+        help='Make pdfs with beam beam corrections and fitted functions', action='store_true')
     parser.add_argument(
         '-l', '--logs', help='Make logs for the fitting (no minuit yet)', action='store_true')
     parser.add_argument(
@@ -279,7 +309,8 @@ if __name__ == '__main__':
                 args.post, automation_folder=folder, pdfs=args.pdfs, logs=args.logs)
     elif (args.filename):
         Analyse(args.filename, corr, args.test, post=args.post,
-                automation_folder=folder, dg=args.double, pdfs=True if args.pdfs else False, logs=True if args.logs else False)
+                automation_folder=folder, dg=args.double, pdfs=True if args.pdfs else False,
+                logs=True if args.logs else False)
     elif (args.central):
         RunWatcher(corr, args.test, args.central)
     else:
