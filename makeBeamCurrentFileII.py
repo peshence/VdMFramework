@@ -87,7 +87,7 @@ def getCurrents(datapath, scanpt, fill):
 
     # omit very first nibble because it may not be fully contained in VdM scan
     tw = '(timestampsec >' + str(scanpt[0]) + ') & (timestampsec <=' +  str(scanpt[1]) + ')'
-    print "tw", tw    
+    # print "tw", tw    
     
     if datapath[-4:] == '.hd5':
         filelist = [datapath]
@@ -185,7 +185,7 @@ def doMakeBeamCurrentFile(ConfigInfo):
             avrgfbct1['sum'] = sumCollavrgfbct1
             avrgfbct2['sum'] = sumCollavrgfbct2
 
-            print "Scan point", j, sp
+            # print "Scan point", j, sp
             row = {
                 'ScanNumber':i+1,
                 'ScanName':ScanNames[i],

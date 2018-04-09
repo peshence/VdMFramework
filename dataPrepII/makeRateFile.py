@@ -107,6 +107,7 @@ def doMakeRateFile(ConfigInfo):
         scanpoints = scanInfo[key]
         table[key]=[]
         for j, sp in enumerate(scanpoints):
+            # print "Scan point", j, sp
             rates = getRates(InputLumiDir, RateTable, sp[3:],scanInfo["Fill"])
             scanpoint = {
                 'ScanNumber':i+1,
