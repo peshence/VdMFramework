@@ -67,10 +67,12 @@ def CalculateCalibrationConstant(configFile):
 
     # either use xsec as returned by function, for "Counts", or xsec/LHC_frequency, for "CountsPerTime"
 
-
-    config=open(configFile)
-    ConfigInfo = json.load(config)
-    config.close()
+    if type(configFile)==str:
+        config=open(configFile)
+        ConfigInfo = json.load(config)
+        config.close()
+    else:
+        ConfigInfo = configFile
 
     Fill = ConfigInfo['Fill']
     AnalysisDir = ConfigInfo['AnalysisDir']
@@ -128,7 +130,11 @@ def CalculateCalibrationConstant(configFile):
         
     table =[]
     csvtable = []
-    if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
+
+    BeamCurrents_path = './' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'
+    addsbil = os.path.exists(BeamCurrents_path)
+
+    if addsbil:
         csvtable.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr'])
         table.append(["XscanNumber_YscanNumber","Type", "BCID", "xsec", "xsecErr", "SBIL", 'SBILErr'])
     else:
@@ -137,16 +143,17 @@ def CalculateCalibrationConstant(configFile):
 
     logbuffer="CalculateCalibrationConstant - excluded BCIDs\n"
 
+    if addsbil:
+        with open(BeamCurrents_path) as f:
+            beamdata = json.load(f)
+            
     for entry in Scanpairs:
 
         XscanNumber = entry[0]
         YscanNumber = entry[1]
         XYbxlist=[]
-        
-        if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
-            with open('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json') as f:
-                beamdata = json.load(f)
 
+        if addsbil:
             s1 = beamdata['Scan_' + str(XscanNumber)]
             b1 = [0 for i in range(3654)]
             b2 = [0 for i in range(3654)]
@@ -193,9 +200,6 @@ def CalculateCalibrationConstant(configFile):
         XYbxlist = temp
         logbuffer=logbuffer+XscanID+":"+str(XexclBX)+"\n"
         logbuffer=logbuffer+YscanID+":"+str(YexclBX)+"\n"
-
-        chi2exclBX=[]
-        logbuffer=logbuffer+"BCIDs excluded because chi2 is too high\n"    
         
         for bx in XYbxlist:
             CapSigmaX = [CapSigmaDict[XscanID][bx], CapSigmaErrDict[XscanID][bx]]
@@ -218,24 +222,19 @@ def CalculateCalibrationConstant(configFile):
                     print "fitstatus Yscan for bx", bx, fitstatusDict[YscanID][bx]
 
             
-            if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
+            if addsbil:
                 sbil = (LHC_revolution_frequency*(peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx]))/(1e22*2*xsec[bx])
                 sbilerr = (LHC_revolution_frequency/(1e22*2*xsec[bx])) * math.sqrt(
                     (peakX[1] * bcx1[bx]*bcx2[bx])**2 + (peakY[1] * bcy1[bx]*bcy2[bx])**2 +
                     (xsecErr[bx] * (peakX[0]*bcx1[bx]*bcx2[bx] + peakY[0]*bcy1[bx]*bcy2[bx])/xsec[bx])**2)
-            
-            if os.path.exists('./' + AnalysisDir + '/cond/BeamCurrents_' + str(Fill) + '.json'):
-                row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], sbil, sbilerr]#, normChange, normChangeErr]
+                row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx], sbil, sbilerr]
             else:
                 row = [str(XscanNumber)+"_"+str(YscanNumber), "XY", bx, xsec[bx], xsecErr[bx]]
 
             table.append(row)
             csvtable.append(row)
-        
-        logbuffer=logbuffer+str(chi2exclBX)+"\n"
+
     # need to name output file such that fit function name in file name
-
-
     csvfile = open(OutputDir+'/LumiCalibration_'+ Luminometer+ '_'+ fit + str(Fill)+'.csv', 'wb')
     writer = csv.writer(csvfile)
     writer.writerows(csvtable)

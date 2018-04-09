@@ -142,8 +142,9 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                                 automation_folder], stderr=subprocess.PIPE)
         proc.wait()
         if proc.returncode: # this is 0 if the process didn't have any errors
-            logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
-                          luminometer + ' ' fit + '\n' + proc.stderr.read())
+            print(proc.stderr.read())
+            logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
+                          luminometer + ' ' + fit + '\n' + proc.stderr.read()))
             # even if it fails, it should have done the common parts (scan file,beam currents file)
             # TODO implement per script errors to have a better grip on what happened
             
@@ -176,8 +177,9 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                 p.wait()
                 print('Process ' + str(j) + ' finished')
                 if proc.returncode: # this is 0 if the process didn't have any errors
+                    print(proc.stderr.read())
                     logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
-                                  luminometer + ' ' fit + '\n' + proc.stderr.read())
+                                  luminometer + ' ' + fit + '\n' + proc.stderr.read())
                 
             
             print('\nStarting to create post-ready jsons')
@@ -196,8 +198,11 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                     if str.isdigit(str(ratetable[-1])):
                         PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
                                 fit, angle, _corr, automation_folder=automation_folder, post=post, perchannel=True)
-                    if ratetable in _ratetables:
+                    elif ratetable in _ratetables:
                         PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
+                                    fit, angle, _corr, automation_folder=automation_folder, post=post)
+                    else:
+                        PostOutput(fitresults, calibration, times, fill, run, True, name, luminometer,
                                     fit, angle, _corr, automation_folder=automation_folder, post=post)
                     
                 except (KeyboardInterrupt, SystemExit):

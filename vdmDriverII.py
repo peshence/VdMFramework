@@ -18,6 +18,7 @@ from makeGraphs2D import doMakeGraphs2D
 from makeGraphsFileII import doMakeGraphsFile
 from makeScanFileII import doMakeScanFile
 from vdmFitterII import doRunVdmFitter
+from calculateCalibrationConstant import CalculateCalibrationConstant
 from vdmUtilities import setupDirStructure
 
 
@@ -69,6 +70,9 @@ def DriveVdm(ConfigFile):
     runVdmFitter = False
     runVdmFitter = ConfigInfo['runVdmFitter']
 
+    calculateCalibrationConstant = False
+    calculateCalibrationConstant = ConfigInfo['calculateCalibrationConstant']
+
     makepdf = ConfigInfo['MakePDF']
     makelogs = ConfigInfo['MakeLogs']
 
@@ -83,6 +87,7 @@ def DriveVdm(ConfigFile):
     print "makeBeamCurrentFile ", makeBeamCurrentFile
     print "makeGraphsFile ", makeGraphsFile
     print "runVdmFitter ", runVdmFitter
+    print "calculateCalibrationConstant ", calculateCalibrationConstant
 
     print ""
     setupDirStructure(AnalysisDir, Luminometer, Corr)
@@ -125,7 +130,7 @@ def DriveVdm(ConfigFile):
     makeRateFileConfig['Fill'] = Fill
     makeRateFileConfig['AnalysisDir'] = AnalysisDir
 
-    print "Running makeRateFile with config info:"
+    print "\nRunning makeRateFile with config info:"
     for key in makeRateFileConfig:
         print key, makeRateFileConfig[key]
     print ""
@@ -283,7 +288,7 @@ def DriveVdm(ConfigFile):
 
         makeGraphsFileConfig = ConfigInfo['makeGraphsFileConfig']
 
-        print "Running makeGraphsFile with config info:"
+        print "\nRunning makeGraphsFile with config info:"
         for key in makeGraphsFileConfig:
             print key, makeGraphsFileConfig[key]
         print ""
@@ -344,7 +349,7 @@ def DriveVdm(ConfigFile):
 
         vdmFitterConfig = ConfigInfo['vdmFitterConfig']
 
-        print "Running runVdmFitter with config info:"
+        print "\nRunning runVdmFitter with config info:"
         for key in vdmFitterConfig:
             print key, vdmFitterConfig[key]
         print ""
@@ -476,7 +481,19 @@ def DriveVdm(ConfigFile):
                os.system("hadd " + outRoot + "  " + PlotsPath + "*.root")
                         
             os.system('rm ' + PlotsPath + '/*')
-        return table[0]
+            
+    if CalculateCalibrationConstant:
+        calculateCalibrationConstantConfig = ConfigInfo['calculateCalibrationConstantConfig']
+
+        print('\nRunning calculateCalibrationConstant with config info:')
+        for key in calculateCalibrationConstantConfig:
+            # print key
+            print(key + ' ' + str(calculateCalibrationConstantConfig[key]))
+        
+        calibration = CalculateCalibrationConstant(calculateCalibrationConstantConfig)
+    
+    if runVdmFitter or CalculateCalibrationConstant:
+        return table,calibration
 
 if __name__=='__main__':
     ConfigFile = sys.argv[1]

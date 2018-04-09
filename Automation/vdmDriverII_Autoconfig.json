@@ -27,6 +27,8 @@
 "makeGraphs2D": false,
 "Comment": "Output of following step goes to <AnalysisDir>/<Luminometer>/results/<Corr>", 
 "runVdmFitter": {runVdmFitter},
+"Comment": "Output of following step goes to <AnalysisDir>/<Luminometer>/results/<Corr>", 
+"calculateCalibrationConstant": true,
 "MakePDF": {makepdf},
 "MakeLogs": {makelogs},
 "makeScanFileConfig":
@@ -127,5 +129,32 @@
      "FitConfigFile" : "fits/{fit}_Config.json",
      "ScanNames" : {scannames},
      "MinuitFile" : "{fit}_{corr}_Minuit"
-     }}
+     }},
+"calculateCalibrationConstantConfig":
+    {{
+    "Fill" : "{fill}",
+    "AnalysisDir" : "{analysisdir}",
+    "Luminometer": "{luminometer}",
+    "Corr" : {corrs},
+    "Comment": "Input fit results file in <AnalysisDir>/<Luminometer>/results/<Corr>", 
+    "InputFitResultsFile" : "{fit}_FitResults.pkl",
+    "LuminometerSettings":
+        {{
+        "LuminometerName": "{luminometer}",
+        "Comment": "defaults to settings in luminometer.py", 
+        "Comment": "needs to be set for non-default settings or for new luminometer",
+        "LuminometerDescription": "default",
+        "WhatIsMeasured": "default",
+        "NormalizationGraphs": "default",
+        "OldNormAvailable": "false"
+        }},
+    "Comment": "Total inelastic cross section in microbarn, for pp at 8TeV",
+    "Total_inel_Xsec": 72700, 
+    "Comment": "Use negative number to make clear that no old normalization is available",
+    "Comment": "For low energy pp: 10.2; for pp at 8TeV, as determined in April 2012 scan: 6.36",
+    "Comment": "For pPb, as determined in Sep 2012 pilot run, taking into account that Pb ion is stripped of all its 82 electrons: 6.36/115.8*82", 
+    "OldNormalization": 10.2, 
+    "FormulaToUse": "1D-Gaussian-like",
+    "Scanpairs" : {scanpairs}
+    }}
 }}

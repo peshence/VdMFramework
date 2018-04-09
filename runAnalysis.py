@@ -33,20 +33,20 @@ def RunAnalysis(name, luminometer, fit, corr='noCorr', automation_folder='Automa
         beambeamsource = 'noCorr_' if 'Background' not in corr else 'Background_'
         if 'BeamBeam' in corr:
             # LogInfo(beambeamsource + ' ' + luminometer + fit + ' START')
-            fitresults = vdmDriverII.DriveVdm(automation_folder + 'autoconfigs/' + name + '/' +
+            fitresults,calibration = vdmDriverII.DriveVdm(automation_folder + 'autoconfigs/' + name + '/' +
                                             luminometer + beambeamsource + fit + '_driver.json')
 
             # LogInfo('CALIBRATION CONST ' + luminometer + fit + ' START')
-            calibration = calculateCalibrationConstant.CalculateCalibrationConstant(
-                automation_folder + 'autoconfigs/' + name + '/' + luminometer + beambeamsource + fit + '_calibrationConst.json')
+            # calibration = calculateCalibrationConstant.CalculateCalibrationConstant(
+            #     automation_folder + 'autoconfigs/' + name + '/' + luminometer + beambeamsource + fit + '_calibrationConst.json')
         
         # LogInfo(corr + ' ' + luminometer + fit + ' START')
-        fitresults = vdmDriverII.DriveVdm(automation_folder + 'autoconfigs/' + name + '/' +
+        fitresults,calibration = vdmDriverII.DriveVdm(automation_folder + 'autoconfigs/' + name + '/' +
                                             luminometer + corr + '_' + fit + '_driver.json')
 
         # LogInfo('CALIBRATION CONST ' + luminometer + fit + ' START')
-        calibration = calculateCalibrationConstant.CalculateCalibrationConstant(
-            automation_folder + 'autoconfigs/' + name + '/' + luminometer + corr + '_' + fit + '_calibrationConst.json')
+        # calibration = calculateCalibrationConstant.CalculateCalibrationConstant(
+        #     automation_folder + 'autoconfigs/' + name + '/' + luminometer + corr + '_' + fit + '_calibrationConst.json')
 
         # these just take up space in emittance scans. If you need them the configurations are still made
         # LogInfo('PLOT FIT ' + luminometer + fit + ' START')
