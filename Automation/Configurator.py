@@ -126,7 +126,7 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
                 timestamp_data = timestamp_data[(
                     timestamp_data.index != t1) & (timestamp_data.index != t2)]
                 break
-        step_data.append(data.get_value(t2, 'step'))
+        step_data.append(data.get_value(t2, 'step')/2)
     
     
     if 'nominal_separation_plane' in timestamp_data:
