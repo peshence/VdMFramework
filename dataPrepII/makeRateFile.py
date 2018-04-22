@@ -28,11 +28,12 @@ def getRates(datapath, rateTable, scanpt, fill):
     if datapath[-4:] == '.hd5':
         filelist = [datapath]
     else:        
-        filelist = [datapath + '/' + f for f in os.listdir(datapath)]
+        filelist = [f for f in os.listdir(datapath)]
     for f in filelist:
-        if len(f) > len(datapath) and (not str.isdigit(str(f[0])) or int(f[:4]) != fill):
+        if f!=datapath and (not str.isdigit(f[0]) or f[:4])!=fill:
             continue
-    
+        if f!=datapath:
+            f = datapath + '/' + f
         beamtable = None
         with tables.open_file(f, 'r') as h5file:
             for table in h5file.root:

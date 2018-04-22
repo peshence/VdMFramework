@@ -92,14 +92,15 @@ def getCurrents(datapath, scanpt, fill):
     if datapath[-4:] == '.hd5':
         filelist = [datapath]
     else:        
-        filelist = [datapath + '/' + f for f in os.listdir(datapath)]
+        filelist = [f for f in os.listdir(datapath)]
     for f in filelist:
-        if len(f) > len(datapath) and (not str.isdigit(str(f[0])) or int(f[:4]) != fill):
+        if f!=datapath and (not str.isdigit(f[0]) or f[:4]!=fill):
             continue
+        if f!=datapath:
+            f = datapath + '/' + f
         with tables.open_file(f, 'r') as h5file:
             beamtable = [(r['bxintensity1'], r['bxintensity2'], r['timestampsec'], r['intensity1'], r['intensity2'])
                         for r in h5file.root.beam.where(tw)]
-            
         removestrays = lambda a: np.array([0 if i < 6e9 else 1 for i in a])
         bunchlist1 = [removestrays(r[0]) for r in beamtable] 
         bunchlist2 = [removestrays(r[1]) for r in beamtable]        
@@ -111,17 +112,17 @@ def getCurrents(datapath, scanpt, fill):
             filledBunches1 = np.nonzero(bunchlist1[0])[0].tolist()
             filledBunches2 = np.nonzero(bunchlist2[0])[0].tolist()
 
-        # dcct, i.e. current per beam
-        beam1list = [r[3] for r in beamtable]
-        beam2list = [r[4] for r in beamtable]
-        beam1data = beam1data + beam1list
-        beam2data = beam2data + beam2list
-        # fbct, ie. current per bx 
-        bx1list = [r[0] for r in beamtable]
-        bx2list = [r[1] for r in beamtable]
-        # only consider nominally filled bunches
-        bx1data = bx1data + (bx1list* bunchlist1[0]).tolist()
-        bx2data = bx2data + (bx2list* bunchlist2[0]).tolist()
+            # dcct, i.e. current per beam
+            beam1list = [r[3] for r in beamtable]
+            beam2list = [r[4] for r in beamtable]
+            beam1data = beam1data + beam1list
+            beam2data = beam2data + beam2list
+            # fbct, ie. current per bx 
+            bx1list = [r[0] for r in beamtable]
+            bx2list = [r[1] for r in beamtable]
+            # only consider nominally filled bunches
+            bx1data = bx1data + (bx1list* bunchlist1[0]).tolist()
+            bx2data = bx2data + (bx2list* bunchlist2[0]).tolist()
 
     beam1df = pd.DataFrame(beam1data)
     beam2df = pd.DataFrame(beam2data)
@@ -174,7 +175,7 @@ def doMakeBeamCurrentFile(ConfigInfo):
         table[key]=[]
         for j, sp in enumerate(scanpoints):
             (avrgdcctB1, avrgdcctB2, avrgfbct1, avrgfbct2, FilledBunchesB1,
-                FilledBunchesB2, CollidingBunches) = getCurrents(InputCentralPath, sp[3:], int(Fill))
+                FilledBunchesB2, CollidingBunches) = getCurrents(InputCentralPath, sp[3:], Fill)
 
             #Sums over all filled bunches
             sumavrgfbct1 = sumCurrents(avrgfbct1, FilledBunchesB1) 
