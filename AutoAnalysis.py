@@ -137,10 +137,14 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         _corr = reduce(lambda a,b: str(a) + '_' + str(b), corr)
         luminometer = luminometers[0]
         fit = fits[0]
-        proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name, '-l', luminometer, '-f',
-                                fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a',
-                                automation_folder], stderr=subprocess.PIPE)
-        proc.wait()
+        try:
+            proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name, '-l', luminometer, '-f',
+                                    fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a',
+                                    automation_folder], stderr=subprocess.PIPE)
+            proc.wait()
+        except KeyboardInterrupt:
+            proc.kill()
+            raise KeyboardInterrupt
         if proc.returncode: # this is 0 if the process didn't have any errors
             print(proc.stderr.read())
             logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
@@ -166,21 +170,25 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                             fit, angle, _corr, automation_folder=automation_folder, post=post)
         for k in xrange(1, len(threads), max_threads):
             procs = []
-            for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + max_threads]):
-                proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name, '-l', luminometer,
-                                        '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b),
-                                        corr), '-a', automation_folder],stderr=subprocess.PIPE)
-                procs.append(proc)
-               
-            print('\nRunning ' + str(len(procs)) + ' processes')
-            for j, p in enumerate(procs):
-                p.wait()
-                print('Process ' + str(j) + ' finished')
-                if proc.returncode: # this is 0 if the process didn't have any errors
-                    print(proc.stderr.read())
-                    logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
-                                  luminometer + ' ' + fit + '\n' + proc.stderr.read())
+            try:
+                for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + max_threads]):
+                    proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name, '-l', luminometer,
+                                            '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b),
+                                            corr), '-a', automation_folder],stderr=subprocess.PIPE)
+                    procs.append(proc)
                 
+                print('\nRunning ' + str(len(procs)) + ' processes')
+                for j, p in enumerate(procs):
+                    p.wait()
+                    print('Process ' + str(j) + ' finished')
+                    if proc.returncode: # this is 0 if the process didn't have any errors
+                        print(proc.stderr.read())
+                        logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
+                                    luminometer + ' ' + fit + '\n' + proc.stderr.read())
+            except KeyboardInterrupt:
+                for p in procs:
+                    p.kill()
+                raise KeyboardInterrupt
             
             print('\nStarting to create post-ready jsons')
             if post: print('and posting them')
