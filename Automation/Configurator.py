@@ -56,6 +56,7 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
     # Remove rows with timestamps which don't look like scans and sort the
     # rest into pairs (each pair is a scan)
     for t1, t2 in zip(timestamp_data.index[::2], timestamp_data.index[1::2]):
+
         # Something happened during VdM that made this think there were multiple super small scans, so I added this
         if t2 - t1 < 30:
             timestamp_data = timestamp_data[(
@@ -66,6 +67,7 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
             logging.warning('\n\t' + dt.datetime.now().strftime(
                 '%d %b %Y %H:%M:%S\n') + message)
             continue
+
         # Scan should finish progress, and it goes down from a certain max
         # number to 1, we don't get data for each but we should always get
         # at least last 3
@@ -78,11 +80,16 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
         #     logging.warning('\n\t' + dt.datetime.now().strftime(
         #         '%d %b %Y %H:%M:%S\n') + message)
         #     continue
+
+
+        # step number 13 is the proper number for a 7 step emittance scan.
+        # filters out some completely bogged up scans
+        # These are now mostly 9 step so maybe it should be changed
         if data.get_value(t2, 'step') < 13:
             timestamp_data = timestamp_data[(
                 timestamp_data.index != t1) & (timestamp_data.index != t2)]
             message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
-                t2, 'sec')) + ' removed due to steps less then 13'
+                t2, 'sec')) + ' removed due to last step number less then 13'
             print(message)
             logging.warning('\n\t' + dt.datetime.now().strftime(
                 '%d %b %Y %H:%M:%S\n') + message)
@@ -91,6 +98,7 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
         nom_seps = nom_seps[nom_seps.nominal_separation !=
                             nom_seps.shift(-1).nominal_separation].copy()
         logging.debug(nom_seps)
+
         # Constant nominal separation is not a scan
         if nom_seps.empty:
             message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
@@ -101,6 +109,7 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
             timestamp_data = timestamp_data[(
                 timestamp_data.index != t1) & (timestamp_data.index != t2)]
             continue
+
         # A scan's nominal separation in time should be a monotonous
         # function: every step makes it larger(smaller) as it goes from -A
         # (+A) to +A (-A)
