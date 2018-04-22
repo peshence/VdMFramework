@@ -140,7 +140,7 @@ def doMakeScanFile(ConfigInfo):
             tstart = DFsingleSP.min() 
             tstop = DFsingleSP.max()
             relDis = round(entry, 6)
-            if relDis==0 and idx==len(nomSep-1):
+            if relDis==0 and idx==len(nomSep)-1:
                 break
             SP = [idx+1, tstart, tstop, relDis]
 
