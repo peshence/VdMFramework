@@ -90,7 +90,7 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
         nom_seps = data.loc[t1:t2, ['nominal_separation', 'sec']]
         nom_seps = nom_seps[nom_seps.nominal_separation !=
                             nom_seps.shift(-1).nominal_separation].copy()
-        print(nom_seps)
+        logging.debug(nom_seps)
         # Constant nominal separation is not a scan
         if nom_seps.empty:
             message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
@@ -112,10 +112,7 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
                 if (i == (len(diffsigns) - 1)) & (nom_seps.iloc[i].nominal_separation < 0.0001):
                     # We only really care about the seconds and the plane,
                     # which should be the same but I need to keep the index
-                    # up to this point, so no reason to cut the other
-                    # columns
-                    print(int(nom_seps.iloc[i - 1].sec))
-                    print(int(timestamp_data.get_value(t2, 'sec')))
+                    # up to this point, so no reason to cut the other columns
                     timestamp_data.set_value(t2, 'sec', nom_seps.iloc[i - 1].sec)
                     continue
                 message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
