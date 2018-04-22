@@ -138,8 +138,10 @@ def doMakeScanFile(ConfigInfo):
         for idx, entry in enumerate(nomSep):
             DFsingleSP = dfSP[dfSP.nominal_separation == entry]['sec'][range(firstnonzeroIdx, lastnonzeroIdx+1)]
             tstart = DFsingleSP.min() 
-            tstop = DFsingleSP.max() 
+            tstop = DFsingleSP.max()
             relDis = round(entry, 6)
+            if relDis==0 and idx==len(nomSep-1):
+                break
             SP = [idx+1, tstart, tstop, relDis]
 
             scan[i].append(SP)
