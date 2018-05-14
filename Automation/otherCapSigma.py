@@ -6,7 +6,8 @@ import scipy.stats as stats
 import matplotlib.pyplot as plot
 
 detectors = ['PLT','BCM1FPCVD', 'HFET','HFOC']
-corrs = ['noCorr','BeamBeam','BeamBeam_LengthScale']
+# corrs = ['noCorr','BeamBeam','BeamBeam_LengthScale']
+corrs = ['Background','BeamBeam_LengthScale_Background']
 maindet = 'PLT'
 # weighted = True
 def fit(det, name, const):
@@ -236,7 +237,12 @@ def do(const, analysisdir, end, finaldir):
 # do(False,analysisdir,end,finaldir)
 
 
-end = 'bgcorrection' + '.csv'
-finaldir = 'bgcorrection/'
-analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundCorrection/Analysed_Data/'
+# end = 'bgcorrection' + '.csv'
+# finaldir = 'bgcorrection/'
+# analysisdir = '/cmsnfsbrildata/brildata/vdmoutput/AutomationBackgroundCorrection/Analysed_Data/'
+# do(False,analysisdir,end,finaldir)
+
+end = 'final6016' + '.csv'
+finaldir = 'final6016/'
+analysisdir = 'Fill6016Final/Analysed_Data/'
 do(False,analysisdir,end,finaldir)

@@ -10,8 +10,8 @@ import traceback
 import datetime as dt
 
 import tables
-central = '/brildata/vdmdata17/'
-corr = ['BeamBeam']
+central = '/eos/cms/store/group/dpg_bril/comm_bril/vdmdata2017/'
+corr = ['BeamBeam','LengthScale','Background']
 test = True
 
 for a in os.listdir(central):
@@ -21,11 +21,11 @@ for a in os.listdir(central):
             t2 = dt.datetime.strptime(a[-14:-4],'%y%m%d%H%M%S')
             td = t2-t1
             _dg = a != '6016_1707280356_1707280409.hd5'
-            print corr
-            AutoAnalysis.Analyse(central + a, ['noCorr'], test, post=False, dg=_dg,
-                                 pdfs = False, logs = False)
-            AutoAnalysis.Analyse(central + a, corr, test, post=False, dg=_dg,
-                                 pdfs = True, logs = True)
+            print(corr)
+            # AutoAnalysis.Analyse(central + a, ['noCorr'], test, post=False, dg=_dg,
+            #                      pdfs = False, logs = False)
+            AutoAnalysis.Analyse(central + a, corr, test, post=False,
+                                 pdfs = True, logs = False)
             # AutoAnalysis.Analyse(central + a, ['Background', 'BeamBeam', 'LengthScale'], test, post=False, dg=_dg,
             #                      pdfs = True, logs = True)
             
@@ -34,7 +34,7 @@ for a in os.listdir(central):
             raise 
         except:
             message = 'Error on ' + a + '\n' + traceback.format_exc()
-            print message
+            print(message)
             logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S') 
                                 + '\n' + message)
             if 'No times' not in message:
