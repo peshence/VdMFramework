@@ -28,6 +28,8 @@ log_folder = config['log_folder'] + '/'
 max_threads = config['max_threads']
 dg_steps = config['dg_steps']
 
+if not os.path.exists(log_folder):
+    os.makedirs(log_folder)
 logging.basicConfig(filename= log_folder + 'VdM_' +
                     dt.datetime.now().strftime('%y%m%d%H%M%S') + '.log', level=logging.INFO)
 # requests module gives unnecessary info and debug logs
