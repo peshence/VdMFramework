@@ -96,9 +96,9 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
             logging.warning('\n\t' + dt.datetime.now().strftime(
                 '%d %b %Y %H:%M:%S\n') + message)
             continue
-        nom_seps = data.loc[t1:t2, ['nominal_separation', 'sec']]
-        nom_seps = nom_seps[nom_seps.nominal_separation !=
-                            nom_seps.shift(-1).nominal_separation].copy()
+        reduced_data = data.loc[t1:t2, ['nominal_separation', 'sec']]
+        nom_seps = reduced_data[reduced_data.nominal_separation !=
+                            reduced_data.shift(-1).nominal_separation]
         logging.debug(nom_seps)
 
         # Constant nominal separation is not a scan
@@ -124,7 +124,12 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
                     # We only really care about the seconds and the plane,
                     # which should be the same but I need to keep the index
                     # up to this point, so no reason to cut the other columns
-                    timestamp_data.set_value(t2, 'sec', nom_seps.iloc[i - 1].sec)
+                    timestamp_data.set_value(t2, 'sec', nom_seps.sec.tolist()[-2])
+                    message = '\n\t' + 'Removed last step of scan beginning at ' + \
+                              str(data.get_value(t1, 'sec')) + ' because it is flattop'
+                    print(message)
+                    logging.warning('\n\t' + dt.datetime.now().strftime(
+                                    '%d %b %Y %H:%M:%S\n') + message)
                     continue
                 message = '\n\t' + 'Timestamps ' + str(data.get_value(t1, 'sec')) + ' and ' + str(data.get_value(
                     t2, 'sec')) + ' removed due to non monotonous nominal separation in time'
@@ -135,8 +140,7 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
                     timestamp_data.index != t1) & (timestamp_data.index != t2)]
                 break
         step_data.append(data.get_value(t2, 'step')/2)
-    
-    
+
     if 'nominal_separation_plane' in timestamp_data:
         timestamp_data = map(lambda c, d: (c, d),
                          timestamp_data.sec, timestamp_data.nominal_separation_plane)

@@ -28,7 +28,7 @@ while True:
     if len(j['hits']['hits']) == 0:
         break
     scroll_id = j['_scroll_id']
-    for hit in [i for i in j['hits']['hits'] if 'data' not in i['_source'] or (i['_source']['data']['fill'] == 6592 and (i['_source']['data']['detector']=='HFOC' or i['_source']['data']['detector']=='HFET'))]:
+    for hit in [i for i in j['hits']['hits'] if 'data' not in i['_source'] or (int(i['_source']['data']['fill']) > 6648)]:
         requests.delete('http://srv-s2d16-22-01/es/' + hit['_index'] + '/logs/' + hit['_id'])
     
 ## this part doesn't work as intended
