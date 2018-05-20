@@ -101,7 +101,7 @@ def getCurrents(datapath, scanpt, fill):
         with tables.open_file(f, 'r') as h5file:
             beamtable = [(r['bxintensity1'], r['bxintensity2'], r['timestampsec'], r['intensity1'], r['intensity2'])
                         for r in h5file.root.beam.where(tw)]
-        removestrays = lambda a: np.array([0 if i < 6e9 else 1 for i in a])
+        removestrays = lambda a: np.array([0 if i < 1e10 else 1 for i in a])
         bunchlist1 = [removestrays(r[0]) for r in beamtable] 
         bunchlist2 = [removestrays(r[1]) for r in beamtable]        
         beamtslist = [r[2] for r in beamtable]
