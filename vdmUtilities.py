@@ -219,7 +219,6 @@ def doPlot1D(graph,fList, fill, tempPath):
     scan = title_comps[0]
     type = title_comps[1]
     bcid = title_comps[2]
-    print "graph title", title
 
 
     # determine minimum rate in graph to set range of y axis for display 

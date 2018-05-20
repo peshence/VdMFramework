@@ -111,7 +111,7 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
             pdfbxs = orderedIntKeysFirst(pdfbxs)
             
             for key in orderedkeys:
-                if type(key) == int and key%100 == 0:
+                if type(key) == int and (key%100 == 0 or key-1 not in orderedkeys):
                     print "Now fitting BCID ", key
                 if key == 'sum':
                     continue
