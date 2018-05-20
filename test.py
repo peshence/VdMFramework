@@ -10,7 +10,7 @@ import traceback
 import datetime as dt
 
 import tables
-central = '/brildata/vdmdata17/'
+central = '/eos/cms/store/group/dpg_bril/comm_bril/vdmdata17/'
 corr = ['BeamBeam']
 test = True
 

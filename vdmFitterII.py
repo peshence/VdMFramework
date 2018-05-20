@@ -21,7 +21,7 @@ from array import array
 
 def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, FitConfigInfo, inputfolder = None, makepdf = True, makelogs = True):
 
-    showAvailableFits()
+    # showAvailableFits()
 
     availableFits = FitManager.get_plugins(FitManager.FitProvider)
 
@@ -32,13 +32,11 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
 
     fitter = availableFits[FitName + '_Fit']()
 
-    if makelogs:
-        FitLogFile = OutputDir + FitName + '.log'
-        fitlogfile = open(FitLogFile, 'w')
-        sysstdout = sys.stdout
-        sys.stdout = fitlogfile
-        sysstderr = sys.stderr
-        sys.stderr = fitlogfile
+    # if makelogs:
+    #     FitLogFile = OutputDir + FitName + '.log'
+    #     fitlogfile = open(FitLogFile, 'w')
+    #     sysstdout = sys.stdout
+    #     sys.stdout = fitlogfile
 
     # for 2D fits
     if '_2D' in FitName:
@@ -119,12 +117,14 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
                     continue
                 graphdata = graphs[str(key)]
                 name = graphdata['name']
-                graph = r.TGraphErrors(len(graphdata['sep']),array("d",graphdata['sep']),array("d",graphdata['normrate']),array("d",[0.0 for i in graphdata['sep']]),array("d",graphdata['normrateerr']))
+                graph = r.TGraphErrors(len(graphdata['sep']),
+                                       array("d",graphdata['sep']),
+                                       array("d",graphdata['normrate']),
+                                       array("d",[0.0 for i in graphdata['sep']]),
+                                       array("d",graphdata['normrateerr']))
                 graph.SetName(name)
                 graph.SetTitle(name)
-                if FitName [-1] == 'S':
-                    FitConfigInfo['Sigma'] = np.mean(data.CapSigma)
-                    FitConfigInfo['SigmaErr'] = np.mean(data.CapSigmaErr)
+
                 if '_2D' in FitName:
                     result = fitter.doFit2D(
                         graph, graphsX[key], graphsY[key], FitConfigInfo)
@@ -145,10 +145,9 @@ def doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDir, PlotsTempPath, Fi
 
         resultsAll[keyAll] = results
         table = [fitter.table]
-        if makelogs:
-            sys.stdout = sysstdout
-            sys.stderr = sysstderr
-            fitlogfile.close()        
+        # if makelogs:
+        #     sys.stdout = sysstdout
+        #     fitlogfile.close()        
 
         return resultsAll, table
     else:  # Sim Fit

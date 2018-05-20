@@ -97,13 +97,13 @@ def doMakeGraphsFile(ConfigInfo):
     # Apply corrections
     # Note that calibrating SumFBCT to DCCT is done in makeBeamCurrentFile.py if calibration flag in config file is set to true
 
-    showAvailableCorrs()
+    # showAvailableCorrs()
 
     availableCorr = CorrectionManager.get_plugins(CorrectionManager.CorrectionProvider)
 
-    print "The following corrections will be applied, in order: "
-    for i, entry in enumerate(corrName):
-        print "Corr #"+str(i+1)  + ": " +entry
+    # print "The following corrections will be applied, in order: "
+    # for i, entry in enumerate(corrName):
+    #     print "Corr #"+str(i+1)  + ": " +entry
 
     corrFull = ''
 

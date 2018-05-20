@@ -28,7 +28,9 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
             (beginning end end of scan respectively)
         step_data : the number of steps in each scan (ordered)
      """
-    # Get cms data for fill
+    # Get cms data for fill. 
+    # NOTE: IP should be converted to binary and it's 5th bit checked,
+    # since if a scan was happening at both p1 and p5 we would get 34, e.g.
     data = data[(data.ip == 32) & (data.fill == fillnum) & (data.scanstatus == 'ACQUIRING')]
     if 'nominal_separation_plane' in data:
         data = data[(data.nominal_separation_plane != 'NONE')]
@@ -67,7 +69,7 @@ def GetTimestamps(data, fillnum, automation_folder='Automation/'):
             logging.warning('\n\t' + dt.datetime.now().strftime(
                 '%d %b %Y %H:%M:%S\n') + message)
             continue
-
+        ## Not really a dealbreaker I guess
         # Scan should finish progress, and it goes down from a certain max
         # number to 1, we don't get data for each but we should always get
         # at least last 3

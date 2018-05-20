@@ -73,7 +73,7 @@ for j in os.listdir(automation+ratiofolder):
 for folder in os.listdir(automation):
     for js in os.listdir(automation+folder):
         if js[-4:]!='json' or 'UTCA' in js or re.match('output\d{4}[A-Z1]*([_0-9]*)[A-Za-z]*\d?\.json',js).groups()[0]!='': continue
-        print js
+        print(js)
         with open(automation+folder+'/' +js) as f:
             data = json.load(f)
         if data['fill']==6399 and data['detector']=='PLT':break
@@ -101,7 +101,7 @@ for folder in os.listdir(automation):
             data['linearity_lead'] = la*100/lm
             data['linearity_lead_err'] = lcov[0,0]*100/lm
         except:
-            print 'leading', data['detector'], data['fill'], data['timestamp'], lsbil,lsig
+            print('leading', data['detector'], data['fill'], data['timestamp'], lsbil,lsig)
     
         data['efficiency_lead'] = lm/vdmemit[data['detector']]
         data['efficiency_lead_err'] = np.std(lsig)/vdmemit[data['detector']]

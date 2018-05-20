@@ -4,6 +4,7 @@ import os
 import pickle
 import sys
 import datetime
+# import subprocess
 
 import ROOT as r
 from dataPrep_corr.makeBeamBeamFile import doMakeBeamBeamFile
@@ -130,15 +131,17 @@ def DriveVdm(ConfigFile):
     makeRateFileConfig['Fill'] = Fill
     makeRateFileConfig['AnalysisDir'] = AnalysisDir
 
-    print "\nRunning makeRateFile with config info:"
-    for key in makeRateFileConfig:
-        print key, makeRateFileConfig[key]
-    print ""
-
     OutputSubDir = AnalysisDir + "/" + str(makeRateFileConfig['OutputSubDir'])
 
-    if makeRateFile or not (os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json') or os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.pkl')):
+    if (makeRateFile or
+       not (os.path.exists(OutputSubDir+'/Rates_' + Luminometer + '_' + str(Fill) + '.json')
+            or os.path.exists(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.pkl'))):
         table = {}
+
+        print "\nRunning makeRateFile with config info:"
+        for key in makeRateFileConfig:
+            print key, makeRateFileConfig[key]
+        print ""
 
         if Luminometer=='PCC':
             table, csvtable = doMakePCCRateFile(makeRateFileConfig)
@@ -148,19 +151,23 @@ def DriveVdm(ConfigFile):
         with open(OutputSubDir+'/Rates_' + Luminometer +  '_'+str(Fill)+'.json', 'wb') as f:
             json.dump(table, f)
 
+
     ### Beam current files
     makeBeamCurrentFileConfig = ConfigInfo['makeBeamCurrentFileConfig']
     makeBeamCurrentFileConfig['AnalysisDir'] = AnalysisDir
 
-    print "Running makeBeamCurrentFile with config info:"
-    for key in makeBeamCurrentFileConfig:
-        print key, makeBeamCurrentFileConfig[key]
-    print ""
-
     OutputSubDir = str(makeBeamCurrentFileConfig['OutputSubDir'])
     outpath = './' + AnalysisDir + '/' + OutputSubDir
-    if makeBeamCurrentFile or not (os.path.exists(outpath+'/BeamCurrents_'+str(Fill)+'.json') or os.path.exists(outpath + '/BeamCurrents_' +str(Fill)+'.pkl')):
+
+    if (makeBeamCurrentFile or
+       not (os.path.exists(outpath+'/BeamCurrents_'+str(Fill)+'.json')
+            or os.path.exists(outpath + '/BeamCurrents_' +str(Fill)+'.pkl'))):
         table = {}
+
+        print "Running makeBeamCurrentFile with config info:"
+        for key in makeBeamCurrentFileConfig:
+            print key, makeBeamCurrentFileConfig[key]
+        print ""
 
         table = doMakeBeamCurrentFile(makeBeamCurrentFileConfig)
 
@@ -315,6 +322,8 @@ def DriveVdm(ConfigFile):
         misseddata.write(missedDataBuffer)
         misseddata.close()
 
+        print '\nmakeGraphsFile finished.\n'
+
     ## PT: Have no idea if this works, haven't needed it and so haven't updated
     if makeGraphs2D == True:
 
@@ -399,17 +408,7 @@ def DriveVdm(ConfigFile):
             OutputDir = './' + AnalysisDir + '/' + 'VTX' + '/results/' + corrFull + '/'
             OutputDirs.append(OutputDir)
 
-        for OutputDir in OutputDirs:
-            if not os.path.isdir(OutputDir):
-                print "Requested output directory ", OutputDir , " does not exist."
-                print "Please check if input for chosen corrections is available."
-                sys.exit(1)
-
-        print " "
         print "ATTENTION: Output will be written into ", OutputDirs[0]
-        print "Please check there for log files."
-
-        print " "
 
         FitConfig=open(FitConfigFile)
         FitConfigInfo = json.load(FitConfig)
@@ -437,7 +436,8 @@ def DriveVdm(ConfigFile):
         resultsAll = {}
         table = []
 
-        resultsAll, table = doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDirs[0], PlotsTempPath, FitConfigInfo, AnalysisDir, makepdf=makepdf, makelogs=makelogs)
+        resultsAll, table = doRunVdmFitter(Fill, FitName, InputGraphsFiles, OutputDirs[0], PlotsTempPath,
+                                           FitConfigInfo, AnalysisDir, makepdf=makepdf, makelogs=makelogs)
 
         for (i,OutputDir) in enumerate(OutputDirs):
             outResults ='./'+ OutputDir + '/'+FitName+'_FitResults.pkl'
@@ -467,20 +467,24 @@ def DriveVdm(ConfigFile):
                 if element.find(".ps") > 0:
                     merge = +1.
             if merge > 0:
-                os.system("gs -dNOPAUSE -sDEVICE=pdfwrite -dBATCH -sOutputFile="+outPdf+" " + PlotsPath+"/*.ps")
+                os.system("gs -dNOPAUSE -sDEVICE=pdfwrite -dBATCH -q -sOutputFile="+outPdf+" " + PlotsPath+"/*.ps")
 
-            outRoot = './'+OutputDir + '/'+FitName+'_FittedGraphs.root'
-            if os.path.isfile(outRoot):
-                os.remove(outRoot)
-            merge =-999.
+            #NOTE delete this if nothing breaks
+            # outRoot = './'+OutputDir + '/'+FitName+'_FittedGraphs.root'
+            # if os.path.isfile(outRoot):
+            #     os.remove(outRoot)
 
-            for element in filelist:
-                if element.find(".root") > 0:
-                   merge = +1.
-            if merge > 0:
-               os.system("hadd " + outRoot + "  " + PlotsPath + "*.root")
-                        
+            # merge =-999.
+            # for element in filelist:
+            #     if element.find(".root") > 0:
+            #        merge = +1.
+            # if merge > 0:
+            #     with open(os.devnull,'wb') as devnull:
+            #         return_code = subprocess.call(["hadd",outRoot,PlotsPath + "*.root"], stdout=devnull)
+            #         if return_code:
+            #             raise Exception("ROOT hadd failed, pdf may not be complete")
             os.system('rm ' + PlotsPath + '/*')
+        print('\nVdM Fitter finished.\n')
             
     if CalculateCalibrationConstant:
         calculateCalibrationConstantConfig = ConfigInfo['calculateCalibrationConstantConfig']
@@ -491,7 +495,8 @@ def DriveVdm(ConfigFile):
             print(key + ' ' + str(calculateCalibrationConstantConfig[key]))
         
         calibration = CalculateCalibrationConstant(calculateCalibrationConstantConfig)
-    
+        print('\nCalculateCalibrationConstant finished.\n')
+
     if runVdmFitter or CalculateCalibrationConstant:
         return table,calibration
 
