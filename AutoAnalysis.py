@@ -28,8 +28,10 @@ log_folder = config['log_folder'] + '/'
 max_threads = config['max_threads']
 dg_steps = config['dg_steps']
 
-logging.basicConfig(filename= log_folder + 'watcher_' +
-                    dt.datetime.now().strftime('%y%m%d%H%M%S') + '.log', level=logging.DEBUG)
+logging.basicConfig(filename= log_folder + 'VdM_' +
+                    dt.datetime.now().strftime('%y%m%d%H%M%S') + '.log', level=logging.INFO)
+# requests module gives unnecessary info and debug logs
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 if not os.path.exists('./' + folder):
     os.mkdir('./' + folder)
@@ -86,6 +88,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         # get timestamps and number of steps for each scan        
         times = alltimes[scanpair:scanpair + 2]
         steps = allsteps[scanpair:scanpair + 2]
+        scantimes = Configurator.FormatTimestamps(times)[-1]
 
         # make ratetable-luminometername-fit tuples
         luminometers = []
@@ -163,10 +166,10 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
             calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
             if str.isdigit(str(luminometer[-1])):
-                PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
+                PostOutput(fitresults, calibration, scantimes, fill, run, False, name, luminometer,
                         fit, angle, _corr, automation_folder=automation_folder, post=post, perchannel=True)
             if ratetable in _ratetables:
-                PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
+                PostOutput(fitresults, calibration, scantimes, fill, run, False, name, luminometer,
                             fit, angle, _corr, automation_folder=automation_folder, post=post)
         for k in xrange(1, len(threads), max_threads):
             procs = []
@@ -204,13 +207,13 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                     fitresults = pd.DataFrame(fitresults[1:], columns=fitresults[0])
                     calibration = pd.DataFrame(calibration[1:], columns=calibration[0])
                     if str.isdigit(str(ratetable[-1])):
-                        PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
+                        PostOutput(fitresults, calibration, scantimes, fill, run, False, name, luminometer,
                                 fit, angle, _corr, automation_folder=automation_folder, post=post, perchannel=True)
                     elif ratetable in _ratetables:
-                        PostOutput(fitresults, calibration, times, fill, run, False, name, luminometer,
+                        PostOutput(fitresults, calibration, scantimes, fill, run, False, name, luminometer,
                                     fit, angle, _corr, automation_folder=automation_folder, post=post)
                     else:
-                        PostOutput(fitresults, calibration, times, fill, run, True, name, luminometer,
+                        PostOutput(fitresults, calibration, scantimes, fill, run, True, name, luminometer,
                                     fit, angle, _corr, automation_folder=automation_folder, post=post)
                     
                 except (KeyboardInterrupt, SystemExit):

@@ -10,11 +10,11 @@ testendpoint = 'http://srv-s2d16-22-01.cms:11001/vdmtest'
 perchannelendpoint = 'http://srv-s2d16-22-01.cms:11001/vdmch'
 
 def PostOutput(fitresults, calibration, times, fill, run, test, name,
-               luminometer, fit, crossing_angle, corr='noCorr', automation_folder='Automation/', perchannel = False, post=False):
+               luminometer, fit, crossing_angle, automation_folder='Automation/', perchannel = False, post=False):
     ''' Posts data to listener service for online monitoring
         fitresults is the fit results table that comes out of vdmFitterII.py and vdmDriverII.py
         calibration is the table that comes out of calculateCalibrationConstant.py
-        times is a timestamp collection of the form that comes out of Configurator.py
+        times is a timestamp collection from scan file or configuration
         test is a boolean that tells if you want to post to test instance
             (which looks at different fits as different data series) or normal instance
     '''
@@ -26,7 +26,7 @@ def PostOutput(fitresults, calibration, times, fill, run, test, name,
             local_calibration = calibration.loc[calibration.XscanNumber_YscanNumber == 
                                         str(j + 2) + '_' + str(j + 1)]
         output = GetOutput(gb[str(j + 1)].append(gb[str(j + 2)]),
-                            local_calibration, int(times[j][0][0]),
+                            local_calibration, int(times[j*2][0]),
                                fill, run, luminometer, crossing_angle)
         output.update({'fit': fit})
         if perchannel:
@@ -64,30 +64,40 @@ def GetOutput(fitresults, calibration, timestamp, fill, run, detector, crossing_
     '''
     output = {'timestamp': timestamp, 'fill': fill, 'run': run,
               'detector': detector, 'crossing_angle': crossing_angle}
+    fitresults = fitresults[(fitresults.BCID != 'sum') & (fitresults.BCID != 'wav')]
+    calibration = calibration[(calibration.BCID != 'sum') & (calibration.BCID != 'wav')]
+    xfitresults = fitresults[(fitresults.Type == 'X')]
+    xfitresults.index = xfitresults.BCID
+    yfitresults = fitresults[(fitresults.Type == 'Y')]
+    yfitresults.index = yfitresults.BCID
+    calibration.index = calibration.BCID
+    
+    convergedfits = (xfitresults.fitStatus == 0) & (yfitresults.fitStatus == 0)
+    # calibration = calibration[calibration.BCID.isin(xfitresults.BCID)]
 
-    output.update(GetVariable(fitresults, 'CapSigma', 'X'))
-    output.update(GetVariable(fitresults, 'CapSigma', 'Y'))
+    output.update(GetVariable(xfitresults, convergedfits, 'CapSigma', 'X'))
+    output.update(GetVariable(yfitresults, convergedfits, 'CapSigma', 'Y'))
 
-    output.update(GetVariable(fitresults, 'Mean', 'X'))
-    output.update(GetVariable(fitresults, 'Mean', 'Y'))
+    output.update(GetVariable(xfitresults, convergedfits, 'Mean', 'X'))
+    output.update(GetVariable(yfitresults, convergedfits, 'Mean', 'Y'))
 
-    output.update(GetVariable(fitresults, 'peak', 'X'))
-    output.update(GetVariable(fitresults, 'peak', 'Y'))
+    output.update(GetVariable(xfitresults, convergedfits, 'peak', 'X'))
+    output.update(GetVariable(yfitresults, convergedfits, 'peak', 'Y'))
 
-    output.update(GetVariable(fitresults, 'chi2', 'X'))
-    output.update(GetVariable(fitresults, 'chi2', 'Y'))
+    output.update(GetVariable(xfitresults, convergedfits, 'chi2', 'X'))
+    output.update(GetVariable(yfitresults, convergedfits, 'chi2', 'Y'))
 
-    output.update(GetVariable(calibration, 'xsec', 'XY'))
-    output.update(GetVariable(calibration, 'SBIL', 'XY'))
+    output.update(GetVariable(calibration, convergedfits, 'xsec', 'XY'))
+    output.update(GetVariable(calibration, convergedfits, 'SBIL', 'XY'))
+
+    GetSlope(output,calibration,convergedfits)
 
     return output
 
 
-def GetVariable(fitresults, column, plane):
+def GetVariable(data, converged, column, plane):
     '''Gets the data for specific column for specific plane and returns it 
         in dictionary format like values, errors, average, averageerror'''
-    data = fitresults.loc[(fitresults.BCID != 'sum') & (
-        fitresults.BCID != 'wav') & (fitresults.Type == plane)]
     outvalues = [0 for i in range(3564)]
     bcids = [int(i) for i in data.BCID]
 
@@ -108,8 +118,9 @@ def GetVariable(fitresults, column, plane):
 
     values = list(data[column])
     errors = list(data[columnErr])
-    value = np.mean(data[column])
-    error = np.mean(data[columnErr])
+    convergedValues = data[converged][column]
+    value = np.mean(convergedValues)
+    error = np.std(convergedValues)
     for i in range(len(bcids)):
         outvalues[bcids[i] - 1] = values[i]
         outerrors[bcids[i] - 1] = errors[i]
@@ -128,3 +139,47 @@ def GetVariable(fitresults, column, plane):
               valAv: value, errAv: error}
 
     return result
+
+def GetSlope(data,calibration, converged):
+    '''
+    Gets alinear slope of Sigvis vs SBIL
+    data is the complete (except for slopes) json
+    '''
+    convergedbxs = calibration[converged].BCID
+
+    lsig,lsbil,tsig,tsbil = [],[],[],[]
+    for bx in convergedbxs:
+        if str(int(bx)-1) in calibration.BCID:
+            tsig.append(calibration.xsec[bx])
+            tsbil.append(calibration.SBIL[bx]-6)
+        else:
+            lsig.append(calibration.xsec[bx])
+            lsbil.append(calibration.SBIL[bx]-6)
+    lm = np.mean(lsig)        
+    # lsbil = [i/j*lm for i,j in zip(lsbil,lsig)]
+    try:
+        (la,lb),lcov = np.polyfit(lsbil,lsig, 1, cov=True)
+        lin = la*100/lm
+        linerr = np.sqrt(lcov[0,0])*100/lm
+        if linerr < lin:
+            data['linearity_lead'] = lin
+            data['linearity_lead_err'] = linerr
+            data['efficiency_lead'] = lb
+            data['efficiency_lead_err'] = np.sqrt(lcov[1,1])
+    except:
+        pass
+
+    if tsig and len(tsig)>0:
+        tm = np.mean(tsig)
+        # tsbil = [i/j*tm for i,j in zip(tsbil,tsig)]
+        try:
+            (ta,tb),tcov = np.polyfit(tsbil,tsig, 1, cov=True)
+            lin = ta*100/tm
+            linerr = np.sqrt(tcov[0,0])*100/tm
+            if linerr < lin:
+                data['linearity_train'] = lin
+                data['linearity_train_err'] = linerr
+                data['efficiency_train'] = tb
+                data['efficiency_train_err'] = np.sqrt(tcov[1,1])
+        except:
+            pass
