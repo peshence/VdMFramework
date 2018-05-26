@@ -145,15 +145,19 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         try:
             proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name, '-l', luminometer, '-f',
                                     fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b), corr), '-a',
-                                    automation_folder], stderr=subprocess.PIPE)
+                                    automation_folder])
             proc.wait()
         except KeyboardInterrupt:
             proc.kill()
             raise KeyboardInterrupt
         if proc.returncode: # this is 0 if the process didn't have any errors
-            print(proc.stderr.read())
+            # redirecting stderr to PIPE breaks pdf making in large quantities. I'm at a loss why that happens
+            # print(proc.stderr.read())
+            # logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
+            #               luminometer + ' ' + fit + '\n' + proc.stderr.read()))
+            print('An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details')
             logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
-                          luminometer + ' ' + fit + '\n' + proc.stderr.read()))
+                          luminometer + ' ' + fit + '\n An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details')
             # even if it fails, it should have done the common parts (scan file,beam currents file)
             # TODO implement per script errors to have a better grip on what happened
             
