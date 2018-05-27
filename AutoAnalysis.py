@@ -194,9 +194,13 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                     p.wait()
                     print('Process ' + str(j) + ' finished')
                     if proc.returncode: # this is 0 if the process didn't have any errors
-                        print(proc.stderr.read())
-                        logging.error('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
-                                    luminometer + ' ' + fit + '\n' + proc.stderr.read())
+                        # redirecting stderr to PIPE breaks pdf making in large quantities. I'm at a loss why that happens
+                    # print(proc.stderr.read())
+                    # logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
+                    #               luminometer + ' ' + fit + '\n' + proc.stderr.read()))
+                    print('An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details')
+                    logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
+                                luminometer + ' ' + fit + '\n An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details')
             except KeyboardInterrupt:
                 for p in procs:
                     p.kill()
