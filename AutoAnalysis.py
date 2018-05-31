@@ -157,10 +157,9 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
             #               luminometer + ' ' + fit + '\n' + proc.stderr.read()))
             print('An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details')
             logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
-                          luminometer + ' ' + fit + '\n An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details')
+                          luminometer + ' ' + fit + '\n An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details'))
             # even if it fails, it should have done the common parts (scan file,beam currents file)
             # TODO implement per script errors to have a better grip on what happened
-            
         else:
             with open(automation_folder + 'Analysed_Data/' + name + '/' + luminometer + 
                       '/results/'+ _corr + '/' + fit + '_FitResults.pkl') as fr:
@@ -186,7 +185,7 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                 for i, (luminometer, fit, ratetable) in enumerate(threads[k:k + max_threads]):
                     proc = subprocess.Popen(['python', 'runAnalysis.py', '-n', name, '-l', luminometer,
                                             '-f', fit, '-c', reduce(lambda a,b: str(a) + '_' + str(b),
-                                            corr), '-a', automation_folder],stderr=subprocess.PIPE)
+                                            corr), '-a', automation_folder])
                     procs.append(proc)
                 
                 print('\nRunning ' + str(len(procs)) + ' processes')
@@ -195,12 +194,12 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
                     print('Process ' + str(j) + ' finished')
                     if proc.returncode: # this is 0 if the process didn't have any errors
                         # redirecting stderr to PIPE breaks pdf making in large quantities. I'm at a loss why that happens
-                    # print(proc.stderr.read())
-                    # logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
-                    #               luminometer + ' ' + fit + '\n' + proc.stderr.read()))
-                    print('An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details')
-                    logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
-                                luminometer + ' ' + fit + '\n An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details')
+                        # print(proc.stderr.read())
+                        # logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
+                        #               luminometer + ' ' + fit + '\n' + proc.stderr.read()))
+                        print('An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details')
+                        logging.error(str.format('\n\t' + dt.datetime.now().strftime('%y%m%d%H%M%S'),
+                                    luminometer + ' ' + fit + '\n An error occurred while fitting, rerun the vdmDriver with appropriate configuration for details'))
             except KeyboardInterrupt:
                 for p in procs:
                     p.kill()
