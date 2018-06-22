@@ -1,8 +1,10 @@
+#python AutoAnalysis.py -f /brildata/vdmdata18/6744_1805310241_1805310307.hd5 -t  -pdf
 import ROOT as r
 
 import tables
 import numpy as np
 from scipy import stats
+import math
 import pandas as pd
 
 import json
@@ -82,7 +84,10 @@ def getRates(datapath, rateTable, scanpt, fill):
         for idx, bcid in enumerate(collBunches):
             i = bcid if int(fill)>=5838 or rateTable != 'hfetlumi' else (bcid-1 if bcid!=0 else 3563)
             rates[str(bcid+1)] = bxdf[i].mean()
-            ratesErr[str(bcid+1)] = stats.sem(bxdf[i])
+            if rateTable != 'hfetlumi':
+                ratesErr[str(bcid+1)] = stats.sem(bxdf[i])
+            else:
+                ratesErr[str(bcid+1)] = math.sqrt(bxdf[i].mean()*(1-bxdf[i].mean())/(4*4096*len(bxdf[i])))
 
     if avgdf.empty:
         print "Attention, rates avgdf empty because timestamp window not contained in file"
