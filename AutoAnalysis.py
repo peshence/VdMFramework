@@ -98,8 +98,15 @@ def Analyse(filename, corr, test, filename2=None, post=True, automation_folder=f
         if test:
             ratetables = _ratetables
         for r in ratetables:
-            #l = re.match('([a-z1]*)_?lumi(.*)', r).group(1)
-            l = re.match('([a-z1]*)_?[a-z]*lumi[a-z]*_?(.*)', r).group(1)
+            match = re.match('(.*)_?lumi[a-z]*_?(.*)', r)
+            l = match.group(1)
+            if l[-1] == '_': l = l[:-1]
+            algoch=match.groups()[-1]
+            if algoch:
+                algoch = algoch.split('_')
+                l = l + (algoch[0] if len(algoch[0]) < 3 else ('_old' if algoch[0]=='100' else '_deriv'))
+                if len(algoch)>1:
+                    l = l + algoch[1]
             l = l if r != 'hflumi' else 'hfoc'
             if dg or filename2 or steps[0]>dg_steps:
                 # f = ('DG' if 'plt' == r[:3] else 'DGConst')

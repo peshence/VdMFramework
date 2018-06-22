@@ -31,11 +31,9 @@ def PostOutput(fitresults, calibration, times, fill, run, test, name,
         output.update({'fit': fit})
         if perchannel:
             detector = output['detector']
-            if str.isdigit(str(detector[-2])):
-                channel = int(str(detector[-2:]))
-            else:
-                channel = int(str(detector[-1]))
-            detector = re.match('([A-Z1]*[A-Z])_?[0-9]*', detector).group(1)
+            detector_channel = re.match('([A-Z1_]*[A-Z]+)_?([0-9]+)', detector)
+            detector = detector_channel.group(1)
+            channel = detector_channel.group(2)
             output['detector'] = detector
             output.update({'channel':channel})
             if not os.path.exists(automation_folder + 'Analysed_Data/' + name + '/PerChannelJSONS/'):

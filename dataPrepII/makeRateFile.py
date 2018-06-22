@@ -84,7 +84,7 @@ def getRates(datapath, rateTable, scanpt, fill):
         for idx, bcid in enumerate(collBunches):
             i = bcid if int(fill)>=5838 or rateTable != 'hfetlumi' else (bcid-1 if bcid!=0 else 3563)
             rates[str(bcid+1)] = bxdf[i].mean()
-            if rateTable != 'hfetlumi':
+            if rateTable == 'hfetlumi':
                 ratesErr[str(bcid+1)] = stats.sem(bxdf[i])
             else:
                 ratesErr[str(bcid+1)] = math.sqrt(bxdf[i].mean()*(1-bxdf[i].mean())/(4*4096*len(bxdf[i])))
