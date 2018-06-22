@@ -1,8 +1,8 @@
 {
     "Comment": "Results folder, watch folder, max threads to use, steps needed for double gaussian, ratetables to analyse",
-    "automation_folder": "Automation/",
+    "automation_folder": "/brildata/vdmoutput18/",
     "central_default": "/brildata/vdmdata18/",
-    "log_folder": "Automation/",
+    "log_folder": "/brilpro/vdmlogs/",
     "lxplusconfig": {
         "automation_folder": "Fill6016Final/",
         "central_default": "/eos/cms/store/group/dpg_bril/comm_bril/vdmdata2017/",
@@ -13,10 +13,9 @@
     "ratetables": [
         "pltlumizero",
         "hfoclumi",
+        "hfetlumi",
         "bcm1fsilumi",
-        "bcm1fpcvdlumi",
-	"bcm1futca_pcvdlumi"
-
+        "bcm1fpcvdlumi"
     ],
     "exampleratetables": [
         "pltlumizero",
